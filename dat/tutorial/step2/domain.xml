@@ -1,0 +1,12 @@
+<domain type="xy">
+
+<mesh type="uniform" name="mesh1">
+<origin>-0.15,0</origin>
+<spacing>5e-3, 5e-3</spacing>
+<nodes>101, 41</nodes>
+<mesh-bc wall="left" type="dirichlet" value="0" />
+<mesh-bc wall="bottom" type="symmetry"/>
+</mesh>
+</domain>
+        
+      

@@ -1,0 +1,11 @@
+<sources>
+<source name="ion_source" type="uniform">
+<species>ions</species>
+<spline>anode</spline>
+<mdot>4e-7</mdot>
+<v_drift>15000</v_drift>
+<temp>1000</temp>
+</source>
+
+</sources>
+   

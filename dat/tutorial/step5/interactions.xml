@@ -1,0 +1,35 @@
+<!-- material interactions file -->
+<material_interactions>
+
+<surface_hit source="O+" target="SS">
+<product>O</product>
+<model>cosine</model>
+<prob>0.9</prob>
+<c_accom>0.5</c_accom>
+<c_rest>0.9</c_rest>
+</surface_hit>
+
+<!--
+<chemistry model="ionization">
+<sources>O,e-</sources>
+<products>iO+,2*e-</products>
+</chemistry> 
+-->
+
+<mcc model="cex">
+<source>O+</source>
+<target>O</target>
+<sigma>inv</sigma>
+<sigma_coeffs>1e-16</sigma_coeffs>
+</mcc> 
+
+<!--
+<dsmc model="vhs">
+<source>O+</source>
+<target>O+</target>
+<sigma>inv</sigma>
+<sigma_coeffs>1e-16</sigma_coeffs>
+<sigma_max>1e-16</sigma_max>
+</dsmc> 
+-->
+</material_interactions>

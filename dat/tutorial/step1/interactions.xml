@@ -1,0 +1,24 @@
+<material_interactions>
+<chemical_reaction process="ionization">
+	<sources>Xe,e-</sources>
+	<products>Xe+,e-</products>
+	<rate>const</rate>
+	<rate_coeffs>1e-18</rate_coeffs>
+</chemical_reaction>
+
+<mcc_collision process="scatter">
+	<source>Xe+</source>
+	<target>Xe</target>
+	<sigma>const</sigma>
+	<sigma_coeffs>1e-18</sigma_coeffs>
+</mcc_collision>
+
+<surface_impact source="Xe+" target="BN">
+	<emission>diffuse</emission>
+	<product>Xe</product>
+	<c_stick>0.5</c_stick>
+	<c_rest>1</c_rest>
+	<c_accom>0.5</c_accom>
+	<sputter type="const" yield="0.1" product="BN" />
+</surface_impact>
+</material_interactions>

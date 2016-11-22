@@ -1,0 +1,22 @@
+<!-- materials file -->
+<materials>
+
+<material name="O+" type="kinetic">
+	<molwt>16</molwt>
+	<charge>1</charge>
+	<spwt>5e5</spwt>
+	<init>nd_back=1e4</init>
+</material>
+
+<material name="O" type="kinetic">
+	<molwt>16</molwt>
+	<charge>0</charge>
+	<spwt>2e5</spwt>
+</material>
+
+<material name="SS" type="solid">
+	<molwt>52.3</molwt> 
+	<density>8000</density>
+</material>
+
+</materials>

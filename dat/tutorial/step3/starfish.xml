@@ -1,0 +1,70 @@
+<simulation>    
+<note>Starfish Tutorial: Part 3</note>
+
+<!-- load input files -->
+<load>domain.xml</load>
+<load>materials.xml</load>
+<load>boundaries.xml</load>
+<load>interactions.xml</load>
+
+<!-- set potential solver -->
+<!--
+<solver type="constant-ef">
+<comps>100,0</comps>
+</solver>
+-->
+
+<solver type="poisson">
+<n0>1e12</n0>
+<Te0>1.5</Te0>
+<phi0>0</phi0>
+<max_it>2000</max_it>
+<tol>1e-3</tol>
+<nl_tol>1e-1</nl_tol>
+</solver>
+
+<!-- set sources -->
+<sources>
+
+<boundary_source name="space">
+<type>uniform</type>
+<material>O+</material>
+<boundary>inlet</boundary>
+<mdot>5.313e-11</mdot>
+<v_drift>10000</v_drift>
+</boundary_source>
+
+</sources>
+
+<!-- set time parameters -->
+<time>
+<num_it>500</num_it>
+<dt>5e-7</dt>
+</time>	
+
+<!-- save animation -->
+<!--
+<animation start_it="1" frequency="10">
+<output type="2D" file_name="field_ani.dat" format="tecplot" variables="phi,nd.O+,u.O+,v.O+" />
+</animation>
+-->
+
+<!-- run simulation -->
+<starfish />
+        
+<!-- save results -->
+<output type="2D" file_name="field.dat" format="tecplot">
+<variables>phi, rho, nd.o+, u.o+, v.o+, nd.o, u.o, v.o</variables>
+</output>
+
+<output type="1D" file_name="profile.dat" format="tecplot">
+<mesh>mesh1</mesh>
+<index>J=0</index>
+<variables>phi, rho, nd.o+, u.o+, v.o+</variables>
+</output>
+
+<output type="boundaries" file_name="boundaries.dat" format="tecplot">
+<!--<variables>flux.o+, flux_normal.o+</variables>-->
+</output>
+
+</simulation>

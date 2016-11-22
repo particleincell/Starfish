@@ -1,3 +1,17 @@
+#svn
+.svn
+
+#other folders
+build
+dist
+doc
+
+#other files
+*.log
+*.lay
+*.dat
+*.xlsx
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

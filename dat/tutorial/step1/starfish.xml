@@ -1,0 +1,43 @@
+<simulation>    
+<note>Starfish Tutorial: Part 1</note>
+
+<!-- load input files -->
+<load>domain.xml</load>
+<load>materials.xml</load>
+<load>cylinder.xml</load>
+
+<!-- set potential solver -->
+<solver type="poisson">
+<n0>1e12</n0>
+<Te0>1.5</Te0>
+<phi0>0</phi0>
+<max_it>1e4</max_it>
+<nl_max_it>25</nl_max_it>
+<tol>1e-4</tol>
+<nl_tol>1e-3</nl_tol>
+<linear>false</linear>
+</solver>
+
+<!-- set time parameters -->
+<time>
+<num_it>0</num_it>
+<dt>5e-7</dt>
+</time>	
+	
+<!-- run simulation -->
+<starfish />
+        
+<!-- save results -->
+<output type="2D" file_name="field.dat" format="tecplot">
+<variables>phi, efi, efj, rho, nd.O+</variables>
+</output>
+
+<output type="1D" file_name="profile.dat" format="tecplot">
+<mesh>mesh1</mesh>
+<index>J=0</index>
+<variables>phi, efi, efj, rho, nd.o+</variables>
+</output>
+
+<output type="boundaries" file_name="boundaries.dat" format="tecplot" />
+
+</simulation>

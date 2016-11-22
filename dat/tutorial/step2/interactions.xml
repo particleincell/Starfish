@@ -1,0 +1,13 @@
+<material_interactions>
+
+<!--
+<surface_impact source="O+" target="SS">
+	<emission>diffuse</emission>
+	<product>Xe</product>
+	<c_stick>1.0</c_stick>
+	<c_rest>1</c_rest>
+	<c_accom>0.5</c_accom>
+	<sputter type="const" yield="0.1" product="BN" />
+</surface_impact>
+-->
+</material_interactions>
