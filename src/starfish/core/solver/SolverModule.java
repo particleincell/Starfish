@@ -57,7 +57,6 @@ public class SolverModule extends CommandModule
 	    Log.error("Syntax <solver type=SOLVER_TYPE>");
 	}
 
-	
 	SolverFactory fac = solver_factories.get(type.toUpperCase());
 	if (fac!=null)
 	    solver = fac.makeSolver(element);
@@ -66,7 +65,6 @@ public class SolverModule extends CommandModule
 	    Log.error("Unrecognized solver type " + type);
 	}
 
-	   /*TODO: move to individual solvers*/
 	/*get solver parameters*/
 	int lin_max_it=InputParser.getInt("max_it", element, 5000);
 	double lin_tol=InputParser.getDouble("tol", element, 1e-6);
@@ -108,7 +106,6 @@ public class SolverModule extends CommandModule
 	
 	/*update electric field*/
 	solver.updateGradientField();
-
     }
 
     /**

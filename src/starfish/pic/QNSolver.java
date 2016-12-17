@@ -47,8 +47,7 @@ public class QNSolver extends PotentialSolver
 		    if (ion_den>0)
 			phi[i][j] = phi0 + kTe0*Math.log(ion_den/den0);
 		    else
-			phi[i][j] = phi0 + kTe0*Math.log(1e-10);	/*background 10ords of mag less than den0*/
-						
+			phi[i][j] = phi0 + kTe0*Math.log(1e-10);	/*background O(10) less than den0*/						
 		}
 	    }
     }
@@ -70,8 +69,7 @@ public class QNSolver extends PotentialSolver
 	    Starfish.Log.log("> phi0 =" + phi0 + " (V)");
 	    
 	    return solver;
-	}
-	
+	}	
     };
 
 
