@@ -8,7 +8,7 @@ the [five step tutorial](https://www.particleincell.com/2012/starfish-tutorial-p
 The input files are included in the dat/tutorial directory. There you will also find
 a [PowerPoint presentation](dat/tutorial/starfish-code-overview.pdf) with some introductory remarks about the source code.
 
-![Number Density](nd-400x160)
+![Number Density](nd-400x160.png)
 
 The LE edition includes support for the Particle In Cell (PIC) method with Monte Carlo (MCC) collisions,
 as well as several gas injection sources, a preliminary support for fluid and kinetic materials. The
