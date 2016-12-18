@@ -21,12 +21,6 @@ public class SolidMaterial extends Material
     }
 	
     @Override
-    public void update()
-    {
-	/*do nothing*/
-    }
-	
-    @Override
     public void updateFields() 
     {
 	/*do nothing*/
