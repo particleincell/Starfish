@@ -213,7 +213,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     public static boolean steady_state() {return time_module.steady_state;}
 
     /**returns number of available processors*/
-    protected static int num_processors = -1;
+    protected static int num_processors = 1;
     public static int getNumProcessors() {return num_processors;}
     
     /**convenience functions for logging*/

@@ -67,7 +67,7 @@ public class Spline
 	return box;
     }
 
-    public enum SetPathMode {MOVE, LINEAR, CUBIC, SMOOTH};
+    public enum SetPathMode {NONE,MOVE, LINEAR, CUBIC, SMOOTH};
 
     /**Sets the spline using a SVG-like path syntax:
      M x y : moves the current position to x y
@@ -97,7 +97,9 @@ public class Spline
 	double x2[]={0,0,1};
 	double k1[] = {0,0,1};
 	double k2[] = {0,0,1};
-		    
+
+	boolean relative = false;
+	
 	Log.debug("PATH: "+path);	
 
 	while (sc.hasNext())
@@ -114,23 +116,27 @@ public class Spline
 		points.clear();
 	    }
 
-	    /*first check if this is one of the special characters*/
+	    /*first check if this is one of the special characters*/	    
 	    if (str.equalsIgnoreCase("M"))
 	    {
 		mode = SetPathMode.MOVE;
+		relative = str.equals("m");    //lowercase is relative
 	    }
 	    else if (str.equalsIgnoreCase("L"))
 	    {
 		mode = SetPathMode.LINEAR;
+		relative = str.equals("l");    //lowercase is relative
 	    }
 	    else if (str.equalsIgnoreCase("C"))
 	    {
 		mode = SetPathMode.CUBIC;
+		relative = str.equals("c");    //lowercase is relative		
 	    }
 	    else if (str.equalsIgnoreCase("S"))
 	    {
 		mode = SetPathMode.SMOOTH;
 		points.add(x1.clone());
+		relative = (str.equals("s"))?true:false;    //lowercase is relative
 	    }
 	    else if (str.equalsIgnoreCase("Z"))
 	    {
@@ -143,7 +149,15 @@ public class Spline
 		/*try to parse Double*/
 		try{
 		    x2[0] = Double.parseDouble(str);	/*may throw exception*/
-		    x2[1] = sc.nextDouble();
+		    x2[1] = sc.nextDouble();	
+
+		    /*perform transformation on x2, x1 is already transformed*/
+		    x2 = T.mult(x2);
+		
+		    if (relative) {
+			x2[0]+=x1[0];
+			x2[1]+=x1[1];			
+		    }
 		}
 		catch (NumberFormatException e)
 		{
@@ -157,21 +171,23 @@ public class Spline
 		    {
 			/*our x2 is [3], return point may be different dimension*/
 			double xp[] = con_spline.firstPoint();
+			if (flip_normals) xp = con_spline.lastPoint();
+			
 			x2[0] = xp[0];
 			x2[1] = xp[1];
+			mode = SetPathMode.NONE;
 		    }
 		    else if (pieces[1].equalsIgnoreCase("LAST"))
 		    {
 			double xp[] = con_spline.lastPoint();
+			if (flip_normals) xp = con_spline.firstPoint();
 			x2[0] = xp[0];
 			x2[1] = xp[1];
+			mode = SetPathMode.NONE;
 		    }
 		    else
 			Log.error("unknown boundary conntector type "+pieces[1]);
 		}				
-
-		/*perform transformation on x2, x1 is already transformed*/
-		x2 = T.mult(x2);
 		
 		/*if this is a cubic spline we need to capture the 2 knots*/
 		if (mode == SetPathMode.CUBIC)
@@ -193,13 +209,23 @@ public class Spline
 		    /*transform k2 and x2, k1 is actually previous x2*/
 		    k2 = T.mult(k2);
 		    x2 = T.mult(x2);
-		    
+	
+		    if (relative)
+		    	for (int i=0;i<2;i++)
+			{
+			    //k1 and x1 are already offset
+			    k2[i]+=x1[i];
+			    x2[i]+=x1[i];
+			}
+	    		   		    
 		    addCubicSegment(x1,k1,k2,x2,flip_normals);
 		}
 		else if (mode == SetPathMode.LINEAR)
 			addLinearSegment(x1,x2,flip_normals);
 		else if (mode == SetPathMode.SMOOTH)
 		    	points.add(x2.clone());	    /*add to collection of points making up the smooth curve*/
+		else if (mode == SetPathMode.NONE)
+			mode = SetPathMode.LINEAR;
 		
 		/*copy current position down*/
 		x1[0] = x2[0];

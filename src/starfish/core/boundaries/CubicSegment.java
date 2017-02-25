@@ -84,7 +84,7 @@ class CubicSegment extends Segment
     protected final double[] bezierCoeffs(double P0, double P1, double P2, double P3)
     {
 	double Z[] = new double[4];
-	Z[0] = -P0 + 3*P1 + -3*P2 + P3; 
+	Z[0] = -P0 + 3*P1 - 3*P2 + P3; 
         Z[1] = 3*P0 - 6*P1 + 3*P2;
         Z[2] = -3*P0 + 3*P1;
         Z[3] = P0;

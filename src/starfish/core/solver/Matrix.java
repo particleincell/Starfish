@@ -377,13 +377,13 @@ public class Matrix
 	 *
 	 * T = [1 0 vx]
 	 *     [0 1 vy]
-	 *     [0 0  1]
+	 *     [0 0  0]
 	 */
 	Matrix T = new Matrix(3,3);
 	T.set(0, 0, 1);
-	T.set(2, 0, translation[0]);
+	T.set(0, 2, translation[0]);
 	T.set(1, 1, 1);
-	T.set(2, 1, translation[1]);
+	T.set(1, 2, translation[1]);
 	T.set(2, 2, 1);
 
 	/*apply transformation, rotation->scaling->translation*/

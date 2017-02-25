@@ -49,22 +49,14 @@ public class BoundaryModule extends CommandModule
 		
     @Override
     public void process(Element element) 
-    {
-	
+    {	
 	/*grab transformation if set*/
-	Element transf = InputParser.getChild("transform", element);
 	double scaling[] = {1,1};
 	double translation[] = {0,0};
 	double rotation = 0;
+	boolean flip_normals = false;
 	
-	if (transf!=null)
-	{
-	    scaling = InputParser.getDoubleList("scaling", transf,scaling);
-	    translation = InputParser.getDoubleList("translation",transf,translation);
-	    rotation = InputParser.getDouble("rotation",transf,rotation);
-	}
-	
-	/*create global transformation matrix*/
+	/*default*/
 	Matrix G = Matrix.makeTransformationMatrix(scaling,rotation,translation);
 	
 	/*process commands*/
@@ -74,7 +66,17 @@ public class BoundaryModule extends CommandModule
 	{
 	    Element el = iterator.next();
 	    if (el.getNodeName().equalsIgnoreCase("BOUNDARY"))
-		NewBoundary(el,G);
+		NewBoundary(el,G,flip_normals);
+	    else if (el.getNodeName().equalsIgnoreCase("TRANSFORM"))
+	    {
+		scaling = InputParser.getDoubleList("scaling", el,scaling);
+		translation = InputParser.getDoubleList("translation",el,translation);
+		rotation = InputParser.getDouble("rotation",el,rotation);
+		/*update global matrix*/
+		G = Matrix.makeTransformationMatrix(scaling,rotation,translation);	
+		
+		flip_normals = InputParser.getBoolean("reverse", el, false);
+	    }
 	    else
 		Log.warning("Unknown <boundaries> element "+el.getNodeName());
 	}
@@ -86,7 +88,7 @@ public class BoundaryModule extends CommandModule
      * @param element Parent element for this boundary
      * @param G	global transformation matrix
      */
-    public void NewBoundary(Element element, Matrix G)
+    public void NewBoundary(Element element, Matrix G, boolean flip_normals_global)
     {
 	/*get name and type*/
 	String name = InputParser.getValue("name", element);
@@ -124,7 +126,7 @@ public class BoundaryModule extends CommandModule
 	boundary.setTemp(temp);
 		
 	/*read reverse flag if defined*/
-	boolean flip_normals = InputParser.getBoolean("reverse", element, false);
+	boolean flip_normals = InputParser.getBoolean("reverse", element, flip_normals_global);
 
 	/*spline split?*/
 	//int split = InputParser.getInt("split",element,1);
