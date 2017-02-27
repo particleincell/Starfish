@@ -311,10 +311,19 @@ public abstract class Mesh
 	return Math.sqrt(dx*dx+dy*dy);	
     }
 	
-    /**@return random position in cell i,j*/
+    /**@return random position in cell i,j
+     */
     public double[] randomPosInCell(int i, int j) 
     {
-	return pos(i+Starfish.rnd(),j+Starfish.rnd());
+	double lc[]=new double[2];
+	int c=0;
+	do {
+	   lc[0] = i+Starfish.rnd();
+	   lc[1] = j+Starfish.rnd();
+	} while (++c<10 && isInternalPoint(lc));
+	
+	//if (c>=10) Log.warning("Failed to find external point in cell "+i+" "+j);
+	return pos(lc);
     }
 
     /**returns true if mesh contains the point*/
@@ -641,6 +650,35 @@ for (Mesh mesh:Starfish.getMeshList())
 	    } /*boundary*/
 	}
 	
+    /*return if point is located inside or outside a surface in interface cell*/
+    public boolean isInternalPoint(double lc[])
+    {
+	/*don't remember anymore how segments are set so check all four cell vertices*/
+	int i1 = (int)lc[0];
+	int j1 = (int)lc[1];
+	
+	int i2 = i1+1;
+	int j2 = j1+1;
+	if (i2>=ni) i2=ni-1;
+	if (j2>=nj) j2=nj-1;
+	
+	double x[] = pos(lc);
+	
+	for (int i=i1;i<=i2;i++)
+	    for (int j=j1;j<=j2;j++)
+	    {	
+		ArrayList<Segment> blist = node[i][j].segments;
+		if (blist.isEmpty()) continue;
+	
+		Segment seg = Spline.visibleSegment(x, blist);
+		if (seg==null)
+		    continue;
+				
+		return Spline.isInternal(x,seg);
+	    }
+	return false;
+    }
+    
 	/*uses boundaries located in a node control volume to set node locations*/
 	protected void setInterfaceNodeLocation()
 	{

@@ -1021,9 +1021,9 @@ if (Starfish.steady_state())
 
 	    /*try to get DSMC data*/
 	    material.ref_temp = InputParser.getDouble("ref_temp", element,275);
-	    material.visc_temp_index = InputParser.getDouble("visc_temp_index",element,1);
+	    material.visc_temp_index = InputParser.getDouble("visc_temp_index",element,0.85);
 	    material.vss_inv = InputParser.getDouble("vss_inv",element,1);
-	    material.diam = InputParser.getDouble("diam",element,100e-12);
+	    material.diam = InputParser.getDouble("diam",element,5e-10);
 	
 	    /*log*/
 	    Log.log("Added KINETIC material '"+name+"'");

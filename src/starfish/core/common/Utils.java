@@ -23,50 +23,47 @@ public class Utils
     * 
     * Due to difference in Birdsall's v_th, need to multiply by sqrt(1/2)
     */
+
     public static double SampleMaxw1D(double v_th)
     {
-	double Rsum=0;
+	double sum=0;
+	final int M=12;
+	for (int i=0;i<M;i++)
+	    sum += Starfish.rnd();
 		
-	for (int i=0;i<12;i++)
-	    Rsum += Starfish.rnd();
-		
-	double fm = Rsum - 6.0;	/*M/12 = 1, so not included*/	
-	double mag = Math.sqrt(0.5)*v_th*fm;
-		
-	return mag;
+	double fm = (sum - 0.5*M)*Math.sqrt(12.0/M);	/*M/12 = 1, so not included*/	
+	return Math.sqrt(0.5)*v_th*fm;
     }
 
     /*samples 3 1d maxwellians
     * TODO: test if this works or if we need to do rotation of 1D speed distribution	 */
     public static double[] SampleMaxw3D(double v_th) 
     {
-	double v_max[] = new double[3];
-		
-/*	v_max[0] = SampleMaxw1D(v_th);
-	v_max[1] = SampleMaxw1D(v_th);
-	v_max[2] = SampleMaxw1D(v_th);
-*/	
-	/*pick a random angle*/
-	double theta = 2*Math.PI*Math.random();
- 
-	/*pick a random direction for n[2]*/
-	double R = -1.0+2*Math.random();
-	double a = Math.sqrt(1-R*R);
- 
-	/*double mag1 = SampleMaxw1D(v_th);   
-	double mag2 = SampleMaxw1D(v_th);   
-	double mag3 = SampleMaxw1D(v_th);   
-	double mag = Math.sqrt(mag1*mag1+mag2*mag2+mag3*mag3);*/
+	double u = SampleMaxw1D(1);
+	double v = SampleMaxw1D(1);
+	double w = SampleMaxw1D(1);
 	
-	double mag= SampleMaxw1D(v_th);
-	
-	v_max[0] = mag * Math.cos(theta)*a;
-	v_max[1] = mag * Math.sin(theta)*a;
-	v_max[2] = mag *R;
-		
-	return v_max;
+	double v_mag = v_th*Math.sqrt(u*u+v*v*w*w);
+	return isotropicVel(v_mag);	
     }
 
+    public static double[] isotropicVel(double mag)
+    {
+	/*pick a random angle*/
+	double theta = 2*Math.PI*Starfish.rnd();
+ 
+	/*pick a random direction for n[2]*/
+	double R = -1.0+2*Starfish.rnd();
+	double a = Math.sqrt(1-R*R);
+ 
+	double amag = (mag>0)?mag:-mag;
+	double v[] = new double[3];
+	v[0] = Math.cos(theta)*a*amag;
+	v[1] = Math.sin(theta)*a*amag;
+	v[2] = R*amag;
+	return v;
+    }
+    
     /** computes thermal velocity*/
     public static double computeVth(double temp, double mass)
     {

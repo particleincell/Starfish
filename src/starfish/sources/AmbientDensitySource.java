@@ -245,7 +245,7 @@ public class AmbientDensitySource extends Source
 	    Starfish.Log.log("> spline  = " + boundary.getName());
 	    Starfish.Log.log("> drift velocity  = <" + v_drift[0]+","+v_drift[1]+","+v_drift[2] + "> (m/s)");
 	    Starfish.Log.log("> temperature  = " + temp + " (K)");
-	    Starfish.Log.log("> density  = " + density + " (Pa)");
+	    Starfish.Log.log("> density  = " + density + " (#/m^3)");
 	}
 	
     };
