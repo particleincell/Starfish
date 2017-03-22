@@ -30,9 +30,9 @@ public class MaxwellianSource extends Source
 
 
     public MaxwellianSource(String name, Material source_mat, Spline spline,
-	    double mdot, double v_drift, double temp)
+	    double mdot, double v_drift, double temp, int start_it)
     {
-	super(name, source_mat, spline, mdot);
+	super(name, source_mat, spline, mdot,start_it);
 
 	/*calculate density*/
 	double A = spline.area();
@@ -105,8 +105,9 @@ public class MaxwellianSource extends Source
 	    /*drift velocity and temperature*/
 	    double v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));
 	    double temp = Double.parseDouble(InputParser.getValue("temp", element));
-
-	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, mdot, v_drift, temp);
+	    int start_it = InputParser.getInt("start_it",element,0);
+	    
+	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, mdot, v_drift, temp, start_it);
 	    boundary.addSource(source);
 
 	    /*log*/

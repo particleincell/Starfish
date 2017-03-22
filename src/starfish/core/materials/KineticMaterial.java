@@ -36,10 +36,12 @@ public class KineticMaterial extends Material
     {
 	super(name, mass, charge);
 
-	this.spwt0 = spwt0;
+	this.spwt0 = spwt0;	
     }
     /*specific weight*/
     protected double spwt0;
+    int sampling_start_it = 0;
+    int sampling_frequency = 10;
 
     public double getSpwt0()
     {
@@ -60,6 +62,17 @@ public class KineticMaterial extends Material
 	{
 	    mesh_data[m] = new MeshData(mesh_list.get(m));
 	}
+	
+	/*add variables to hold sampling data (for computing temperature)*/
+	/*TODO: replace averaging with the use of these sums*/
+	field_manager2d.add("count-sum", "#", null);
+	field_manager2d.add("u-sum", "m/s", null);
+	field_manager2d.add("v-sum", "m/s", null);
+	field_manager2d.add("w-sum", "m/s", null);
+	field_manager2d.add("uu-sum", "m/s", null);
+	field_manager2d.add("vv-sum", "m/s", null);
+	field_manager2d.add("ww-sum", "m/s", null);	
+
     }
 
     @Override
@@ -71,7 +84,6 @@ public class KineticMaterial extends Material
 	    getDen(md.mesh).clear();
 	    getU(md.mesh).clear();
 	    getV(md.mesh).clear();
-	    getT(md.mesh).clear();
 	}
 
 	total_momentum = 0;
@@ -97,11 +109,12 @@ public class KineticMaterial extends Material
 	/*scale momentum by mass*/
 	total_momentum *= mass;
 
-	/*compute temperature*/
-	/*TODO: this could be done on demand as it may not be used often*/
-	for (MeshData md : mesh_data)
+	/*update velocity moments and recompute temperature*/
+	int it = Starfish.getIt();
+	if (it>sampling_start_it && (it-sampling_start_it)%sampling_frequency==0)
 	{
-//	    computeT(md);
+	    for (MeshData md : mesh_data)	    
+		updateSamples(md);
 	}
 
 	/*apply boundaries*/
@@ -943,65 +956,59 @@ if (Starfish.steady_state())
 	return null;
     }
 
-    void computeT(MeshData md)
+    /** updates velocity samples and also computes temperature*/
+    void updateSamples(MeshData md)
     {
-	Field2D T = getT(md.mesh);
-	Field2D ave_u = new Field2D(md.mesh);
-	Field2D ave_v = new Field2D(md.mesh);
-	Field2D ave_w = new Field2D(md.mesh);
-
-	Field2D real_count = new Field2D(md.mesh);
-	Field2D macro_count = new Field2D(md.mesh);
+	Field2D count_sum = this.field_manager2d.get(md.mesh, "count-sum");
+	Field2D u_sum = this.field_manager2d.get(md.mesh, "u-sum");
+	Field2D v_sum = this.field_manager2d.get(md.mesh, "v-sum");
+	Field2D w_sum = this.field_manager2d.get(md.mesh, "w-sum");
+	Field2D uu_sum = this.field_manager2d.get(md.mesh, "uu-sum");
+	Field2D vv_sum = this.field_manager2d.get(md.mesh, "vv-sum");
+	Field2D ww_sum = this.field_manager2d.get(md.mesh, "ww-sum");
+	Field2D T = this.getT(md.mesh);
 	
-	/*TODO: need vector field!*/
 	Iterator<Particle> iterator = md.getIterator();
 	while (iterator.hasNext())
 	{
 	    Particle part = iterator.next();
-	    ave_u.scatter(part.lc, part.spwt * part.vel[0]);
-	    ave_v.scatter(part.lc, part.spwt * part.vel[1]);
-	    ave_w.scatter(part.lc, part.spwt * part.vel[2]);
-	    real_count.scatter(part.lc, part.spwt);
-	    macro_count.scatter(part.lc, 1);
+	    u_sum.scatter(part.lc, part.spwt * part.vel[0]);
+	    v_sum.scatter(part.lc, part.spwt * part.vel[1]);
+	    w_sum.scatter(part.lc, part.spwt * part.vel[2]);
+	    count_sum.scatter(part.lc, part.spwt);
 	}
 	
-	/*compute average velocity*/
-	ave_u.divideByField(real_count);
-	ave_v.divideByField(real_count);
-	ave_w.divideByField(real_count);
-
-	/*compute temperatures*/
-	iterator = md.getIterator();
+	/*repeat, but now scatter (u-u_ave)^2*/	
+	iterator = md.getIterator(); //rewind
 	while (iterator.hasNext())
 	{
 	    Particle part = iterator.next();
-	    double vd[] = new double[3];
-	    vd[0] = ave_u.gather(part.lc);
-	    vd[1] = ave_v.gather(part.lc);
-	    vd[2] = ave_w.gather(part.lc);
-
-	    double rel = Vector.mag3(Vector.subtract(part.vel, vd));
-	    T.scatter(part.lc, part.spwt * rel * rel);    
+	    double u = u_sum.gather(part.lc);
+	    double v = v_sum.gather(part.lc);
+	    double w = w_sum.gather(part.lc);
+	    double count = count_sum.gather(part.lc);
+	    
+	    double du = part.vel[0]-u/count;
+	    double dv = part.vel[1]-v/count;
+	    double dw = part.vel[2]-w/count;
+	    
+	    uu_sum.scatter(part.lc,part.spwt*du*du);
+	    vv_sum.scatter(part.lc,part.spwt*dv*dv);
+	    ww_sum.scatter(part.lc,part.spwt*dw*dw);
 	}
-
-	/*average*/
+	
+	/*compute temperatures*/
+	double f = mass/(3*Constants.K);
+	
 	for (int i=0;i<md.mesh.ni;i++)
 	    for (int j=0;j<md.mesh.nj;j++)
 	    {
-		/*need minimum 2 particles for temperature but for better statistics, set to 3*/
-		if (macro_count.data[i][j]>2)
-		{
-		    T.data[i][j]/=real_count.data[i][j];
-		}
-		else 
-		    T.data[i][j] = 0;
+		 double count = count_sum.at(i, j);
+		 if (count>0) 
+		     T.data[i][j] = (uu_sum.at(i,j) + vv_sum.at(i,j) + ww_sum.at(i,j))*f/count;
+		 else
+		     T.data[i][j] = 0;
 	    }
-
-	/*temperature
-	 * sqrt{(1/n)(g1^2+g2^2+..gn^2) = sqrt{3kT/m}
-	 * (1/n)(g1^2+g2^2+..gn^2) = 3kT/m
-	 */
-	T.mult(mass / (3.0 * Constants.K));
     }
 
     /** parser*/

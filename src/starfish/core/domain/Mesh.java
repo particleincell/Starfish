@@ -455,7 +455,7 @@ public abstract class Mesh
     public double nodeVol(double i0,double j0)
     {
 	if (domain_type==DomainType.XY)
-		return area(i0,j0);
+		return 1e-3*area(i0,j0);    //TODO: need better way to set domain width to simplify comparison of RZ to XY
 		
 	double r = R(i0,j0);
 	/*TODO: had to add 0.5 to get correct results, why?*/

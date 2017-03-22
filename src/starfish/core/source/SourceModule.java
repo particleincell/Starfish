@@ -192,7 +192,7 @@ public class SourceModule extends CommandModule
 	    for (Source source : boundary.getSourceList())
 	    {
 		//if (source instanceof ParticleListSource) continue;
-		
+		if (Starfish.getIt()<source.start_it) continue;
 		source.update();
 		source.regenerate();
 		source.sampleAll();
