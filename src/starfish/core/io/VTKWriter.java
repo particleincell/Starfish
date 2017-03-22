@@ -59,7 +59,7 @@ public class VTKWriter extends Writer
 	for (String var:variables)
 	{
 	    /*make sure we have this variable*/
-	    Starfish.output_module.validateVar(var);
+	    if (!Starfish.output_module.validateVar(var)) continue;
 	    double data[][] = Starfish.domain_module.getField(mesh, var).getData();
 	    
 	    pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
@@ -134,7 +134,24 @@ public class VTKWriter extends Writer
 	pw.println("\n</DataArray>");
 	pw.println("</Lines>");
 	
-	
+	/*data*/
+	pw.println("<PointData>");
+	for (String var:variables)
+	{
+	    /*make sure we have this variable*/
+	    if (!Starfish.output_module.validateVar(var)) continue;
+	    
+	    pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+	    for (Boundary boundary:bl)
+	    {
+		double data[] = Starfish.boundary_module.getField(boundary,var).getData();
+		for (int i=0;i<boundary.numPoints();i++)
+		    pw.printf("%g ", data[i]);
+	    }
+	    pw.println("\n</DataArray>");
+	}
+	 pw.println("</PointData>");	
+	 
 	pw.println("</Piece>");
 	pw.println("</PolyData>");
 	pw.println("</VTKFile>");

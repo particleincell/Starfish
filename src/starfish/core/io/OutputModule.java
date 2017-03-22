@@ -98,19 +98,19 @@ public class OutputModule extends CommandModule
 	{	
 	    if (Starfish.materials_module.hasMaterial(species)==false)
 	    {Log.warning("unrecognized species "+species+" while processing output variable "+var);return false;}
-	    if (Starfish.getMaterial(species).getFieldManager2d().hasField(base)==false)
+	    if (Starfish.getMaterial(species).getFieldManager1d().hasField(base)==false && 
+		Starfish.getMaterial(species).getFieldManager2d().hasField(base)==false)
 	    {Log.warning("unrecognized variable "+base+" in "+var);return false;}
 	    return true;
 	}
 	else	/*not a species var*/
 	{
-	    if (Starfish.domain_module.getFieldManager().hasField(var)==false)
+	    if (Starfish.boundary_module.getFieldManager().hasField(var)==false && 
+		Starfish.domain_module.getFieldManager().hasField(var)==false)
 	    {Log.warning("unrecognized variable "+var);return false;}
 	    return true;
-	}
-	
+	}	
     }
-
 
     @Override
     public void exit() 
