@@ -40,7 +40,7 @@ public abstract class Material
     public double diam;
     public double ref_temp;
     public double visc_temp_index;
-    public double vss_inv;
+    public double vss_alpha;
     
     public String name;		/*material name*/
 

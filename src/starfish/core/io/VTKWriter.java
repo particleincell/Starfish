@@ -59,7 +59,7 @@ public class VTKWriter extends Writer
 	for (String var:variables)
 	{
 	    /*make sure we have this variable*/
-	    if (!Starfish.output_module.validateVar(var)) continue;
+	  //  if (!Starfish.output_module.validateVar(var)) continue;
 	    double data[][] = Starfish.domain_module.getField(mesh, var).getData();
 	    
 	    pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");

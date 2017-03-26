@@ -5,7 +5,7 @@
  * Starfish.java and the LICENSE file
  * *****************************************************/
 
-package starfish.mcc;
+package starfish.collisions;
 
 import java.util.Iterator;
 import org.w3c.dom.Element;

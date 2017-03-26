@@ -61,7 +61,9 @@ public class AmbientDensitySource extends Source
 	/*use iterative method to figure out which cells the spline passes through*/
 	/*TODO: move this to Spline*/
 	
-	double t=0;
+	final double t_tol = 1e-4;
+	/*don't start at t=0 to avoid getting outside cell if starting on cell boundary*/
+	double t=t_tol;	    
 	Cell last_cell=null;
 	do 
 	{
@@ -83,13 +85,15 @@ public class AmbientDensitySource extends Source
 		/*add cell*/
 		last_cell = new Cell(ic[0],ic[1],mesh);
 		cells.add(last_cell);
+		Log.debug("Adding ambient cell "+ic[0]+" "+ic[1]);
 	    }
 	    
 	    /*increment*/
 	    /*TODO: this should actually implement search where we go back and forth, this was a quick hack to get the code working*/
 	    t+=0.01;
 	    
-	} while(t<spline.numSegments()-0.0001);
+	} while(t<spline.numSegments()-t_tol);
+	Log.log(">Ambient source "+name+" number of cells = "+cells.size());
     }
 
     /*list of cells where we load particles*/

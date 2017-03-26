@@ -14,7 +14,6 @@ import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
-import starfish.mcc.MCC;
 
 /** base for material interactions handling*/
 public class InteractionsModule extends CommandModule
@@ -30,7 +29,6 @@ public class InteractionsModule extends CommandModule
 	registerInteraction("SURFACE_HIT",SurfaceInteraction.surfaceHitFactory);
 	registerInteraction("SURFACE_IMPACT",SurfaceInteraction.surfaceHitFactory);	
 	registerInteraction("CHEMISTRY",ChemicalReaction.chemicalReactionFactory);
-	registerInteraction("MCC",MCC.MCCFactory);
 	
 	/*register surface impact models*/
 	SurfaceInteraction.registerModels();

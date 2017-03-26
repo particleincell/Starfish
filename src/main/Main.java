@@ -31,6 +31,9 @@
 
 package main;
 
+import java.util.ArrayList;
+import starfish.collisions.CollisionsPlugin;
+import starfish.core.common.Plugin;
 import starfish.core.common.Starfish;
 
 /**wrapper to launch starfish with no plugin*/
@@ -38,8 +41,12 @@ public class Main
 {
      public static void main(String args[]) 
     {
+	/*demo of starting Starfish with plugins*/
+	ArrayList<Plugin> plugins = new ArrayList();
+	plugins.add(new CollisionsPlugin());
+	
 	/*make a new instance*/
-	new Starfish().start(args, null);		
+	new Starfish().start(args, plugins);		
     }
    
 }

@@ -75,7 +75,7 @@ public class TimeModule extends CommandModule
 		
 		/*The achievable tolerance depends on number of particles, 
 		 * hard to reach anything less than 1e-3 with under 10,000 particles*/
-		if (Math.abs((momentum_new-momentum_old)/momentum_new)<1e-2)
+		if (Math.abs((momentum_new-momentum_old)/momentum_new)<1e-3)
 		    ss_countdown--;
 		else
 		    ss_countdown=5;

@@ -2,9 +2,9 @@ package starfish.core.common;
 
 /**
  * Starfish is a general 2D plasma/fluid hybrid Cartesian/axi-symmetric code
- * Copyright (c) 2012-2016, Particle In Cell Consulting LLC
+ * Copyright (c) 2012-2017, Particle In Cell Consulting LLC
  * 
- * Version 0.15 LE (academic or research light version), Development Version
+ * Version 0.16 LE (academic or research light version), Development Version
  * Contact Info: info@particleincell.com
  * 
  * The most recent version can be downloaded from:
@@ -189,7 +189,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     static public double rnd2() {return -1.0+2*random.nextDouble();}
 	
     /*code version*/
-    static String VERSION = "Light v0.15  (Development)";
+    static String VERSION = "v0.16 LE  (Development)";
     static public String HEADER_MESSAGE = "General 2D Plasma / Gas Kinetic Code\n ";
     	
     /*accessors*/
@@ -397,7 +397,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	Log.forced("================================================================");
 	Log.forced("> Starfish "+VERSION);
 	Log.forced("> "+HEADER_MESSAGE);
-	Log.forced("> (c) 2012-2016, Particle In Cell Consulting LLC");
+	Log.forced("> (c) 2012-2017, Particle In Cell Consulting LLC");
 	Log.forced("> info@particleincell.com, www.particleincell.com");
 	Log.forced("");
 	Log.forced("!! This is a development version. The software is provided as-is, \n"
