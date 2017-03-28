@@ -52,16 +52,13 @@ public class Boundary extends Spline
     /*sets boundary temperature*/
     void setTemp(double temp) 
     {
-	this.temp = temp;
-    	
-	if (material!=null)
-		v_th = Math.sqrt(2*Constants.K*temp/material.getMass());
-	else
-		v_th = 0;
+	this.temp = temp;    	
     }
 
     /**return thermal velocity*/
-    public double getVth() {return v_th;}
+    public double getVth(Material material) {
+	return Math.sqrt(2*Constants.K*temp/material.getMass());
+    }
    
     /*accessors*/
     public String getName() {return name;}

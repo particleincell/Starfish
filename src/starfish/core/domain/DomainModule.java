@@ -13,10 +13,13 @@ import java.util.NoSuchElementException;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Spline;
 import starfish.core.common.CommandModule;
+import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.domain.FieldCollection2D.MeshEvalFun;
 import starfish.core.domain.Mesh.Face;
 import starfish.core.io.InputParser;
+import starfish.core.materials.Material;
 
 /** Module for generating 2D field meshes*/
 public class DomainModule extends CommandModule
@@ -132,6 +135,7 @@ public class DomainModule extends CommandModule
 	field_manager.add("efj", "V/m",null);
 	field_manager.add("bfi", "T",null);
 	field_manager.add("bfj", "T",null);
+	field_manager.add("p","Pa",EvalPressure);   //pressure
     }
 	
     /**processes <mesh> node*/
@@ -305,6 +309,7 @@ public class DomainModule extends CommandModule
     public Field2D getEfj(Mesh mesh) {return getEfj().getField(mesh);}
     public Field2D getBfi(Mesh mesh) {return getBfi().getField(mesh);}
     public Field2D getBfj(Mesh mesh) {return getBfj().getField(mesh);}
+    public Field2D getP(Mesh mesh) {return getPressure().getField(mesh);}
 
     public FieldCollection2D getPhi() {return field_manager.getFieldCollection("phi");}
     public FieldCollection2D getRho() {return field_manager.getFieldCollection("rho");}
@@ -312,5 +317,32 @@ public class DomainModule extends CommandModule
     public FieldCollection2D getEfj() {return field_manager.getFieldCollection("efj");}
     public FieldCollection2D getBfi() {return field_manager.getFieldCollection("bfi");}
     public FieldCollection2D getBfj() {return field_manager.getFieldCollection("bfj");}
+    public FieldCollection2D getPressure() {return field_manager.getFieldCollection("p");}
 
+    
+    /*evaluates pressure*/
+    MeshEvalFun EvalPressure = new MeshEvalFun()
+    {
+    @Override
+    public void eval(FieldCollection2D fc)
+    {
+	for (Mesh mesh:Starfish.getMeshList())
+	{
+	    Field2D f = fc.getField(mesh);
+	    f.clear();
+	    double data[][] = f.getData();
+	    
+	    for (Material mat:Starfish.getMaterialsList())
+	    {
+		for (int i=0;i<mesh.ni;i++)
+		    for (int j=0;j<mesh.nj;j++)
+		    {
+			data[i][j] += mat.getDen(mesh).at(i,j)*Constants.K*
+				      mat.getT(mesh).at(i,j);		    
+		    }	    
+	    }
+	}
+    }    
+    };
 }
+

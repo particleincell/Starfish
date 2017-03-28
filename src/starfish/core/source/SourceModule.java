@@ -14,7 +14,6 @@
 package starfish.core.source;
 
 import starfish.sources.MaxwellianSource;
-import starfish.sources.AmbientDensitySource;
 import starfish.sources.VolumePreloadSource;
 import starfish.sources.AmbientSource;
 import java.util.ArrayList;
@@ -45,7 +44,6 @@ public class SourceModule extends CommandModule
 	registerSurfaceSource("UNIFORM",UniformSource.uniformSourceFactory);
 	registerSurfaceSource("MAXWELLIAN",MaxwellianSource.maxwellianSourceFactory);
 	registerSurfaceSource("AMBIENT",AmbientSource.ambientSourceFactory);
-	registerSurfaceSource("AMBIENT_DENSITY",AmbientDensitySource.ambientDensitySourceFactory);
 	registerSurfaceSource("COSINE",CosineSource.cosineSourceFactory);
 	
 	/*volume sources*/

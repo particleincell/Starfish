@@ -140,9 +140,7 @@ public class KineticMaterial extends Material
 
     /*updates field on a single mesh*/
     void moveParticles(MeshData md, boolean particle_transfer)
-    {
-	//ArrayList <Thread> group = new ArrayList();
-	
+    {	
 	for (int block=0;block<md.particle_block.length;block++)
 	{
 	    Iterator<Particle> iterator;
@@ -152,19 +150,7 @@ public class KineticMaterial extends Material
 	    
 	    ParticleMover mover = new ParticleMover(md,iterator,particle_transfer,"PartMover"+block);  
 	    mover.run();
-//	    group.add(mover);
-//	    mover.start();
-	}
-	
-	/*wait for threads to finish*/
-//	try {
-//	    for (Thread thread: group) {thread.join();}
-//	}
-//	catch (InterruptedException e)
-//	{
-//	    Log.warning("InterruptedException\n");
-//	}
-	
+	}	
     }
 
     /*returns a particle iterator that iterates over all blocks*/
@@ -284,7 +270,7 @@ public class KineticMaterial extends Material
 		    Starfish.particle_trace_module.addTrace(part);	
 	    } /*dt*/
 
-	    /*TODO: make thread safe!*/
+	    /*TODO: bottleneck since only one thread can access at once*/
 	    /*scatter data*/
 	    if (alive)
 	    {		

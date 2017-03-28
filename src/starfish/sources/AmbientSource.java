@@ -26,27 +26,32 @@ import starfish.core.source.Source;
 import starfish.core.source.SourceModule;
 
 /** Source that generates particles along a boundary until a prescribed 
- total pressure is reached. Source supports multiple species with different 
- partial pressures.*/
+ * total pressure, partial pressure, or number density is reached. 
+ */
 public class AmbientSource extends Source
 {
     final double v_th;			/*thermal velocity*/
     final double v_drift[] = new double[3];
-    final double p_partial;
-    final double p_total;
-    final double temp;
-    protected final double p_fraction;
+    enum EnforceType {DENSITY, PARTIAL_PRESSURE, TOTAL_PRESSURE};
+    final EnforceType enforce;
+    final double density;
+    final double pressure;
+    final double p_fraction;
+    final double temperature;
     
     public AmbientSource(String name, Material source_mat, Spline spline, 
-	    double temp, double p_partial, double p_total, double v_drift[])
+	    EnforceType enforce, double temp, double density,
+	    double v_drift[], double p_fraction)
     {
 	super(name, source_mat, spline, 0);
 	
-	this.p_partial = p_partial;
-	this.p_total = p_total;
-	p_fraction = p_partial/p_total;
+	this.density = density;
+	this.temperature = temp;
+	this.pressure = density*Constants.K*temp;
+	this.p_fraction = p_fraction;
 	
-	this.temp = temp;
+	this.enforce = enforce;
+	
 	this.v_drift[0] = v_drift[0];
 	this.v_drift[1] = v_drift[1];
 	this.v_drift[2] = v_drift[2];
@@ -61,8 +66,9 @@ public class AmbientSource extends Source
 	/*use iterative method to figure out which cells the spline passes through*/
 	/*TODO: move this to Spline*/
 	
-	double t_last=0;
-	double t=0;
+	final double t_tol = 1e-4;
+	/*don't start at t=0 to avoid getting outside cell if starting on cell boundary*/
+	double t=t_tol;	    
 	Cell last_cell=null;
 	do 
 	{
@@ -84,16 +90,15 @@ public class AmbientSource extends Source
 		/*add cell*/
 		last_cell = new Cell(ic[0],ic[1],mesh);
 		cells.add(last_cell);
+		Log.debug("Adding ambient cell "+ic[0]+" "+ic[1]);
 	    }
 	    
 	    /*increment*/
 	    /*TODO: this should actually implement search where we go back and forth, this was a quick hack to get the code working*/
 	    t+=0.01;
 	    
-	} while(t<spline.numSegments()-0.0001);
-	
-	/*add total pressure variable, note this will return existing if already registred (multiple sources)*/
-	fc_p_total = Starfish.domain_module.getFieldManager().add("total_pressure", "Pa", updateTotalPressure);
+	} while(t<spline.numSegments()-t_tol);
+	Log.log(">Ambient source "+name+" number of cells = "+cells.size());
     }
 
     /*list of cells where we load particles*/
@@ -119,34 +124,56 @@ public class AmbientSource extends Source
      * compute number of particles to create*/
     @Override 
     public void regenerate()
-    {
-	/*update total pressure*/
-	fc_p_total.eval();
-	
+    {	
 	/*reset number of remaining particles*/
 	num_mp = 0;
 	
 	/*for now this only works for kinetic materials*/
-	KineticMaterial ks = (KineticMaterial)source_mat;
+	KineticMaterial km = (KineticMaterial)source_mat;
 	
 	for (Cell cell:cells)
 	{
-	    /*compute number of particles in each cell*/
-	    Field2D p_tot = fc_p_total.getField(cell.mesh);
+	    double dn=0;  // nd*vol
+   	    double nd_cell=0;
+	    double p_partial_cell=0;
+	    double p_total_cell=0;
 	    
-	    /*average pressure in cell*/
-	    double p_ave = p_tot.gather(cell.i+0.5,cell.j+0.5);
-
-	    /*don't do anything if already at total pressure*/
-	    if (p_ave>p_total) continue;
-
-	    /*otherwise, determine how many particles to create in this cell*/
-	    double p_delta = p_total - p_ave;
-	    double p_load = p_delta*p_fraction;
-
+	    /*compute partial pressure, total pressure, and average temperature*/	    	
+	    for (Material mat:Starfish.getMaterialsList())
+	    {
+	        double nd = mat.getDen(cell.mesh).gather(cell.i+0.5,cell.j+0.5);
+		double T = km.getT(cell.mesh).gather(cell.i+0.5,cell.j+0.5);
+		double p_partial = nd*Constants.K*T;
+		p_total_cell += p_partial;
+		
+		if (mat==km)
+		{
+		    nd_cell = nd;
+		    p_partial_cell = p_partial;		    
+		}		
+	    }	
+	    
+	    if (enforce == EnforceType.DENSITY)
+	    {		
+		dn = density-nd_cell;		
+	    }
+	    else if (enforce == EnforceType.TOTAL_PRESSURE)
+	    {		
+		dn = (pressure-p_total_cell)/(Constants.K*temperature);
+	    }
+	    else if (enforce == EnforceType.PARTIAL_PRESSURE)
+	    {
+		dn = (p_partial_cell - p_fraction*p_total_cell)/(Constants.K*temperature);
+	    }
+	    else Log.error("Unknown enforce type");
+	    	    	    
+	    double num_load = dn*cell.volume;
+	    
+   	    /*don't do anything if already at total pressure*/
+	    if (num_load<0) continue;
+	    
 	    /*now convert pressure to load to number of particles*/
-	    double num_part = p_load/(Constants.K*temp)*cell.volume;
-	    double nmp = num_part/ks.getSpwt0()+cell.rem;
+	    double nmp = num_load/km.getSpwt0()+cell.rem;
 	    cell.num_to_create = (int)nmp;
 	    cell.rem = nmp-cell.num_to_create;
 	    num_mp += cell.num_to_create;
@@ -155,37 +182,7 @@ public class AmbientSource extends Source
 	/*set current cell to 0*/
 	curr_cell = 0;
     }
-    
-    /*total pressure*/    
-    FieldCollection2D fc_p_total;
-    
-    /**computes total pressure*/
-    MeshEvalFun updateTotalPressure = new MeshEvalFun() {
-	@Override
-	public void eval(FieldCollection2D fc2)
-	{
-	    fc2.clear();
-	    for (Mesh mesh:Starfish.getMeshList())
-	    {
-		double tp[][] = fc2.getField(mesh).getData();
-		for (Material mat:Starfish.getMaterialsList())
-		{
-		    double den[][] = mat.getDen(mesh).getData();
-		    double T[][] = mat.getT(mesh).getData();
-		    
-		    /*assume ideal gas law and Dalton's law for all materials*/
-		    for (int i=0;i<mesh.ni;i++)
-			for (int j=0;j<mesh.nj;j++)
-			{
-			    tp[i][j] += den[i][j]*Constants.K*T[i][j];
-			}
-		}
-		
-	    }
-	    
-	}
-    };
-    
+     
     @Override
     public boolean hasParticles()
     {
@@ -222,7 +219,6 @@ public class AmbientSource extends Source
 	part.vel[1] = v_max[1] + v_drift[1];
 	part.vel[2] = v_max[2] + v_drift[2];
 	
-
 	cell.num_to_create--;
 	num_mp--;
 
@@ -232,11 +228,16 @@ public class AmbientSource extends Source
     @Override
     public void sampleFluid()
     {
-	/*TODO: Implement!*/
 	/*calculate density*/
 	//double A = spline.area();
-	double den0 = p_partial / (Constants.K*temp);
-
+	double den0=0;
+	if (enforce == EnforceType.DENSITY) den0 = density;
+	else if (enforce == EnforceType.PARTIAL_PRESSURE) 
+	    den0 = p_fraction*pressure/(Constants.K*temperature);
+	else if (enforce == EnforceType.TOTAL_PRESSURE)
+	{
+	    Log.error("TOTAL_PRESSURE not yet defined for fluid materials");
+	}
 	
 	//for (Mesh mesh:Starfish.getMeshList())
 	Mesh mesh = Starfish.getMeshList().get(0);
@@ -266,26 +267,52 @@ public class AmbientSource extends Source
 	    if (v_drift.length!=3)
 		Log.error("Ambient Source Syntax: <drift_velocity>vx,vy,vz</drift_velocity>");
 	    
+	    //temperature
 	    double temp = InputParser.getDouble("temperature", element);
-
-	    /*partial and total pressure*/
-	    double p_partial = InputParser.getDouble("partial_pressure", element);
-	    double p_total = InputParser.getDouble("total_pressure", element);
-
-	    if (p_partial>p_total)
-	    	Log.error("Source "+name+" partial pressure > total pressure, check inputs");
 	    
-	    AmbientSource source = new AmbientSource(name, material, boundary, 
-						    temp,p_partial,p_total,v_drift);
-	    boundary.addSource(source);
+	    /*what are we enforcing?*/
+	    String val = InputParser.getValue("enforce", element,"TOTAL_PRESSURE").toUpperCase();
+	    EnforceType enforce=EnforceType.TOTAL_PRESSURE;
+	    if (val.equals("DENSITY")) enforce=EnforceType.DENSITY;
+	    else if (val.equals("TOTAL_PRESSURE") || val.equals("PRESSURE")) enforce=EnforceType.TOTAL_PRESSURE;
+	    else if (val.equals("PARTIAL_PRESSURE")) enforce = EnforceType.PARTIAL_PRESSURE;
 
-	    /*log*/
 	    Starfish.Log.log("Added AMBIENT source '" + name + "'");
 	    Starfish.Log.log("> spline  = " + boundary.getName());
+	    Starfish.Log.log("> enforcing "+enforce.name());
 	    Starfish.Log.log("> drift velocity  = <" + v_drift[0]+","+v_drift[1]+","+v_drift[2] + "> (m/s)");
 	    Starfish.Log.log("> temperature  = " + temp + " (K)");
-	    Starfish.Log.log("> partial pressure  = " + p_partial + " (Pa)");
-	    Starfish.Log.log("> total pressure  = " + p_total + " (Pa)");
+
+	    
+	    double density=0;
+	    double p_fraction = 1.0;
+
+	    if (enforce==EnforceType.DENSITY)
+	    {
+		density = InputParser.getDouble("density", element);
+		Starfish.Log.log("> density = " + density + " (#/m^3)");
+	    }
+	    else if (enforce==EnforceType.TOTAL_PRESSURE)
+	    {
+		double p_total = InputParser.getDouble("total_pressure", element);
+		density = p_total/(Constants.K*temp);
+		Starfish.Log.log("> total pressure  = " + p_total + " (Pa)");
+	    }
+	    else if (enforce==EnforceType.PARTIAL_PRESSURE)
+	    {
+		double p_total = InputParser.getDouble("total_pressure", element);
+		double p_partial = InputParser.getDouble("partial_pressure", element);
+		if (p_partial>p_total)
+		    Log.error("Source "+name+" partial pressure > total pressure, check inputs");
+		p_fraction = p_partial/p_total;	  
+		Starfish.Log.log("> partial pressure  = " + p_partial + " (Pa)");
+		Starfish.Log.log("> total pressure  = " + p_total + " (Pa)");
+	    }
+	    
+	    /*create new source*/
+	    AmbientSource source = new AmbientSource(name, material, boundary, 
+						    enforce,temp,density,v_drift,p_fraction);    
+	    boundary.addSource(source);
 	}
 	
     };

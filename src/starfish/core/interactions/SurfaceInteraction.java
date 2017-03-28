@@ -15,6 +15,7 @@ import starfish.core.boundaries.Segment;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.common.Utils;
 import starfish.core.interactions.MaterialInteraction.SurfaceImpactHandler;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
@@ -29,7 +30,7 @@ public class SurfaceInteraction
 	registerSurfaceModel("NONE",SurfaceEmissionNone);
 	registerSurfaceModel("ABSORB",SurfaceEmissionNone);
 	registerSurfaceModel("SPECULAR",SurfaceEmissionSpecular);
-	registerSurfaceModel("DIFFUSE",SurfaceEmissionDiffuse);
+	registerSurfaceModel("DIFFUSE",SurfaceEmissionCosine);
 	registerSurfaceModel("COSINE",SurfaceEmissionCosine);
     }
     
@@ -85,55 +86,7 @@ public class SurfaceInteraction
 	    return true;
 	}				
     };
-	
-    /** Reflects particles in arbitrary direction*/
-    public static SurfaceImpactHandler SurfaceEmissionDiffuse = new SurfaceImpactHandler()
-    {
-	@Override
-	public boolean perform(double vel[], Segment segment, double t_int, MaterialInteraction mat_int) 
-	{
-	    Boundary boundary = segment.getBoundary();
-			
-	    /*get post impact velocity magnitude*/
-	    double vmag2 = mat_int.postImpactVelocity(Vector.mag2(vel),boundary.getVth());
-			
-	    /*todo: need to take into account surface energy 
-	    * particle stick?*/
-	    if (vmag2<1e-4)
-		return false;				
-			
-	    double n[] = segment.normal(t_int);
-			
-	    double dir[] = new double[3];
-	    do {
-	    dir[0] = Starfish.rnd2();
-	    dir[1] = Starfish.rnd2();
-	    } while ((Vector.dot(n, dir)<0)); /*are we in the correct half space?*/
-	    			
-	    
-	    /*set velocity, need to do this this way since dir=dir[2] since n=n[2]*/
-	    vel[0] = dir[0];
-	    vel[1] = dir[1];
-	    vel[2] = Starfish.rnd2();
-	    
-	    /*normalize*/
-	    Vector.unit3(vel);
-	    vel = Vector.mult(vel, vmag2);
-			
-	    /*if we are producing a new material, kill the source and
-	    * create new one*/
-	    if (mat_int.product_mat_index !=
-		mat_int.source_mat_index)
-	    {
-		ParticleListSource source = boundary.getParticleListSource(mat_int.product_mat_index);
-		source.spawnParticles(segment.pos(t_int),vel,mat_int.source_mat_index);
-		return false;
-	    }
-			
-	    return true;
-	}				
-    };
-	
+		
     /** Reflects particles in direction following cosine law*/
     public static SurfaceImpactHandler SurfaceEmissionCosine = new SurfaceImpactHandler()
     {
@@ -141,20 +94,34 @@ public class SurfaceInteraction
 	public boolean perform(double vel[], Segment segment, double t_int, MaterialInteraction mat_int) 
 	{
 	    Boundary boundary = segment.getBoundary();
-			
-	    /*get post impact velocity magnitude*/
-	    double vmag = mat_int.postImpactVelocity(Vector.mag3(vel),boundary.getVth());
-			
-	    /*todo: surface energy particle stick?*/
-	    if (vmag<1e-4)
+	
+	    /*magnitude of post-impact velocity due to coefficient of restitution*/
+	    double v_spec = Vector.mag3(vel)*mat_int.c_rest;
+	    
+	    /*magnitude due to thermal accomodation*/
+	    double v_diff = Vector.mag3(Utils.SampleMaxw3D(boundary.getVth(mat_int.target_mat)));
+	    double v_mag = v_spec + mat_int.c_accom*(v_diff-v_spec);
+	    
+	    //did the particle stick?
+	    /*TODO: make usre input.*/
+	    if (v_mag<1e-4)
 		return false;				
-			
+	
+	    double norm[] = segment.normal(t_int);
+	    double dir[] = Vector.copy(vel);
+	    Vector.unit3(dir);
+	    //component along normal
+	    double dir_perp[] = Vector.mult(norm, Vector.dot(dir, norm));
+	    double dir_tang[] = Vector.subtract(dir, dir_perp);
+	    //v_spec = v_tang - v_perp
+	    double dir_spec[] = Vector.subtract(dir_tang,dir_perp);
+			   		
 	    /*cosine emission*/		
-	    double vel_n[] = Vector.lambertianVector(segment.normal(t_int),segment.tangent(t_int));
+	    double dir_diff[] = Vector.lambertianVector(segment.normal(t_int),segment.tangent(t_int));
 	 
 	    for (int i=0;i<3;i++)
-		vel[i]=vel_n[i]*vmag;			            
-           
+		vel[i]=v_mag*(dir_spec[i] + mat_int.c_accom*(dir_diff[i] - dir_spec[i]));
+	    
 	    /*if we are producing a new material, kill the source and
 	    * create new one*/
 	    if (mat_int.product_mat_index !=

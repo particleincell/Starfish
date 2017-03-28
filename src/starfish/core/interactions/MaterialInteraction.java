@@ -10,6 +10,7 @@ package starfish.core.interactions;
 import starfish.core.boundaries.Segment;
 import starfish.core.common.Starfish;
 import starfish.core.common.Utils;
+import starfish.core.common.Vector;
 import starfish.core.materials.Material;
 
 /** material interaction */
@@ -78,18 +79,4 @@ public class MaterialInteraction
 
     public double getRestitutionCoefficient() {return c_rest;}
     public double getAccomodationCoefficient() {return c_accom;}
-
-	
-    /**returns new post impact velocity*/
-    double postImpactVelocity(double v_mag, double v_th) 
-    {
-	/*coefficient of restitution, COR=v2/v1*/
-	double v2 = c_rest*v_mag;
-
-	/*thermal accomodation*/
-	if (Starfish.rnd()<c_accom)
-		v2 = Utils.SampleMaxw1D(v_th);
-
-	    return Math.abs(v2);
-    }
 };

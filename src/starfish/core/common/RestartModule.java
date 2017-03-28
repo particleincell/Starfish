@@ -42,7 +42,7 @@ public  class RestartModule extends CommandModule
     public void process(Element element) 
     {
 	it_save = InputParser.getInt("it_save",element,500);
-	nt_add = InputParser.getInt("nt_add", element,0);
+	nt_add = InputParser.getInt("nt_add", element,-1);
 		
 	load_restart = InputParser.getBoolean("load",element,false);
 	save_restart = InputParser.getBoolean("save",element,false);
@@ -98,7 +98,8 @@ public  class RestartModule extends CommandModule
 	}
 		
 	/*update number of times steps*/
-	Starfish.time_module.setNumIt(Starfish.getIt()+nt_add);
+	if (nt_add>0)
+	    Starfish.time_module.setNumIt(Starfish.getIt()+nt_add);
     }
 
     /**saves restart data

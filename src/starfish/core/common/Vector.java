@@ -290,6 +290,7 @@ public class Vector
 	return r;
     }
    
+    /*samples a random vector according to the cosine law*/
     public static double[] lambertianVector(double normal[], double tangent[])
     {
 	/*vectors defining the local coordinate system*/

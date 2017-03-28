@@ -36,15 +36,15 @@ public class Utils
     }
 
     /*samples 3 1d maxwellians
-    * TODO: test if this works or if we need to do rotation of 1D speed distribution	 */
+    * TODO: this works, but perhaps sampling from 1D speed and rotation works better */
     public static double[] SampleMaxw3D(double v_th) 
     {
-	double u = SampleMaxw1D(1);
-	double v = SampleMaxw1D(1);
-	double w = SampleMaxw1D(1);
+	double vel[] = new double[3];
+	vel[0] = SampleMaxw1D(v_th);
+	vel[1] = SampleMaxw1D(v_th);
+	vel[2] = SampleMaxw1D(v_th);
+	return vel;
 	
-	double v_mag = v_th*Math.sqrt(u*u+v*v*w*w);
-	return isotropicVel(v_mag);	
     }
 
     public static double[] isotropicVel(double mag)

@@ -72,12 +72,12 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	{
 	    /*add new particles*/
 	    source_module.sampleSources();
-			
-	    /*update densities and velocities*/
-	    materials_module.updateMaterials();
-			
+		
 	    /*perform material interactions (collisions and the like)*/
 	    interactions_module.performInteractions();
+	    
+	    /*update densities and velocities*/
+	    materials_module.updateMaterials();
 	    
 	    /*solve potential and recompute electric field*/
 	    solver_module.updateFields();
