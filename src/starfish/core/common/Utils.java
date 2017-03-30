@@ -43,8 +43,30 @@ public class Utils
 	vel[0] = SampleMaxw1D(v_th);
 	vel[1] = SampleMaxw1D(v_th);
 	vel[2] = SampleMaxw1D(v_th);
-	return vel;
-	
+	return vel;	
+    }
+    
+    /*samples speed from Maxwellian
+    f(v) = 4/(sqrt(pi)*v_th^3)*v^2*exp(-v^2/v_th^2)
+    */
+    public static double SampleMaxwSpeed(double v_th)
+    {
+	double bin_max = 6*v_th;
+
+	double a = 4/(Math.sqrt(Math.PI)*v_th*v_th*v_th);
+    
+	//this is fm(v_th)
+	double fm_max = 4/(Math.sqrt(Math.PI)*v_th)*Math.exp(-1);
+    
+	while(true)
+	{
+	    //pick random velocity between bin_min and bin_max
+	    double v = Starfish.rnd()*bin_max;	
+
+	    //compare against distribution function
+	    double fm = a * v*v * Math.exp(-v*v/(v_th*v_th));
+	    if ((fm/fm_max)>Starfish.rnd()) return v;
+	}
     }
 
     public static double[] isotropicVel(double mag)

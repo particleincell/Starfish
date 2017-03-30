@@ -41,7 +41,7 @@ public class KineticMaterial extends Material
     /*specific weight*/
     protected double spwt0;
     int sampling_start_it = 0;
-    int sampling_frequency = 10;
+    int sampling_frequency = 2;
 
     public double getSpwt0()
     {
@@ -75,6 +75,8 @@ public class KineticMaterial extends Material
 
     }
 
+    boolean steady_state = false;	/*TODO: temporary hack to clear samples*/
+    
     @Override
     public void updateFields()
     {
@@ -84,6 +86,7 @@ public class KineticMaterial extends Material
 	    getDen(md.mesh).clear();
 	    getU(md.mesh).clear();
 	    getV(md.mesh).clear();
+	    getW(md.mesh).clear();
 	}
 
 	total_momentum = 0;
@@ -111,6 +114,15 @@ public class KineticMaterial extends Material
 
 	/*update velocity moments and recompute temperature*/
 	int it = Starfish.getIt();
+	
+	/*reset sampling when we reach steady state*/
+	if (Starfish.steady_state() && !steady_state)
+	{
+	    for (MeshData md:mesh_data)
+		clearSamples(md);
+	    steady_state=true;
+	}
+	
 	if (it>sampling_start_it && (it-sampling_start_it)%sampling_frequency==0)
 	{
 	    for (MeshData md : mesh_data)	    
@@ -129,10 +141,12 @@ public class KineticMaterial extends Material
 	Field2D Den = getDen(md.mesh);
 	Field2D U = getU(md.mesh);
 	Field2D V = getV(md.mesh);
+	Field2D W = getW(md.mesh);
 
 	/*first get average velocities*/
 	U.divideByField(Den);
 	V.divideByField(Den);
+	W.divideByField(Den);
 
 	/*now turn density actually into density*/
 	Den.scaleByVol();
@@ -190,6 +204,7 @@ public class KineticMaterial extends Material
 	    Field2D Den = getDen(mesh);
 	    Field2D U = getU(mesh);
 	    Field2D V = getV(mesh);
+	    Field2D W = getW(mesh);
 
 	    Field2D Efi = md.Efi;
 	    Field2D Efj = md.Efj;
@@ -241,35 +256,39 @@ public class KineticMaterial extends Material
 		/*update position*/
 		part.pos[0] += part.vel[0] * part.dt;
 		part.pos[1] += part.vel[1] * part.dt;
-		double dk = part.vel[2]*part.dt;
-		
+				
 		if (Starfish.getDomainType()==DomainType.RZ)
 		{
-		    rotateToRZ(part,dk);
+		    rotateToRZ(part);
 		}
 		else if (Starfish.getDomainType()==DomainType.ZR)
 		{
-		    rotateToZR(part,dk);
+		    rotateToZR(part);
 		}		
 		else
-		    part.pos[2] += dk;
+		    part.pos[2] += part.vel[2]*part.dt;
 
 		part.lc = mesh.XtoL(part.pos);
 		
-		/*check if particle hit anything or left the domain*/
+		Particle part_old = new Particle(part);
+		
+		/*check if particle hit anything or left the domain*/		
 		alive = ProcessBoundary(part, mesh, old, old_lc);
 	
 		if (!alive)
 		{
+		    part = new Particle(part_old);
+		
+		    alive = ProcessBoundary(part, mesh, old, old_lc);
 		    iterator.remove();
 		    break;
-		}
-		
+		}				
+				
 		/*are we tracing this particle, if so output trace*/
 		if (part.trace_id>=0)
 		    Starfish.particle_trace_module.addTrace(part);	
 	    } /*dt*/
-
+	    
 	    /*TODO: bottleneck since only one thread can access at once*/
 	    /*scatter data*/
 	    if (alive)
@@ -278,6 +297,7 @@ public class KineticMaterial extends Material
 		Den.scatter(part.lc, part.spwt);
 		U.scatter(part.lc, part.vel[0] * part.spwt);
 		V.scatter(part.lc, part.vel[1] * part.spwt);
+		W.scatter(part.lc, part.vel[2] * part.spwt);
 
 		/*also add to the main list if transfer*/
 		if (particle_transfer)
@@ -293,10 +313,10 @@ public class KineticMaterial extends Material
 	}	/*end of particle loop*/
     }
 
-	private void rotateToRZ(Particle part, double dk)
-	{
+	private void rotateToRZ(Particle part)
+	{    
 	    /*movement in R plane*/
-	    double A = dk;
+	    double A = part.vel[2]*part.dt;
 	    double B = part.pos[0];		/*new position in R plane*/
 	    part.pos[0] = Math.sqrt(B*B + A*A);		/*new radius*/
 
@@ -312,24 +332,36 @@ public class KineticMaterial extends Material
 	    part.vel[2] = -sin*u+cos*v;	
 	}
 	
-	private void rotateToZR(Particle part, double dk)
+	private void rotateToZR(Particle part)
 	{
+	    
+	    /*bird's algorithm*/
+	/*    double v1 = part.vel[1];
+	    double w1 = part.vel[2];
+	    double b = part.pos[1];
+	    double a = w1*part.dt;
+	    double y = Math.sqrt(a*a+b*b);
+	    part.pos[1] = y;
+	    part.vel[1] = (v1*b + w1*a)/y;	//v
+	    part.vel[2] = (-v1*a + w1*b)/y;	//w
+	    return; 
+	  */  
 	    /*movement in R plane*/
-	    double A = dk;
+	    double A = part.vel[2]*part.dt;
 	    double B = part.pos[1];		/*new position in R plane*/
-	    part.pos[1] = Math.sqrt(B*B + A*A);		/*new radius*/
+	    double R = Math.sqrt(B*B + A*A);		/*new radius*/
 
-	    double cos = B/part.pos[1];
-	    double sin = -A/part.pos[1];    /*positive in the negative k direction*/
+	    double cos = B/R;
+	    double sin = A/R;    /*positive in the negative k direction*/
 	    double theta = Math.asin(sin);
-	    part.pos[2]+=theta;	/*update theta*/
+	    part.pos[2]-=theta;	/*update theta*/
 
 	    /*rotate velocity through theta*/
 	    double v1 = part.vel[1];
 	    double v2 = part.vel[2];
-	    part.vel[1] = cos*v1 - sin*v2;
-	    part.vel[2] = sin*v1 + cos*v2;
-	    
+	    part.pos[1] = R;
+	    part.vel[1] = cos*v1 + sin*v2;
+	    part.vel[2] = -sin*v1 + cos*v2;	    
 	}
     }
   
@@ -512,12 +544,14 @@ if (Starfish.steady_state())
 
 	    left_mesh = true;
 	    part.dt = dt0 * (1 - t);	/*update remaining dt*/
-	} /*if left mesh*/
 
-	/*if particle left mesh, check through what boundary it left*/
-	if (left_mesh)
-	{    
-	    NodeType type = mesh.nodeType((int)part.lc[0], (int)part.lc[1]);
+	    int i = (int)part.lc[0];
+	    int j = (int)part.lc[1];
+	    if (exit_face==Face.TOP) j++;
+	    if (exit_face==Face.RIGHT) i++;
+	    
+	    /*process boundary*/
+	    NodeType type = mesh.nodeType(i,j);
 	    switch (type)
 	    {
 		case OPEN:
@@ -559,8 +593,8 @@ if (Starfish.steady_state())
 		default:
 		    return false;
 	    }
-	}
-
+	}   //left mesh
+	
 	return true;
     }
 
@@ -942,6 +976,18 @@ if (Starfish.steady_state())
 	return null;
     }
 
+    void clearSamples(MeshData md)
+    {
+	field_manager2d.get(md.mesh, "count-sum").clear();
+	field_manager2d.get(md.mesh, "u-sum").clear();
+	field_manager2d.get(md.mesh, "v-sum").clear();
+	field_manager2d.get(md.mesh, "w-sum").clear();
+	field_manager2d.get(md.mesh, "uu-sum").clear();
+	field_manager2d.get(md.mesh, "vv-sum").clear();
+	field_manager2d.get(md.mesh, "ww-sum").clear();
+	Log.log("Cleared samples in Material "+name);
+    }
+    
     /** updates velocity samples and also computes temperature*/
     void updateSamples(MeshData md)
     {
@@ -961,26 +1007,10 @@ if (Starfish.steady_state())
 	    u_sum.scatter(part.lc, part.spwt * part.vel[0]);
 	    v_sum.scatter(part.lc, part.spwt * part.vel[1]);
 	    w_sum.scatter(part.lc, part.spwt * part.vel[2]);
+	    uu_sum.scatter(part.lc, part.spwt * part.vel[0]*part.vel[0]);
+	    vv_sum.scatter(part.lc, part.spwt * part.vel[1]*part.vel[1]);
+	    ww_sum.scatter(part.lc, part.spwt * part.vel[2]*part.vel[2]);	    
 	    count_sum.scatter(part.lc, part.spwt);
-	}
-	
-	/*repeat, but now scatter (u-u_ave)^2*/	
-	iterator = md.getIterator(); //rewind
-	while (iterator.hasNext())
-	{
-	    Particle part = iterator.next();
-	    double u = u_sum.gather(part.lc);
-	    double v = v_sum.gather(part.lc);
-	    double w = w_sum.gather(part.lc);
-	    double count = count_sum.gather(part.lc);
-	    
-	    double du = part.vel[0]-u/count;
-	    double dv = part.vel[1]-v/count;
-	    double dw = part.vel[2]-w/count;
-	    
-	    uu_sum.scatter(part.lc,part.spwt*du*du);
-	    vv_sum.scatter(part.lc,part.spwt*dv*dv);
-	    ww_sum.scatter(part.lc,part.spwt*dw*dw);
 	}
 	
 	/*compute temperatures*/
@@ -991,9 +1021,17 @@ if (Starfish.steady_state())
 	    {
 		 double count = count_sum.at(i, j);
 		 if (count>0) 
-		     T.data[i][j] = (uu_sum.at(i,j) + vv_sum.at(i,j) + ww_sum.at(i,j))*f/count;
+		 {
+		     double u = u_sum.at(i,j);
+		     double v = v_sum.at(i,j);
+		     double w = w_sum.at(i,j);
+		     double uu = uu_sum.at(i,j);
+		     double vv = vv_sum.at(i,j);
+		     double ww = ww_sum.at(i,j);
+		     T.data[i][j] = ((uu-u)+(vv-v)+(ww-w))*f/count;
+		 }
 		 else
-		     T.data[i][j] = 0;
+		     T.data[i][j] = -1;
 	    }
     }
 

@@ -82,7 +82,16 @@ public class SurfaceInteraction
 			
 	    vel[0] += n[0]*mag;
 	    vel[1] += n[1]*mag;
-			
+
+/*    	    double norm[] = segment.normal(t_int);
+	    double dir[] = Vector.copy(vel);
+	    Vector.unit3(dir);
+	    //component along normal
+	    double dir_perp[] = Vector.mult(norm, Vector.dot(dir, norm));
+	    double dir_tang[] = Vector.subtract(dir, dir_perp);
+	    //v_spec = v_tang - v_perp
+	    double dir_spec[] = Vector.subtract(dir_tang,dir_perp);
+*/
 	    return true;
 	}				
     };
@@ -96,31 +105,22 @@ public class SurfaceInteraction
 	    Boundary boundary = segment.getBoundary();
 	
 	    /*magnitude of post-impact velocity due to coefficient of restitution*/
-	    double v_spec = Vector.mag3(vel)*mat_int.c_rest;
+	    double v_refl = Vector.mag3(vel)*mat_int.c_rest;
 	    
 	    /*magnitude due to thermal accomodation*/
-	    double v_diff = Vector.mag3(Utils.SampleMaxw3D(boundary.getVth(mat_int.target_mat)));
-	    double v_mag = v_spec + mat_int.c_accom*(v_diff-v_spec);
+	    double v_diff = Utils.SampleMaxwSpeed(boundary.getVth(mat_int.target_mat));
+	    double v_mag = v_refl + mat_int.c_accom*(v_diff-v_refl);
 	    
 	    //did the particle stick?
-	    /*TODO: make usre input.*/
+	    /*TODO: make user input.*/
 	    if (v_mag<1e-4)
 		return false;				
-	
-	    double norm[] = segment.normal(t_int);
-	    double dir[] = Vector.copy(vel);
-	    Vector.unit3(dir);
-	    //component along normal
-	    double dir_perp[] = Vector.mult(norm, Vector.dot(dir, norm));
-	    double dir_tang[] = Vector.subtract(dir, dir_perp);
-	    //v_spec = v_tang - v_perp
-	    double dir_spec[] = Vector.subtract(dir_tang,dir_perp);
-			   		
+				   		
 	    /*cosine emission*/		
 	    double dir_diff[] = Vector.lambertianVector(segment.normal(t_int),segment.tangent(t_int));
 	 
 	    for (int i=0;i<3;i++)
-		vel[i]=v_mag*(dir_spec[i] + mat_int.c_accom*(dir_diff[i] - dir_spec[i]));
+		vel[i]=v_mag*dir_diff[i];
 	    
 	    /*if we are producing a new material, kill the source and
 	    * create new one*/

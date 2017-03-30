@@ -67,6 +67,7 @@ public class AmbientSource extends Source
 	/*TODO: move this to Spline*/
 	
 	final double t_tol = 1e-4;
+	double dt = 1e-3;
 	/*don't start at t=0 to avoid getting outside cell if starting on cell boundary*/
 	double t=t_tol;	    
 	Cell last_cell=null;
@@ -76,7 +77,7 @@ public class AmbientSource extends Source
 	    Mesh mesh = Starfish.domain_module.getMesh(x);
 	    if (mesh == null)
 	    {
-		t+=0.01;
+		t+=dt;
 		continue;
 	    }
 		
@@ -95,7 +96,7 @@ public class AmbientSource extends Source
 	    
 	    /*increment*/
 	    /*TODO: this should actually implement search where we go back and forth, this was a quick hack to get the code working*/
-	    t+=0.01;
+	    t+=dt;
 	    
 	} while(t<spline.numSegments()-t_tol);
 	Log.log(">Ambient source "+name+" number of cells = "+cells.size());
@@ -213,12 +214,13 @@ public class AmbientSource extends Source
 	part.pos[2] = 0;
 
 	double v_max[] = Utils.SampleMaxw3D(v_th);
+	v_max = Utils.isotropicVel(Utils.SampleMaxwSpeed(v_th));
 
 	/*add drift*/
 	part.vel[0] = v_max[0] + v_drift[0];
 	part.vel[1] = v_max[1] + v_drift[1];
 	part.vel[2] = v_max[2] + v_drift[2];
-	
+		
 	cell.num_to_create--;
 	num_mp--;
 

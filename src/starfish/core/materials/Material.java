@@ -239,6 +239,11 @@ public abstract class Material
     {
 	return field_manager2d.getFieldCollection("v");
     }
+    
+    public FieldCollection2D getWCollection()
+    {
+	return field_manager2d.getFieldCollection("w");
+    }
 
     public FieldCollection2D getTempCollection()
     {
@@ -258,6 +263,11 @@ public abstract class Material
     public Field2D getV(Mesh mesh)
     {
 	return getVCollection().getField(mesh);
+    }
+    
+    public Field2D getW(Mesh mesh)
+    {
+	return getWCollection().getField(mesh);
     }
 
     public Field2D getT(Mesh mesh)
@@ -376,6 +386,7 @@ public abstract class Material
 	field_manager2d.add("nd", "#/m^3", init_vals.nd,null);
 	field_manager2d.add("u", "m/s", init_vals.u,null);
 	field_manager2d.add("v", "m/s", init_vals.v,null);
+	field_manager2d.add("w", "m/s", init_vals.v,null);
 	field_manager2d.add("t", "K", init_vals.T,null);
 
 	/*add default 1d fields*/
