@@ -23,6 +23,8 @@ public class MaterialInteraction
     double probability;
 	
     Material target_mat;
+    Material source_mat;
+    Material product_mat;
 
     /**constructor*/
     public MaterialInteraction()
@@ -65,10 +67,10 @@ public class MaterialInteraction
     public void setTargetMatIndex(int mat_index) {target_mat_index=mat_index;target_mat=Starfish.getMaterial(mat_index);}
     public int getTargetMatIndex() {return target_mat_index;}
 
-    public void setSourceMatIndex(int mat_index) {source_mat_index=mat_index;}
+    public void setSourceMatIndex(int mat_index) {source_mat_index=mat_index;source_mat=Starfish.getMaterial(mat_index);}
     public int getSourceMatIndex() {return source_mat_index;}
 
-    public void setProductMatIndex(int mat_index) {product_mat_index=mat_index;}
+    public void setProductMatIndex(int mat_index) {product_mat_index=mat_index;product_mat=Starfish.getMaterial(mat_index);}
     public int getProductMatIndex() {return product_mat_index;}
 
     double c_rest;			/*coefficient of restitution*/

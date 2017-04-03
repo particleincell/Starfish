@@ -41,7 +41,7 @@ public class KineticMaterial extends Material
     /*specific weight*/
     protected double spwt0;
     int sampling_start_it = 0;
-    int sampling_frequency = 2;
+    int sampling_frequency = 5;
 
     public double getSpwt0()
     {

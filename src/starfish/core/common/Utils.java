@@ -69,6 +69,27 @@ public class Utils
 	}
     }
 
+    /*returns velocity corresponding to a diffuse reflection from surface per Bird's alg*/
+    public static double[] diffuseReflVel(double mag, double norm[], double tang1[])
+    {
+	/*Bird uses RF(0) to generate (0,1), can't take log(0)*/
+	double v_norm = Math.sqrt(-Math.log(Starfish.rndEx0()))*mag;
+	  
+	/*based on REFLECT2 in DSMC2.f*/
+	double A = Math.sqrt(-Math.log(Starfish.rndEx0()));
+	double B = 2*Math.PI*Starfish.rnd();
+	double v_tang1 = A*Math.sin(B)*mag;
+	double v_tang2 = A*Math.cos(B)*mag;
+          
+	double tang2[] = {0,0,1};
+	    
+	double vel[] = new double[3];
+	for (int i=0;i<3;i++)
+	    vel[i] = v_norm*norm[i] + v_tang1*tang1[i] + v_tang2*tang2[i];    	
+	return vel;
+    }
+    
+    
     public static double[] isotropicVel(double mag)
     {
 	/*pick a random angle*/

@@ -30,7 +30,7 @@ public class SurfaceInteraction
 	registerSurfaceModel("NONE",SurfaceEmissionNone);
 	registerSurfaceModel("ABSORB",SurfaceEmissionNone);
 	registerSurfaceModel("SPECULAR",SurfaceEmissionSpecular);
-	registerSurfaceModel("DIFFUSE",SurfaceEmissionCosine);
+	registerSurfaceModel("DIFFUSE",SurfaceEmissionDiffuse);
 	registerSurfaceModel("COSINE",SurfaceEmissionCosine);
     }
     
@@ -95,6 +95,24 @@ public class SurfaceInteraction
 	    return true;
 	}				
     };
+    
+    /** Reflects particles using Bird's diffuse reflection model*/
+    public static SurfaceImpactHandler SurfaceEmissionDiffuse = new SurfaceImpactHandler()
+    {
+	@Override
+	public boolean perform(double vel[], Segment segment, double t_int, MaterialInteraction mat_int) 
+	{
+	    /*based on REFLECT2 in DSMC2.f*/
+	    
+	    /*most probable speed, eqns 4.1 and 4.7*/
+	    double vmp = segment.boundary.getVth(mat_int.product_mat);	
+	    double ref_vel[] = Utils.diffuseReflVel(vmp, segment.normal(t_int),segment.tangent(t_int));
+	   
+	    /*need to actually set the value, saying vel=ref_vel won't work*/
+	    for (int i=0;i<3;i++) vel[i] = ref_vel[i];
+	    return true;
+	}
+    };
 		
     /** Reflects particles in direction following cosine law*/
     public static SurfaceImpactHandler SurfaceEmissionCosine = new SurfaceImpactHandler()
@@ -108,7 +126,7 @@ public class SurfaceInteraction
 	    double v_refl = Vector.mag3(vel)*mat_int.c_rest;
 	    
 	    /*magnitude due to thermal accomodation*/
-	    double v_diff = Utils.SampleMaxwSpeed(boundary.getVth(mat_int.target_mat));
+	    double v_diff = Utils.SampleMaxwSpeed(boundary.getVth(mat_int.product_mat));
 	    double v_mag = v_refl + mat_int.c_accom*(v_diff-v_refl);
 	    
 	    //did the particle stick?

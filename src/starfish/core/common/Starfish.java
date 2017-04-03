@@ -186,6 +186,8 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     /*random number generator*/
     static Random random = new Random(0);
     static public double rnd() {return random.nextDouble();}
+    static public double rndEx0() {double R= 1e-6+(1.0-1e-6)*random.nextDouble();
+    if (R>=1.0) {System.err.printf("R=%g\n",R);Log.log("R="+R);R=0.5;} return R;}
     static public double rnd2() {return -1.0+2*random.nextDouble();}
 	
     /*code version*/

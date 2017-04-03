@@ -89,7 +89,7 @@ public class AmbientSource extends Source
 		(last_cell.i!=ic[0] || last_cell.j!=ic[1]))
 	    {
 		/*add cell*/
-		last_cell = new Cell(ic[0],ic[1],mesh);
+		last_cell = new Cell(ic[0],ic[1],mesh,spline.normal(t),spline.tangent(t));
 		cells.add(last_cell);
 		Log.debug("Adding ambient cell "+ic[0]+" "+ic[1]);
 	    }
@@ -113,11 +113,15 @@ public class AmbientSource extends Source
 	double rem;
 	Mesh mesh;
 	double volume;
-	Cell (int i,int j,Mesh mesh) 
+	double norm[];	    //boundary normal vector
+	double tang[];
+	Cell (int i,int j,Mesh mesh,double norm[], double tang[]) 
 	{
 	    this.i=i;this.j=j;
 	    this.mesh = mesh;
 	    this.volume = mesh.cellVol(i, j);
+	    this.norm = norm.clone();
+	    this.tang = tang.clone();
 	}
     }
     
@@ -171,7 +175,7 @@ public class AmbientSource extends Source
 	    double num_load = dn*cell.volume;
 	    
    	    /*don't do anything if already at total pressure*/
-	    if (num_load<0) continue;
+	    if (num_load<0) {cell.rem=0;continue;}
 	    
 	    /*now convert pressure to load to number of particles*/
 	    double nmp = num_load/km.getSpwt0()+cell.rem;
@@ -213,9 +217,12 @@ public class AmbientSource extends Source
 	part.pos[1] = x[1];
 	part.pos[2] = 0;
 
-	double v_max[] = Utils.SampleMaxw3D(v_th);
-	v_max = Utils.isotropicVel(Utils.SampleMaxwSpeed(v_th));
-
+	/*sample half maxwellian in norm direction*/
+	double v_max[] = Utils.diffuseReflVel(v_th,cell.norm,cell.tang);
+	
+	/*old way, doesn't generate correct temperature*/
+	//double v_max[] = Utils.isotropicVel(Utils.SampleMaxwSpeed(v_th));
+	
 	/*add drift*/
 	part.vel[0] = v_max[0] + v_drift[0];
 	part.vel[1] = v_max[1] + v_drift[1];
