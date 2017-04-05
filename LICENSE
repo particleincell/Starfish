@@ -1,7 +1,7 @@
-Starfish is a general 2D plasma/fluid hybrid Cartesian/axi-symmetric code
+Starfish is a general 2D plasma/fluid Cartesian/axi-symmetric code
 Copyright (c) 2012-2016, Particle In Cell Consulting LLC
 
-Version 0.15 LE (academic or research light version), Development Version
+Version 0.16 LE (academic or research light version), Development Version
 Contact Info: info@particleincell.com
 
 The most recent version can be downloaded from:
@@ -11,7 +11,7 @@ This software is governed by the following license:
 
 Simplified BSD License 
 *** MODIFIED FOR NON-COMMERCIAL USE ONLY!!! ***
-Copyright (c) 2012-2013, Particle In Cell Consulting LLC
+Copyright (c) 2012-2017, Particle In Cell Consulting LLC
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, 

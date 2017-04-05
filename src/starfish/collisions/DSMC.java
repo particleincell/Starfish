@@ -58,10 +58,12 @@ public class DSMC extends VolumeInteraction
 	{
 	    ((SigmaBird463)sigma).init(this.mat1,this.mat2);
 	}
-	dsmc_count = Starfish.domain_module.getFieldManager().add("dsmc_count", "",null);
+	dsmc_count = Starfish.domain_module.getFieldManager().add("dsmc_count", "#",null);
+	nu = Starfish.domain_module.getFieldManager().add("nu", "#/s",null);
     }
 
     FieldCollection2D dsmc_count;
+    FieldCollection2D nu;
 
     static DSMCModel getModel(String type)
     {
@@ -78,8 +80,7 @@ public class DSMC extends VolumeInteraction
 	for (Mesh mesh:Starfish.getMeshList())
 	{
 	    mesh_data.put(mesh, new MeshData(mesh,1e-16));
-	}	
-			
+	}				
     }	
 
     class CellInfo
@@ -112,7 +113,7 @@ public class DSMC extends VolumeInteraction
     public void perform() 
     {
 	Log.debug("Performing DSMC");
-	dsmc_count.clear();
+	
 	/*group particles to cells*/
 	for (Mesh mesh:Starfish.getMeshList())
 		perform(mesh);
@@ -165,18 +166,29 @@ public class DSMC extends VolumeInteraction
 	for (int i=0;i<mesh.ni-1;i++)
 	    for (int j=0;j<mesh.nj-1;j++)
 	    {
-		int cell_cols=collideCell(cell_info[i][j],mesh.cellVol(i, j));			
-		count.scatter(i+0.5, j+0.5, cell_cols);
+		double cell_cols=collideCell(cell_info[i][j],mesh.cellVol(i, j));			
+		
+		/*start counting only at ss since dividing by time since ss*/
+		if (Starfish.steady_state())
+		    count.scatter(i+0.5, j+0.5, cell_cols);
+		
 		nc_tot+=cell_cols;
 		if (cell_info[i][j].sig_cr_max>sigma_cr_max) sigma_cr_max=cell_info[i][j].sig_cr_max;
 	    }
 
+	/*update collision frequency*/
+	if (Starfish.steady_state())
+	{
+	    nu.getField(mesh).copy(dsmc_count.getField(mesh));
+	    nu.getField(mesh).mult(1.0/(Starfish.time_module.getTime()-Starfish.time_module.getSteadyStateTime()));
+	}
+	
 	Log.log(String.format("DSMC %s-%s collision count: %d\t sig_cr_max: %.3g",mat1.getName(),mat2.getName(),nc_tot,sigma_cr_max));
 
     }
 
     /**performs DSMC collisions for a single cell, uses Boyd 1996 algorithm for variable weight*/
-    int collideCell(CellInfo cell_info, double cell_volume)
+    double collideCell(CellInfo cell_info, double cell_volume)
     {	
 	double sig_cr_max=0;	/*used to obtain new value*/	
 	
@@ -210,7 +222,7 @@ public class DSMC extends VolumeInteraction
 	    
 	cell_info.rem=nsel_f-nsel;
 	
-	int nc = 0;			/*number of collisions*/
+	double nc = 0;			/*number of collisions*/
 
 	double cr_vec[] = new double[3];
 
@@ -238,14 +250,14 @@ public class DSMC extends VolumeInteraction
 	    if (sigma_cr>sig_cr_max)
 		sig_cr_max=sigma_cr;
 
-		/*eval prob*/
-		double P=sigma_cr/cell_info.sig_cr_max;
+	    /*eval prob*/
+	    double P=sigma_cr/cell_info.sig_cr_max;
 
-		if (Starfish.rnd()<P)
-		{
-		    nc++;
-		    model.perform(part1, part2,vss_inv);
-		}
+	    if (Starfish.rnd()<P)
+	    {
+		nc+=0.5*(part1.spwt+part2.spwt);
+		model.perform(part1, part2,vss_inv);
+	    }
 	}
 
 	if (sig_cr_max>0) cell_info.sig_cr_max = sig_cr_max;

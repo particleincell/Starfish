@@ -50,15 +50,15 @@ public class DomainModule extends CommandModule
 	String species = null;
 	if (pieces.length>1)
 	    species = pieces[1];
-				
-	/*also check for average*/	
-	if (base.toLowerCase().matches("(.*)-ave"))
-	    return Starfish.averaging_module.getFieldCollection(var_name);
-		
+						
 	if (species!=null)	/*species var*/
 	{	
 	    return Starfish.getMaterial(species).getFieldManager2d().getFieldCollection(base);
 	}
+	
+	/*also check for average, now only for non-species data*/	
+	if (base.toLowerCase().matches("(.*)-ave"))
+	    return Starfish.averaging_module.getFieldCollection(var_name);
 	
 	return field_manager.getFieldCollection(var_name);
     }
@@ -334,11 +334,11 @@ public class DomainModule extends CommandModule
 	    
 	    for (Material mat:Starfish.getMaterialsList())
 	    {
+		double pp[][] = mat.getP(mesh).getData();
 		for (int i=0;i<mesh.ni;i++)
 		    for (int j=0;j<mesh.nj;j++)
 		    {
-			data[i][j] += mat.getDen(mesh).at(i,j)*Constants.K*
-				      mat.getT(mesh).at(i,j);		    
+			data[i][j] += pp[i][j];		    
 		    }	    
 	    }
 	}

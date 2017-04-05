@@ -249,6 +249,11 @@ public abstract class Material
     {
 	return field_manager2d.getFieldCollection("T");
     }
+    
+    public FieldCollection2D getPressureCollection()
+    {
+	return field_manager2d.getFieldCollection("p");
+    }
 
     public Field2D getDen(Mesh mesh)
     {
@@ -274,6 +279,12 @@ public abstract class Material
     {
 	return getTempCollection().getField(mesh);
     }
+    
+    public Field2D getP(Mesh mesh)
+    {
+	return getPressureCollection().getField(mesh);
+    }
+
 
     public double getCharge()
     {
@@ -388,6 +399,7 @@ public abstract class Material
 	field_manager2d.add("v", "m/s", init_vals.v,null);
 	field_manager2d.add("w", "m/s", init_vals.v,null);
 	field_manager2d.add("t", "K", init_vals.T,null);
+	field_manager2d.add("p", "Pa", 0,null);
 
 	/*add default 1d fields*/
 	flux_collection = field_manager1d.add("flux", "#/m^2/s");

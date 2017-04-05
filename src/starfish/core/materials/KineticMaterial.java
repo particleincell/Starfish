@@ -63,15 +63,20 @@ public class KineticMaterial extends Material
 	    mesh_data[m] = new MeshData(mesh_list.get(m));
 	}
 	
-	/*add variables to hold sampling data (for computing temperature)*/
-	/*TODO: replace averaging with the use of these sums*/
+	/*fields used to hold sampled data*/
 	field_manager2d.add("count-sum", "#", null);
 	field_manager2d.add("u-sum", "m/s", null);
 	field_manager2d.add("v-sum", "m/s", null);
 	field_manager2d.add("w-sum", "m/s", null);
 	field_manager2d.add("uu-sum", "m/s", null);
 	field_manager2d.add("vv-sum", "m/s", null);
-	field_manager2d.add("ww-sum", "m/s", null);	
+	field_manager2d.add("ww-sum", "m/s", null);
+	
+	/*instantenuous data*/
+	field_manager2d.add("u-ave","m/s",null);
+	field_manager2d.add("v-ave","m/s",null);
+	field_manager2d.add("w-ave","m/s",null);
+	field_manager2d.add("nd-ave","#/m^3",null);
 
     }
 
@@ -115,16 +120,16 @@ public class KineticMaterial extends Material
 	/*update velocity moments and recompute temperature*/
 	int it = Starfish.getIt();
 	
-	/*reset sampling when we reach steady state*/
-	if (Starfish.steady_state() && !steady_state)
-	{
-	    for (MeshData md:mesh_data)
-		clearSamples(md);
-	    steady_state=true;
-	}
-	
 	if (it>sampling_start_it && (it-sampling_start_it)%sampling_frequency==0)
 	{
+	    	/*reset sampling when we reach steady state*/
+	    if (Starfish.steady_state() && !steady_state)
+	    {
+		for (MeshData md:mesh_data)
+		    clearSamples(md);
+		steady_state=true;
+	    }
+	
 	    for (MeshData md : mesh_data)	    
 		updateSamples(md);
 	}
@@ -976,6 +981,7 @@ if (Starfish.steady_state())
 	return null;
     }
 
+    int num_samples = 0;
     void clearSamples(MeshData md)
     {
 	field_manager2d.get(md.mesh, "count-sum").clear();
@@ -985,6 +991,7 @@ if (Starfish.steady_state())
 	field_manager2d.get(md.mesh, "uu-sum").clear();
 	field_manager2d.get(md.mesh, "vv-sum").clear();
 	field_manager2d.get(md.mesh, "ww-sum").clear();
+	num_samples = 0;
 	Log.log("Cleared samples in Material "+name);
     }
     
@@ -998,6 +1005,11 @@ if (Starfish.steady_state())
 	Field2D uu_sum = this.field_manager2d.get(md.mesh, "uu-sum");
 	Field2D vv_sum = this.field_manager2d.get(md.mesh, "vv-sum");
 	Field2D ww_sum = this.field_manager2d.get(md.mesh, "ww-sum");
+	Field2D nd_ave = this.field_manager2d.get(md.mesh,"nd-ave");
+	Field2D u_ave = this.field_manager2d.get(md.mesh,"u-ave");
+	Field2D v_ave = this.field_manager2d.get(md.mesh,"v-ave");
+	Field2D w_ave = this.field_manager2d.get(md.mesh,"w-ave");	
+	Field2D p = this.getP(md.mesh);
 	Field2D T = this.getT(md.mesh);
 	
 	Iterator<Particle> iterator = md.getIterator();
@@ -1012,6 +1024,9 @@ if (Starfish.steady_state())
 	    ww_sum.scatter(part.lc, part.spwt * part.vel[2]*part.vel[2]);	    
 	    count_sum.scatter(part.lc, part.spwt);
 	}
+	
+	//increment counter, used for density
+	num_samples++;
 	
 	/*compute temperatures*/
 	double f = mass/(3*Constants.K);
@@ -1033,6 +1048,23 @@ if (Starfish.steady_state())
 		 else
 		     T.data[i][j] = -1;
 	    }
+	
+	/*set average density and velocities*/
+	nd_ave.copy(count_sum);
+	nd_ave.mult(1.0/num_samples);
+	nd_ave.scaleByVol();
+	
+	u_ave.copy(u_sum);
+	u_ave.divideByField(count_sum);
+	v_ave.copy(v_sum);
+	v_ave.divideByField(count_sum);
+	w_ave.copy(w_sum);
+	w_ave.divideByField(count_sum);
+	
+	/*set pressure*/
+	for (int i=0;i<md.mesh.ni;i++)
+	    for (int j=0;j<md.mesh.nj;j++)
+		p.data[i][j] = nd_ave.at(i,j)*Constants.K*T.at(i,j);
     }
 
     /** parser*/
