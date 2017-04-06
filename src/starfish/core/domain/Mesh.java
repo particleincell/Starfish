@@ -456,17 +456,28 @@ public abstract class Mesh
     {
 	if (domain_type==DomainType.XY)
 		return 1e-3*area(i0,j0);    //TODO: need better way to set domain width to simplify comparison of RZ to XY
-		
+	
+	/*axisymmetric mesh*/
+	
 	double r = R(i0,j0);
-	/*TODO: had to add 0.5 to get correct results, why?*/
-	if (r==0) 
+	//on centerline, we revolve (half area) through circle at r+0.25dr
+	if (domain_type==DomainType.RZ)
 	{
-	 if (domain_type==DomainType.RZ)
-	    r=0.5*R(i0+0.5,j0);   /*offset by 1/2 dr*/
-	 else if (domain_type==DomainType.ZR)
-	    r=0.5*R(i0,j0+0.5);   /*offset by 1/2 dr*/
+	    if (i0==0)
+		r = R(i0+0.25,j0);
+	    else if (i0==ni-1)
+		r = R(i0-0.25,j0);	    
 	}
-	return area(i0,j0)*r;
+	else if (domain_type==DomainType.ZR)
+	{
+	    if (j0==0)
+		r = R(i0,j0+0.25);
+	    else if (j0==nj-1)
+		r = R(i0,j0-0.25);
+	}
+	
+	//should be multiplied by 2*pi, leaving out pi for now
+	return 2*area(i0,j0)*r;
     }
 	
     /**@return volume for cell i,j*/
