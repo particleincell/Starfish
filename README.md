@@ -23,6 +23,7 @@ This is an early version and is likely full of bugs. Please submit a bug report 
 
 # License
 Please view LICENSE for license terms. 
+
 (c) 2012-2017 Particle In Cell Consulting LLC
 
 # Contact
@@ -30,6 +31,6 @@ Contact us [by visiting the website](https://www.particleincell.com/contact/)
 or on Twitter [@particleincell](https://twitter.com/particleincell).
 
 # Revision History
-v0.16 Addition of a DSMC module (previously included in the full version)
-v0.15 Initial release of PIC-MCC code
+- v0.16 Addition of a DSMC module (previously included in the full version)
+- v0.15 Initial release of PIC-MCC code
 

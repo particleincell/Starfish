@@ -185,13 +185,12 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	
     /*random number generator*/
     static Random random = new Random(0);
-    static public double rnd() {return random.nextDouble();}
-    static public double rndEx0() {double R= 1e-6+(1.0-1e-6)*random.nextDouble();
-    if (R>=1.0) {System.err.printf("R=%g\n",R);Log.log("R="+R);R=0.5;} return R;}
-    static public double rnd2() {return -1.0+2*random.nextDouble();}
+    static public double rnd() {return random.nextDouble();} //[0,1)
+    static public double rndEx0() {return 1.0e-15 + (1.0d - 1.0e-15)*random.nextDouble();} //(0,1)
+    static public double rnd2() {return -1.0+2*random.nextDouble();}  //[-1,1)
 	
     /*code version*/
-    static String VERSION = "v0.16 LE  (Development)";
+    static String VERSION = "v0.16.1 LE  (Development)";
     static public String HEADER_MESSAGE = "General 2D Plasma / Gas Kinetic Code\n ";
     	
     /*accessors*/

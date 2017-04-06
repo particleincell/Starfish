@@ -64,7 +64,7 @@ public class DSMC extends VolumeInteraction
 
     FieldCollection2D dsmc_count;
     FieldCollection2D nu;
-
+  
     static DSMCModel getModel(String type)
     {
 	    if (type.equalsIgnoreCase("Elastic"))
@@ -159,19 +159,15 @@ public class DSMC extends VolumeInteraction
 	
 	long nc_tot=0;
 
-	Field2D count = dsmc_count.getField(mesh);
 	double sigma_cr_max=0;
 	    
+	Field2D count = dsmc_count.getField(mesh);
 	/*loop over cells*/
 	for (int i=0;i<mesh.ni-1;i++)
 	    for (int j=0;j<mesh.nj-1;j++)
 	    {
-		double cell_cols=collideCell(cell_info[i][j],mesh.cellVol(i, j));			
-		
-		/*start counting only at ss since dividing by time since ss*/
-		if (Starfish.steady_state())
-		    count.scatter(i+0.5, j+0.5, cell_cols);
-		
+		double cell_cols=collideCell(cell_info[i][j],mesh.cellVol(i, j),count);			
+			
 		nc_tot+=cell_cols;
 		if (cell_info[i][j].sig_cr_max>sigma_cr_max) sigma_cr_max=cell_info[i][j].sig_cr_max;
 	    }
@@ -188,7 +184,7 @@ public class DSMC extends VolumeInteraction
     }
 
     /**performs DSMC collisions for a single cell, uses Boyd 1996 algorithm for variable weight*/
-    double collideCell(CellInfo cell_info, double cell_volume)
+    double collideCell(CellInfo cell_info, double cell_volume, Field2D count)
     {	
 	double sig_cr_max=0;	/*used to obtain new value*/	
 	
@@ -255,8 +251,17 @@ public class DSMC extends VolumeInteraction
 
 	    if (Starfish.rnd()<P)
 	    {
-		nc+=0.5*(part1.spwt+part2.spwt);
+		nc++;
 		model.perform(part1, part2,vss_inv);
+		
+		/*start counting only at ss since dividing by time since ss*/
+		if (Starfish.steady_state())
+		{
+		    double lc[] = {0,0};
+		    lc[0] = 0.5*(part1.lc[0]+part2.lc[0]);
+		    lc[1] = 0.5*(part1.lc[1]+part2.lc[1]);
+		    count.scatter(lc[0],lc[1], 0.5*(part1.spwt+part2.spwt));
+		}
 	    }
 	}
 

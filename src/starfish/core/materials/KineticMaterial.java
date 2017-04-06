@@ -77,7 +77,13 @@ public class KineticMaterial extends Material
 	field_manager2d.add("v-ave","m/s",null);
 	field_manager2d.add("w-ave","m/s",null);
 	field_manager2d.add("nd-ave","#/m^3",null);
-
+	
+	/*temperature components*/
+	field_manager2d.add("t1","K",null);
+	field_manager2d.add("t2","K",null);
+	field_manager2d.add("t3","K",null);
+	
+	
     }
 
     boolean steady_state = false;	/*TODO: temporary hack to clear samples*/
@@ -339,40 +345,25 @@ public class KineticMaterial extends Material
 	
 	private void rotateToZR(Particle part)
 	{
-	    
-	    /*bird's algorithm*/
-	/*    double v1 = part.vel[1];
-	    double w1 = part.vel[2];
-	    double b = part.pos[1];
-	    double a = w1*part.dt;
-	    double y = Math.sqrt(a*a+b*b);
-	    part.pos[1] = y;
-	    part.vel[1] = (v1*b + w1*a)/y;	//v
-	    part.vel[2] = (-v1*a + w1*b)/y;	//w
-	    return; 
-	  */  
 	    /*movement in R plane*/
+	    double B = part.pos[1];		
 	    double A = part.vel[2]*part.dt;
-	    double B = part.pos[1];		/*new position in R plane*/
-	    double R = Math.sqrt(B*B + A*A);		/*new radius*/
-
-	    double cos = B/R;
-	    double sin = A/R;    /*positive in the negative k direction*/
-	    double theta = Math.asin(sin);
-	    part.pos[2]-=theta;	/*update theta*/
+	    double R = Math.sqrt(A*A + B*B);		/*new radius*/
+  
+	    /*update particle theta, only used for visualization*/
+	    part.pos[2] += Math.asin(A/R);	
 
 	    /*rotate velocity through theta*/
 	    double v1 = part.vel[1];
 	    double v2 = part.vel[2];
 	    part.pos[1] = R;
-	    part.vel[1] = cos*v1 + sin*v2;
-	    part.vel[2] = -sin*v1 + cos*v2;	    
+	    part.vel[1] = (B*v1 + A*v2)/R;
+	    part.vel[2] = (-A*v1 + B*v2)/R;	    
 	}
     }
   
     /**
-     * checks for particle surface hits and/or domain escape
-     *
+     * checks for particle surface hits and/or domain escape     
      *
      * @param id	return value, contains info about impact location
      * @return remaining dt, or -1 if absorbed
@@ -1011,6 +1002,12 @@ if (Starfish.steady_state())
 	Field2D w_ave = this.field_manager2d.get(md.mesh,"w-ave");	
 	Field2D p = this.getP(md.mesh);
 	Field2D T = this.getT(md.mesh);
+	Field2D T1 = this.field_manager2d.get(md.mesh,"t1");	
+	Field2D T2 = this.field_manager2d.get(md.mesh,"t2");	
+	Field2D T3 = this.field_manager2d.get(md.mesh,"t3");	
+	
+	
+	
 	
 	Iterator<Particle> iterator = md.getIterator();
 	while (iterator.hasNext())
@@ -1028,25 +1025,34 @@ if (Starfish.steady_state())
 	//increment counter, used for density
 	num_samples++;
 	
-	/*compute temperatures*/
-	double f = mass/(3*Constants.K);
-	
+	/*compute temperatures*/	
 	for (int i=0;i<md.mesh.ni;i++)
 	    for (int j=0;j<md.mesh.nj;j++)
 	    {
 		 double count = count_sum.at(i, j);
 		 if (count>0) 
 		 {
-		     double u = u_sum.at(i,j);
-		     double v = v_sum.at(i,j);
-		     double w = w_sum.at(i,j);
-		     double uu = uu_sum.at(i,j);
-		     double vv = vv_sum.at(i,j);
-		     double ww = ww_sum.at(i,j);
-		     T.data[i][j] = ((uu-u)+(vv-v)+(ww-w))*f/count;
+		     double u = u_sum.at(i,j)/count;
+		     double v = v_sum.at(i,j)/count;
+		     double w = w_sum.at(i,j)/count;
+		     double uu = uu_sum.at(i,j)/count - u*u;
+		     double vv = vv_sum.at(i,j)/count - v*v;
+		     double ww = ww_sum.at(i,j)/count - w*w;
+		     double f = mass/(Constants.K);
+		     T.data[i][j] = (uu+vv+ww)*f/3.0;
+		     T1.data[i][j] = uu*f;
+		     T2.data[i][j] = vv*f;
+		     T3.data[i][j] = ww*f;
 		 }
 		 else
+		 {
 		     T.data[i][j] = -1;
+		     T1.data[i][j] = -1;
+		     T2.data[i][j] = -1;
+		     T3.data[i][j] = -1;
+		     
+		     
+		 }
 	    }
 	
 	/*set average density and velocities*/

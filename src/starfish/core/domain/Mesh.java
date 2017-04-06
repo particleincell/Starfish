@@ -476,8 +476,8 @@ public abstract class Mesh
 		r = R(i0,j0-0.25);
 	}
 	
-	//should be multiplied by 2*pi, leaving out pi for now
-	return 2*area(i0,j0)*r;
+	//should be multiplied by 2*pi, leaving out for now
+	return area(i0,j0)*r;
     }
 	
     /**@return volume for cell i,j*/
