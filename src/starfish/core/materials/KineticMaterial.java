@@ -41,7 +41,6 @@ public class KineticMaterial extends Material
     /*specific weight*/
     protected double spwt0;
     int sampling_start_it = 0;
-    int sampling_frequency = 5;
 
     public double getSpwt0()
     {
@@ -122,24 +121,19 @@ public class KineticMaterial extends Material
 
 	/*scale momentum by mass*/
 	total_momentum *= mass;
-
-	/*update velocity moments and recompute temperature*/
-	int it = Starfish.getIt();
 	
-	if (it>sampling_start_it && (it-sampling_start_it)%sampling_frequency==0)
+	/*reset sampling when we reach steady state*/
+	if (Starfish.steady_state() && !steady_state)
 	{
-	    	/*reset sampling when we reach steady state*/
-	    if (Starfish.steady_state() && !steady_state)
-	    {
-		for (MeshData md:mesh_data)
-		    clearSamples(md);
-		steady_state=true;
-	    }
-	
-	    for (MeshData md : mesh_data)	    
-		updateSamples(md);
+	    for (MeshData md:mesh_data)
+		clearSamples(md);
+	    steady_state=true;
 	}
 
+	/*update velocity moments and recompute temperature*/	
+	for (MeshData md : mesh_data)	    
+	    updateSamples(md);
+	
 	/*apply boundaries*/
 	updateBoundaries();
     }
@@ -253,7 +247,7 @@ public class KineticMaterial extends Material
 
 	    int bounces = 0;
 	    boolean alive = true;
-
+double dt0 = part.dt;
 	    /*iterate while we have time remaining*/
 	    while (part.dt > 0 && bounces++ < max_bounces)
 	    {
@@ -290,7 +284,8 @@ public class KineticMaterial extends Material
 		{
 		    part = new Particle(part_old);
 		
-		    alive = ProcessBoundary(part, mesh, old, old_lc);
+		  //  if (part.lc[1]<1)
+			alive = ProcessBoundary(part_old, mesh, old, old_lc);
 		    iterator.remove();
 		    break;
 		}				
@@ -547,7 +542,8 @@ if (Starfish.steady_state())
 	    if (exit_face==Face.RIGHT) i++;
 	    
 	    /*process boundary*/
-	    NodeType type = mesh.nodeType(i,j);
+	    NodeType type = mesh.boundaryType(exit_face);
+	    
 	    switch (type)
 	    {
 		case OPEN:
@@ -1049,9 +1045,7 @@ if (Starfish.steady_state())
 		     T.data[i][j] = -1;
 		     T1.data[i][j] = -1;
 		     T2.data[i][j] = -1;
-		     T3.data[i][j] = -1;
-		     
-		     
+		     T3.data[i][j] = -1;  
 		 }
 	    }
 	

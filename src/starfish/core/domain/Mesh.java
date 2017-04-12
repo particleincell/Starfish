@@ -322,7 +322,8 @@ public abstract class Mesh
 	   lc[1] = j+Starfish.rnd();
 	} while (++c<10 && isInternalPoint(lc));
 	
-	//if (c>=10) Log.warning("Failed to find external point in cell "+i+" "+j);
+	if (c>=10) Log.error("Failed to find external point in cell "
+		+i+" "+j+" ("+pos1(i, j)+", "+pos2(i,j)+")");
 	return pos(lc);
     }
 

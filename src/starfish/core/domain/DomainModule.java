@@ -286,8 +286,9 @@ public class DomainModule extends CommandModule
 	/*first init nodes, must be done before we call init*/
         for (Mesh mesh:mesh_list)
 	{
-	    mesh.initNodes();
+	    mesh.initNodes();	    
 	}
+	
 	
 	/*initialize all meshes*/
         for (Mesh mesh:mesh_list)

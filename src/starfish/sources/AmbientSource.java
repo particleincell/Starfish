@@ -69,36 +69,45 @@ public class AmbientSource extends Source
 	final double t_tol = 1e-4;
 	double dt = 1e-3;
 	/*don't start at t=0 to avoid getting outside cell if starting on cell boundary*/
-	double t=t_tol;	    
 	Cell last_cell=null;
-	do 
-	{
+	
+	/*excluding 0 and max to avoid setting neighbor cells*/
+	for (double t=t_tol;t<spline.numSegments()-t_tol;t+=dt)
+	{   
 	    double x[] = spline.pos(t);
+	    double normal[] = spline.normal(t);
+	    
 	    Mesh mesh = Starfish.domain_module.getMesh(x);
 	    if (mesh == null)
-	    {
-		t+=dt;
-		continue;
-	    }
-		
-	    int ic[] = mesh.XtoI(x);
-	    if (ic[0]>=mesh.ni-1) ic[0]=mesh.ni-2;
-	    if (ic[1]>=mesh.nj-1) ic[1]=mesh.nj-2;
+	    	continue;
+	    	
+	    double lc[] = mesh.XtoL(x);
+	    if (lc[0]>=mesh.ni-1) lc[0]=mesh.ni-1;
+	    if (lc[1]>=mesh.nj-1) lc[1]=mesh.nj-1;
+	    
+	    int ic[] = {(int)lc[0], (int)(lc[1])};
+	    double di[] = {lc[0]-ic[0], lc[1]-ic[1]};
+	    
+	    /*if spline is flushed with cell's left or bottom edge, but flow is left or down,
+	    shift cell down, to attach to cell's right or top edge    */
+	    if (di[0]<1e-10 && normal[0]<-0.95) ic[0]--;
+	    if (di[1]<1e-10 && normal[1]<-0.95) ic[1]--;
+	    	    	
+	    if (ic[0]<0 || ic[1]<0) continue;
 	    
 	    if (last_cell==null ||
 		(last_cell.i!=ic[0] || last_cell.j!=ic[1]))
 	    {
 		/*add cell*/
-		last_cell = new Cell(ic[0],ic[1],mesh,spline.normal(t),spline.tangent(t));
+		last_cell = new Cell(ic[0],ic[1],mesh,spline,t);
 		cells.add(last_cell);
 		Log.debug("Adding ambient cell "+ic[0]+" "+ic[1]);
 	    }
-	    
-	    /*increment*/
-	    /*TODO: this should actually implement search where we go back and forth, this was a quick hack to get the code working*/
-	    t+=dt;
-	    
-	} while(t<spline.numSegments()-t_tol);
+	    else    /*same cell*/ 
+	    {
+		cells.get(cells.size()-1).t2=t;  //increment t2
+	    }
+	}
 	Log.log(">Ambient source "+name+" number of cells = "+cells.size());
     }
 
@@ -113,15 +122,17 @@ public class AmbientSource extends Source
 	double rem;
 	Mesh mesh;
 	double volume;
-	double norm[];	    //boundary normal vector
-	double tang[];
-	Cell (int i,int j,Mesh mesh,double norm[], double tang[]) 
+	Spline spline;
+	double t1, t2;	    //min and max coord on the spline in the cell
+	
+	Cell (int i,int j,Mesh mesh,Spline spline,double t) 
 	{
 	    this.i=i;this.j=j;
 	    this.mesh = mesh;
 	    this.volume = mesh.cellVol(i, j);
-	    this.norm = norm.clone();
-	    this.tang = tang.clone();
+	    this.spline = spline;
+	    t1 = t;
+	    t2 = t;
 	}
     }
     
@@ -160,7 +171,8 @@ public class AmbientSource extends Source
 	    
 	    if (enforce == EnforceType.DENSITY)
 	    {		
-		dn = density-nd_cell;		
+		dn = density-nd_cell;
+		if (dn>0.20*density) dn=0.1*density; //limit increase to 20%
 	    }
 	    else if (enforce == EnforceType.TOTAL_PRESSURE)
 	    {		
@@ -174,7 +186,7 @@ public class AmbientSource extends Source
 	    	    	    
 	    double num_load = dn*cell.volume;
 	    
-   	    /*don't do anything if already at total pressure*/
+	    /*don't do anything if already at total pressure*/
 	    if (num_load<0) {cell.rem=0;continue;}
 	    
 	    /*now convert pressure to load to number of particles*/
@@ -209,8 +221,12 @@ public class AmbientSource extends Source
 		cell=cells.get(curr_cell);
 	    } while (cell.num_to_create<=0);
 	}
-		
-	double x[] = cell.mesh.randomPosInCell(cell.i,cell.j);
+	
+	/*this returns external point*/
+	double t = cell.t1 + Starfish.rnd()*(cell.t2-cell.t1);
+	double x[] = cell.spline.pos(t);
+	double norm[] = spline.normal(t);
+	double tang[] = spline.tangent(t);
 	
 	/*copy values*/
 	part.pos[0] = x[0];
@@ -218,15 +234,15 @@ public class AmbientSource extends Source
 	part.pos[2] = 0;
 
 	/*sample half maxwellian in norm direction*/
-	double v_max[] = Utils.diffuseReflVel(v_th,cell.norm,cell.tang);
+	part.vel = Utils.diffuseReflVel(v_th,norm, tang);
 	
 	/*old way, doesn't generate correct temperature*/
 	//double v_max[] = Utils.isotropicVel(Utils.SampleMaxwSpeed(v_th));
 	
 	/*add drift*/
-	part.vel[0] = v_max[0] + v_drift[0];
-	part.vel[1] = v_max[1] + v_drift[1];
-	part.vel[2] = v_max[2] + v_drift[2];
+	part.vel[0] += v_drift[0];
+	part.vel[1] += v_drift[1];
+	part.vel[2] += v_drift[2];
 		
 	cell.num_to_create--;
 	num_mp--;

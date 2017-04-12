@@ -34,8 +34,9 @@ public abstract class SigmaPlus
 	public void init(KineticMaterial mat1, KineticMaterial mat2) 
 	{
 	    /*set collision data*/
-	    sigma0=0.25*Constants.PI*(mat1.diam*mat1.diam+mat2.diam*mat2.diam);
-	
+	    double d_ref = (mat1.diam+mat2.diam);
+	    sigma0 = 0.25*Constants.PI*d_ref*d_ref; //1.35
+	   	    
 	    if (sigma0<=0) Starfish.Log.error("Material diameter <diam> not defined");
 	
 	    /*TODO: these are needed only for bird's sigma model!*/

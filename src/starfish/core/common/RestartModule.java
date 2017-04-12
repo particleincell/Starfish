@@ -194,13 +194,6 @@ public  class RestartModule extends CommandModule
 	    }			
 	}
 	in.close();
-	
-	/*TODO: update materials through zero time to compute densities, these should really be saved in the file!*/
-	double dt = Starfish.getDt();
-	Starfish.time_module.setDt(0);
-	Starfish.materials_module.updateMaterials();
-	Starfish.time_module.setDt(dt);
-	
     }
 
     /*system checksum*/

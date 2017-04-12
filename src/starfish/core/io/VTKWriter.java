@@ -134,6 +134,18 @@ public class VTKWriter extends Writer
 	pw.println("\n</DataArray>");
 	pw.println("</Lines>");
 	
+	/*normals*/
+	pw.println("<CellData>");
+	pw.println("<DataArray type=\"Float32\" NumberOfComponents=\"3\" Name=\"normals\" format=\"ascii\">");
+	for (Boundary boundary:bl)
+	    for (int i=0;i<boundary.numPoints()-1;i++)
+	    {
+		double norm[] = boundary.normal(i+0.5);
+		pw.printf("%g %g 0 ", norm[0],norm[1]);
+	    }
+	pw.println("\n</DataArray>");
+	pw.println("</CellData>");
+	
 	/*data*/
 	pw.println("<PointData>");
 	for (String var:variables)

@@ -141,6 +141,8 @@ public class DSMC extends VolumeInteraction
 	    Particle part = src_iterator.next();
 	    int i=(int)part.lc[0];
 	    int j=(int)part.lc[1];
+	    if (i>mesh.ni-2) i=mesh.ni-2;	    //if particle born on mesh boundary
+	    if (j>mesh.nj-2) j=mesh.nj-2;
 	    cell_info[i][j].sp1_list.add(part);
 	}
 
@@ -153,6 +155,8 @@ public class DSMC extends VolumeInteraction
 		Particle part = tgt_iterator.next();
 		int i=(int)part.lc[0];
 		int j=(int)part.lc[1];
+		if (i>mesh.ni-2) i=mesh.ni-2;	    //if particle born on mesh boundary
+		if (j>mesh.nj-2) j=mesh.nj-2;
 		cell_info[i][j].sp2_list.add(part);
 	    }
 	}
@@ -208,7 +212,12 @@ public class DSMC extends VolumeInteraction
 	if (Pab<1) Pab=1;
 	if (Pba<1) Pba=1;
 	
-	double nsel_f = ((np1*spwt1/cell_volume)*np2*delta_t*cell_info.sig_cr_max)/(Pab + (spwt2/spwt1)*Pba) + cell_info.rem;
+	double nsel_f = ((np1*spwt1/cell_volume)*np2*delta_t*cell_info.sig_cr_max)/(Pab + (spwt2/spwt1)*Pba); 	
+	/*since I am not doing inverse collisions, double if different species*/
+	if (mat1!=mat2) nsel_f*=2.0;
+	
+	/*add reminder*/
+	nsel_f += cell_info.rem;
 	int nsel = (int)(nsel_f);	/*number of groups, round*/
 	    
 	/*make sure we have enough particles to collide*/
@@ -252,6 +261,7 @@ public class DSMC extends VolumeInteraction
 	    if (Starfish.rnd()<P)
 	    {
 		nc++;
+		
 		model.perform(part1, part2,vss_inv);
 		
 		/*start counting only at ss since dividing by time since ss*/
