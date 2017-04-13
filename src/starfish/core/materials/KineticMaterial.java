@@ -70,17 +70,15 @@ public class KineticMaterial extends Material
 	field_manager2d.add("uu-sum", "m/s", null);
 	field_manager2d.add("vv-sum", "m/s", null);
 	field_manager2d.add("ww-sum", "m/s", null);
-	
-	/*instantenuous data*/
-	field_manager2d.add("u-ave","m/s",null);
-	field_manager2d.add("v-ave","m/s",null);
-	field_manager2d.add("w-ave","m/s",null);
-	field_manager2d.add("nd-ave","#/m^3",null);
-	
+		
 	/*temperature components*/
 	field_manager2d.add("t1","K",null);
 	field_manager2d.add("t2","K",null);
 	field_manager2d.add("t3","K",null);
+	
+	/*macroparticles per cell*/
+	field_manager2d.add("mpc-sum","#",null);
+	field_manager2d.add("mpc","#",null);
 	
 	
     }
@@ -247,7 +245,7 @@ public class KineticMaterial extends Material
 
 	    int bounces = 0;
 	    boolean alive = true;
-double dt0 = part.dt;
+
 	    /*iterate while we have time remaining*/
 	    while (part.dt > 0 && bounces++ < max_bounces)
 	    {
@@ -978,6 +976,7 @@ if (Starfish.steady_state())
 	field_manager2d.get(md.mesh, "uu-sum").clear();
 	field_manager2d.get(md.mesh, "vv-sum").clear();
 	field_manager2d.get(md.mesh, "ww-sum").clear();
+	field_manager2d.get(md.mesh, "mpc-sum").clear();
 	num_samples = 0;
 	Log.log("Cleared samples in Material "+name);
     }
@@ -1001,6 +1000,8 @@ if (Starfish.steady_state())
 	Field2D T1 = this.field_manager2d.get(md.mesh,"t1");	
 	Field2D T2 = this.field_manager2d.get(md.mesh,"t2");	
 	Field2D T3 = this.field_manager2d.get(md.mesh,"t3");	
+	Field2D mpc_sum = this.field_manager2d.get(md.mesh, "mpc-sum");
+
 	
 	
 	
@@ -1016,6 +1017,7 @@ if (Starfish.steady_state())
 	    vv_sum.scatter(part.lc, part.spwt * part.vel[1]*part.vel[1]);
 	    ww_sum.scatter(part.lc, part.spwt * part.vel[2]*part.vel[2]);	    
 	    count_sum.scatter(part.lc, part.spwt);
+	    mpc_sum.scatter(part.lc, 1);
 	}
 	
 	//increment counter, used for density
@@ -1065,6 +1067,13 @@ if (Starfish.steady_state())
 	for (int i=0;i<md.mesh.ni;i++)
 	    for (int j=0;j<md.mesh.nj;j++)
 		p.data[i][j] = nd_ave.at(i,j)*Constants.K*T.at(i,j);
+	
+	/*macroparticles per cell*/
+	Field2D mpc = this.field_manager2d.get(md.mesh,"mpc");	
+	mpc.copy(mpc_sum);
+	mpc.mult(1./num_samples);
+	
+	
     }
 
     /** parser*/

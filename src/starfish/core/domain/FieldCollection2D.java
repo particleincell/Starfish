@@ -55,6 +55,18 @@ public class FieldCollection2D
 	this(fc.getMeshes(),fc.getEvalFun());
     }
 
+    public void copy(FieldCollection2D fc)
+    {
+	for (Mesh mesh: Starfish.getMeshList())
+	    getField(mesh).copy(fc.getField(mesh));
+    }
+
+    public void mult(double val)
+    {
+	for (Mesh mesh: Starfish.getMeshList())
+	    getField(mesh).mult(val);
+    }
+
     public int it_last_eval = -1;
     
     /**uses this field's evalFun to update field values*/

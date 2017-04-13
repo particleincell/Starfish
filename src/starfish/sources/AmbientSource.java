@@ -119,7 +119,6 @@ public class AmbientSource extends Source
     {
 	int i, j;
 	int num_to_create;
-	double rem;
 	Mesh mesh;
 	double volume;
 	Spline spline;
@@ -157,7 +156,7 @@ public class AmbientSource extends Source
 	    /*compute partial pressure, total pressure, and average temperature*/	    	
 	    for (Material mat:Starfish.getMaterialsList())
 	    {
-	        double nd = mat.getDen(cell.mesh).gather(cell.i+0.5,cell.j+0.5);
+	        double nd = mat.getDenAve(cell.mesh).gather(cell.i+0.5,cell.j+0.5);
 		double T = km.getT(cell.mesh).gather(cell.i+0.5,cell.j+0.5);
 		double p_partial = nd*Constants.K*T;
 		p_total_cell += p_partial;
@@ -172,7 +171,7 @@ public class AmbientSource extends Source
 	    if (enforce == EnforceType.DENSITY)
 	    {		
 		dn = density-nd_cell;
-		if (dn>0.20*density) dn=0.1*density; //limit increase to 20%
+		//if (dn>0.20*density) dn=0.1*density; //limit increase to 20%
 	    }
 	    else if (enforce == EnforceType.TOTAL_PRESSURE)
 	    {		
@@ -187,12 +186,15 @@ public class AmbientSource extends Source
 	    double num_load = dn*cell.volume;
 	    
 	    /*don't do anything if already at total pressure*/
-	    if (num_load<0) {cell.rem=0;continue;}
+	    if (num_load<0) {continue;}
 	    
 	    /*now convert pressure to load to number of particles*/
-	    double nmp = num_load/km.getSpwt0()+cell.rem;
-	    cell.num_to_create = (int)nmp;
-	    cell.rem = nmp-cell.num_to_create;
+	    double nmp = num_load/km.getSpwt0();
+	    
+	    /*using rnd instead of "rem" because of the dynamic nature of the problem 
+	    just because there not enough particles were not created at last time step doesn't 
+	    mean there are now insufficient particles as they could move in from neighbor cell    */
+	    cell.num_to_create = (int)(nmp+Starfish.rnd());
 	    num_mp += cell.num_to_create;
 	}
 	

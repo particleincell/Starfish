@@ -49,6 +49,15 @@ public class VTKWriter extends Writer
 	pw.println("\n</DataArray>");
 	pw.println("</Points>");
 	
+	/*hard coded for now until I get some more robust way to output cell and vector data*/
+	pw.println("<CellData>");
+	pw.println("<DataArray Name=\"CellVol\" type=\"Float32\" NumberOfComponents=\"1\" format=\"ascii\">");
+	for (int j=0;j<mesh.nj-1;j++)
+	    for	(int i=0;i<mesh.ni-1;i++)
+		pw.printf("%g ",mesh.cellVol(i, j));
+	pw.println("\n</DataArray>");
+	pw.println("</CellData>");
+	
 	pw.println("<PointData>");
 	pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
 	for (int j=0;j<mesh.nj;j++)

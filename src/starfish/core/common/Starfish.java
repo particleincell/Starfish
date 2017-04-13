@@ -70,9 +70,6 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	
 	while(time_module.hasTime())
 	{
-	    /*update densities and velocities*/
-	    materials_module.updateMaterials();
-	    
 	    /*add new particles*/
 	    source_module.sampleSources();
 	
@@ -81,7 +78,10 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
 	    /*solve potential and recompute electric field*/
 	    solver_module.updateFields();
-
+	    
+	    /*update densities and velocities*/
+	    materials_module.updateMaterials();
+	    
 	    /*save restart data*/
 	    restart_module.save();
 
@@ -190,7 +190,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     static public double rnd2() {return -1.0+2*random.nextDouble();}  //[-1,1)
 	
     /*code version*/
-    static String VERSION = "v0.16.1 LE  (Development)";
+    static String VERSION = "v0.16.2 LE  (Development)";
     static public String HEADER_MESSAGE = "General 2D Plasma / Gas Kinetic Code\n ";
     	
     /*accessors*/

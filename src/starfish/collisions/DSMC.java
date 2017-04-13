@@ -34,11 +34,12 @@ public class DSMC extends VolumeInteraction
     DSMCModel model;
     KineticMaterial mat1;
     KineticMaterial mat2;
+    int frequency;
    // KineticMaterial product;
 
     double vss_inv;
     
-    DSMC(String mat1, String mat2, Sigma sigma, DSMCModel model) 
+    DSMC(String mat1, String mat2, Sigma sigma, DSMCModel model, int frequency) 
     {
 	/*make sure we have a kinetic source*/
 	if (!(Starfish.getMaterial(mat1) instanceof KineticMaterial) ||
@@ -52,18 +53,24 @@ public class DSMC extends VolumeInteraction
 	this.vss_inv=0.5*(1.0/this.mat1.vss_alpha+1.0/this.mat2.vss_alpha);
 
 	this.sigma = sigma;
+	this.frequency = frequency;	//iteration skip between collisions
 
 	  /*not very elegent but couldn't figure out where else to call this*/
 	if (sigma instanceof SigmaBird463)
 	{
 	    ((SigmaBird463)sigma).init(this.mat1,this.mat2);
 	}
-	dsmc_count = Starfish.domain_module.getFieldManager().add("dsmc_count", "#",null);
-	nu = Starfish.domain_module.getFieldManager().add("nu", "#/s",null);
+	/*TODO: these need to be per pair*/
+	fc_real_sum = Starfish.domain_module.getFieldManager().add("dsmc-real-sum", "#",null);
+	fc_count_sum = Starfish.domain_module.getFieldManager().add("dsmc-count-sum", "#",null);
+	fc_count = Starfish.domain_module.getFieldManager().add("dsmc-count", "#",null);
+	fc_nu = Starfish.domain_module.getFieldManager().add("nu", "#/s",null);
     }
 
-    FieldCollection2D dsmc_count;
-    FieldCollection2D nu;
+    FieldCollection2D fc_count;	    	//number of collisions 
+    FieldCollection2D fc_count_sum;	//sum for number of collisions 
+    FieldCollection2D fc_real_sum;	//sum for number of collisions scaled by spwt
+    FieldCollection2D fc_nu;		//collision frequency
   
     static DSMCModel getModel(String type)
     {
@@ -109,14 +116,38 @@ public class DSMC extends VolumeInteraction
     
     HashMap<Mesh,MeshData> mesh_data = new HashMap();
     
+    int num_samples = 0;
+    boolean steady_state = false;
+    
     @Override
     public void perform() 
     {
-	Log.debug("Performing DSMC");
+	if (Starfish.getIt()%frequency!=0) return;
+	
+	/*clear samples if we are now at steady state*/
+	if (Starfish.steady_state() && !steady_state)
+	{
+	   steady_state = true;
+	   fc_count_sum.clear();
+	   fc_real_sum.clear();
+	   num_samples = 0;
+	}
+	
+	num_samples++;
+	
+	Log.debug("Performing DSMC for "+mat1.name+" : "+mat2.name);
 	
 	/*group particles to cells*/
 	for (Mesh mesh:Starfish.getMeshList())
 		perform(mesh);
+	
+	/*update collision count - number of collisions per cell per call to perform*/
+	fc_count.copy(fc_count_sum);
+	fc_count.mult(1.0/num_samples);
+	
+	/*update collision frequency*/
+	fc_nu.copy(fc_real_sum);
+	fc_nu.mult(1.0/(num_samples*frequency*Starfish.getDt()));	
     }
 
     /** performs DSMC on a mesh*/
@@ -141,9 +172,9 @@ public class DSMC extends VolumeInteraction
 	    Particle part = src_iterator.next();
 	    int i=(int)part.lc[0];
 	    int j=(int)part.lc[1];
-	    if (i>mesh.ni-2) i=mesh.ni-2;	    //if particle born on mesh boundary
-	    if (j>mesh.nj-2) j=mesh.nj-2;
+	    if (i>=mesh.ni-1 || j>=mesh.nj-1) continue;	//boundary source can create particles on mesh edge
 	    cell_info[i][j].sp1_list.add(part);
+	   
 	}
 
 	/*target*/
@@ -155,8 +186,7 @@ public class DSMC extends VolumeInteraction
 		Particle part = tgt_iterator.next();
 		int i=(int)part.lc[0];
 		int j=(int)part.lc[1];
-		if (i>mesh.ni-2) i=mesh.ni-2;	    //if particle born on mesh boundary
-		if (j>mesh.nj-2) j=mesh.nj-2;
+		if (i>=mesh.ni-1 || j>=mesh.nj-1) continue;   //boundary source can create particles on mesh edge
 		cell_info[i][j].sp2_list.add(part);
 	    }
 	}
@@ -165,34 +195,29 @@ public class DSMC extends VolumeInteraction
 
 	double sigma_cr_max=0;
 	    
-	Field2D count = dsmc_count.getField(mesh);
+	Field2D real_sum = fc_real_sum.getField(mesh);
+	Field2D count_sum = fc_count_sum.getField(mesh);
+	
 	/*loop over cells*/
 	for (int i=0;i<mesh.ni-1;i++)
 	    for (int j=0;j<mesh.nj-1;j++)
 	    {
-		double cell_cols=collideCell(cell_info[i][j],mesh.cellVol(i, j),count);			
+		double cell_cols=collideCell(cell_info[i][j],mesh.cellVol(i, j),count_sum, real_sum);			
 			
 		nc_tot+=cell_cols;
 		if (cell_info[i][j].sig_cr_max>sigma_cr_max) sigma_cr_max=cell_info[i][j].sig_cr_max;
 	    }
 
-	/*update collision frequency*/
-	if (Starfish.steady_state())
-	{
-	    nu.getField(mesh).copy(dsmc_count.getField(mesh));
-	    nu.getField(mesh).mult(1.0/(Starfish.time_module.getTime()-Starfish.time_module.getSteadyStateTime()));
-	}
-	
 	Log.log(String.format("DSMC %s-%s collision count: %d\t sig_cr_max: %.3g",mat1.getName(),mat2.getName(),nc_tot,sigma_cr_max));
 
     }
 
     /**performs DSMC collisions for a single cell, uses Boyd 1996 algorithm for variable weight*/
-    double collideCell(CellInfo cell_info, double cell_volume, Field2D count)
+    double collideCell(CellInfo cell_info, double cell_volume, Field2D col_sum, Field2D real_sum)
     {	
 	double sig_cr_max=0;	/*used to obtain new value*/	
 	
-	double delta_t=Starfish.getDt();
+	double delta_t=frequency*Starfish.getDt();
 
 	/*we have just one list if both materials the same*/
 	List<Particle>sp1_list = cell_info.sp1_list;
@@ -213,12 +238,12 @@ public class DSMC extends VolumeInteraction
 	if (Pba<1) Pba=1;
 	
 	double nsel_f = ((np1*spwt1/cell_volume)*np2*delta_t*cell_info.sig_cr_max)/(Pab + (spwt2/spwt1)*Pba); 	
-	/*since I am not doing inverse collisions, double if different species*/
+	/*since not doing "q-p" collisions for "p-q", need double if different species*/
 	if (mat1!=mat2) nsel_f*=2.0;
 	
 	/*add reminder*/
 	nsel_f += cell_info.rem;
-	int nsel = (int)(nsel_f);	/*number of groups, round*/
+	int nsel = (int)(nsel_f);	/*number of groups, round down*/
 	    
 	/*make sure we have enough particles to collide*/
 	if ((mat1==mat2 && (np1<2 || np2<2))||
@@ -270,7 +295,8 @@ public class DSMC extends VolumeInteraction
 		    double lc[] = {0,0};
 		    lc[0] = 0.5*(part1.lc[0]+part2.lc[0]);
 		    lc[1] = 0.5*(part1.lc[1]+part2.lc[1]);
-		    count.scatter(lc[0],lc[1], 0.5*(part1.spwt+part2.spwt));
+		    col_sum.scatter(lc[0],lc[1], 1);
+		    real_sum.scatter(lc[0],lc[1], 0.5*(part1.spwt+part2.spwt));
 		}
 	    }
 	}
@@ -394,9 +420,13 @@ public class DSMC extends VolumeInteraction
 	    String model_name = InputParser.getValue("model", element);
 	    DSMCModel model = DSMC.getModel(model_name);
 
+	    /*number of time steps between dsmc computations*/
+	    int frequency = InputParser.getInt("frequency", element, 1);
+	    if (frequency<1) frequency=1;
+	    
 	    Sigma sigma = InteractionsModule.parseSigma(element);
 	    
-	    Starfish.interactions_module.addInteraction(new DSMC(pair[0],pair[1],sigma,model));
+	    Starfish.interactions_module.addInteraction(new DSMC(pair[0],pair[1],sigma,model,frequency));
 	}
     };
 

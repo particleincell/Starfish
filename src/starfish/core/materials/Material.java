@@ -230,6 +230,12 @@ public abstract class Material
 	return field_manager2d.getFieldCollection("nd");
     }
 
+    public FieldCollection2D getDenAveCollection()
+    {
+	return field_manager2d.getFieldCollection("nd-ave");
+    }
+
+
     public FieldCollection2D getUCollection()
     {
 	return field_manager2d.getFieldCollection("u");
@@ -258,6 +264,11 @@ public abstract class Material
     public Field2D getDen(Mesh mesh)
     {
 	return getDenCollection().getField(mesh);
+    }
+
+    public Field2D getDenAve(Mesh mesh)
+    {
+	return getDenAveCollection().getField(mesh);
     }
 
     public Field2D getU(Mesh mesh)
@@ -393,14 +404,22 @@ public abstract class Material
 	field_manager2d = new FieldManager2D(Starfish.getMeshList());
 	field_manager1d = new FieldManager1D(Starfish.getBoundaryList());
 
-	/*add default 2d fields*/
+	/*add default instantenuous 2d fields*/
 	field_manager2d.add("nd", "#/m^3", init_vals.nd,null);
 	field_manager2d.add("u", "m/s", init_vals.u,null);
 	field_manager2d.add("v", "m/s", init_vals.v,null);
 	field_manager2d.add("w", "m/s", init_vals.v,null);
+	
+	/*average data*/
+	field_manager2d.add("u-ave","m/s",null);
+	field_manager2d.add("v-ave","m/s",null);
+	field_manager2d.add("w-ave","m/s",null);
+	field_manager2d.add("nd-ave","#/m^3",null);
+
+	/*these are computed using averages*/
 	field_manager2d.add("t", "K", init_vals.T,null);
 	field_manager2d.add("p", "Pa", 0,null);
-
+	
 	/*add default 1d fields*/
 	flux_collection = field_manager1d.add("flux", "#/m^2/s");
 	flux_normal_collection = field_manager1d.add("flux_normal", "#/m^2/s");
