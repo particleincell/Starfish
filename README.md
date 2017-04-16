@@ -31,6 +31,7 @@ Contact us [by visiting the website](https://www.particleincell.com/contact/)
 or on Twitter [@particleincell](https://twitter.com/particleincell).
 
 # Revision History
+- v0.16.2 Various bug fixes related to DSMC and ambient boundary source
 - v0.16 Addition of a DSMC module (previously included in the full version)
 - v0.15 Initial release of PIC-MCC code
 

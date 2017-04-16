@@ -1,0 +1,30 @@
+<!-- materials file -->
+<materials>
+
+<!-- data from Bird's Appendix A-->
+<material name="Ar1" type="kinetic">
+	<molwt>39.94</molwt>
+	<charge>0</charge>
+	<spwt>5e11</spwt>
+    <ref_temp>273</ref_temp>;
+	<visc_temp_index>0.81</visc_temp_index>
+	<vss_alpha>1.00</vss_alpha> <!--1.40-->
+	<diam>4.17e-10</diam>
+</material>
+
+<material name="Ar2" type="kinetic">
+	<molwt>39.94</molwt>
+	<charge>0</charge>
+	<spwt>5e11</spwt>
+    <ref_temp>273</ref_temp>;
+	<visc_temp_index>0.81</visc_temp_index>
+	<vss_alpha>1.00</vss_alpha> <!--1.40-->
+	<diam>4.17e-10</diam>
+</material>
+
+<material name="SS" type="solid">
+	<molwt>52.3</molwt> 
+	<density>8000</density>
+</material>
+
+</materials>

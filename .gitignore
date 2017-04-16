@@ -5,6 +5,8 @@
 build
 dist
 doc
+dat/dsmc/jet/cases
+nbproject/private
 
 #other files
 *.log
@@ -61,3 +63,7 @@ Temporary Items
 .apdisk
 starfish-LE-016.zip
 starfish-LE.jar
+*.vtp
+*.vts
+*.bashrc
+nbproject/private/private.xml
