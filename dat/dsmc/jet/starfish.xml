@@ -1,0 +1,46 @@
+<simulation>    
+<note>expansion from a tube</note>
+<log level="Log" />
+
+<!-- load input files -->
+<load>domain.xml</load>
+<load>materials.xml</load>
+<load>boundaries.xml</load>
+<load>interactions.xml</load>
+<load>sources.xml</load>
+
+<solver type="constant-ef">
+<comps>0,0</comps>
+</solver>
+
+<!-- set time parameters 70k, 20k-->
+<time>
+<num_it>70000</num_it>
+<dt>1e-8</dt>
+<steady_state>20000</steady_state>
+</time>	
+
+<restart>
+<it_save>5000</it_save>
+<save>true</save>
+<load>false</load>
+<nt_add>5000</nt_add>
+</restart>
+
+<!-- run simulation -->
+<starfish/>
+        
+<!-- save results -->
+<output type="2D" file_name="field.vts" format="vtk">
+<variables>nodevol, p, nd-ave.n2, t.n2, t1.n2, t2.n2, t3.n2, u-ave.n2, v-ave.n2, w-ave.n2, nu, mpc.n2, dsmc-count</variables>
+</output>
+
+<output type="boundaries" file_name="boundaries.vtp" format="vtk">
+<variables>flux.n2, flux_normal.n2</variables>
+</output>
+
+</simulation>
+
+<!--
+mag(vel)/sqrt(1.4*1.3806e-23*t.n2/(28*1.661e-27))
+-->
