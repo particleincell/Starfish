@@ -13,10 +13,17 @@ Navier Stokes solver and sources specific to plasma thrusters. This version is n
 
 
 ## Getting Started
-First, take a look at the
-[five step tutorial](https://www.particleincell.com/2012/starfish-tutorial-part1/) posted on the PIC-C site.
-The input files are included in the dat/tutorial directory. There you will also find
+Start by taking a look at a five-step 
+[ES-PIC](https://www.particleincell.com/2012/starfish-tutorial-part1/) and [DSMC](https://www.particleincell.com/2017/starfish-tutorial-dsmc/) tutorials.
+Input files for the tutorials are included in the dat directory. On the PIC-C website you will also find
 a [PowerPoint presentation](dat/tutorial/starfish-code-overview.pdf) with some introductory remarks about the source code. The associated video is [available here](https://www.youtube.com/watch?v=IDFeT_X-IsU).
+
+# Examples
+![t-750-05](dat/dsmc/jet/plots/t-750-05.png)
+DSMC computation of temperature in an atmospheric jet expanding to a low pressure tank
+
+
+
 
 # Bug Reporting
 This is an early version and is likely full of bugs. Please submit a bug report if you find anything odd!
