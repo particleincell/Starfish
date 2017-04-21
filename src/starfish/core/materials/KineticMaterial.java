@@ -97,20 +97,6 @@ public class KineticMaterial extends Material
 	    getW(md.mesh).clear();
 	}
 
-	total_momentum = 0;
-	/*first loop through all particles*/
-	for (MeshData md : mesh_data)
-	{
-	    moveParticles(md, false);
-	}
-
-	/*now move transferred particle*/
-	/*TODO: multiple loops*/
-	for (MeshData md : mesh_data)
-	{
-	    moveParticles(md, true);
-	}
-
 	/*update densities and velocities*/
 	for (MeshData md : mesh_data)
 	{
@@ -134,6 +120,22 @@ public class KineticMaterial extends Material
 	
 	/*apply boundaries*/
 	updateBoundaries();
+		
+	/*put particle move after update otherwise density from boundary sources won't be right*/
+	total_momentum = 0;
+	/*first loop through all particles*/
+	for (MeshData md : mesh_data)
+	{
+	    moveParticles(md, false);
+	}
+
+	/*now move transferred particle*/
+	/*TODO: multiple loops*/
+	for (MeshData md : mesh_data)
+	{
+	    moveParticles(md, true);
+	}
+
     }
 
     /**
@@ -322,36 +324,41 @@ public class KineticMaterial extends Material
 	    /*movement in R plane*/
 	    double A = part.vel[2]*part.dt;
 	    double B = part.pos[0];		/*new position in R plane*/
-	    part.pos[0] = Math.sqrt(B*B + A*A);		/*new radius*/
+	    double R = Math.sqrt(A*A + B*B);	/*new radius*/
 
-	    double cos = B/part.pos[0];
-	    double sin = A/part.pos[0];
-	    double theta = Math.asin(sin);
-	    part.pos[2]+=theta;	/*update theta*/
+	    double cos = B/R;
+	    double sin = A/R;
+	    
+	    /*update particle theta, only used for visualization*/
+	    part.pos[2] += Math.asin(sin);
 
-	    /*rotate XY velocity*/
-	    double u = part.vel[0];
-	    double v = part.vel[2];
-	    part.vel[0] = cos*u+sin*v;
-	    part.vel[2] = -sin*u+cos*v;	
+	    /*rotate velocity through theta*/
+	    double v1 = part.vel[0];
+	    double v2 = part.vel[2];
+	    part.pos[0] = R;
+	    part.vel[0] = cos*v1+sin*v2;
+	    part.vel[2] = -sin*v1+cos*v2;	
 	}
 	
 	private void rotateToZR(Particle part)
 	{
 	    /*movement in R plane*/
-	    double B = part.pos[1];		
 	    double A = part.vel[2]*part.dt;
+	    double B = part.pos[1];		
 	    double R = Math.sqrt(A*A + B*B);		/*new radius*/
-  
+  	    
+	    double cos = B/R;
+	    double sin = A/R;
+	    
 	    /*update particle theta, only used for visualization*/
-	    part.pos[2] += Math.asin(A/R);	
+	    part.pos[2] += Math.asin(sin);	
 
 	    /*rotate velocity through theta*/
 	    double v1 = part.vel[1];
 	    double v2 = part.vel[2];
 	    part.pos[1] = R;
-	    part.vel[1] = (B*v1 + A*v2)/R;
-	    part.vel[2] = (-A*v1 + B*v2)/R;	    
+	    part.vel[1] = cos*v1 + sin*v2;
+	    part.vel[2] = -sin*v1 + cos*v2;	    
 	}
     }
   
@@ -982,7 +989,7 @@ if (Starfish.steady_state())
     }
     
     /** updates velocity samples and also computes temperature*/
-    void updateSamples(MeshData md)
+    public void updateSamples(MeshData md)
     {
 	Field2D count_sum = this.field_manager2d.get(md.mesh, "count-sum");
 	Field2D u_sum = this.field_manager2d.get(md.mesh, "u-sum");

@@ -156,6 +156,7 @@ public class AmbientSource extends Source
 	    /*compute partial pressure, total pressure, and average temperature*/	    	
 	    for (Material mat:Starfish.getMaterialsList())
 	    {
+		
 	        double nd = mat.getDenAve(cell.mesh).gather(cell.i+0.5,cell.j+0.5);
 		double T = km.getT(cell.mesh).gather(cell.i+0.5,cell.j+0.5);
 		double p_partial = nd*Constants.K*T;
@@ -186,6 +187,7 @@ public class AmbientSource extends Source
 	    double num_load = dn*cell.volume;
 	    
 	    /*don't do anything if already at total pressure*/
+	    /*TODO: destroy particles, need particles per cell list, currently done only by DSMC*/
 	    if (num_load<0) {continue;}
 	    
 	    /*now convert pressure to load to number of particles*/

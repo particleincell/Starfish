@@ -283,11 +283,7 @@ public class DomainModule extends CommandModule
 	/*TODO: this is currently getting called twice, once 
 	* on <domain> and then by <starfish> (after boundaries are loaded*/		
 	
-	/*first init nodes, must be done before we call init*/
-        for (Mesh mesh:mesh_list)
-	{
-	    mesh.initNodes();	    
-	}
+
 	
 	
 	/*initialize all meshes*/
@@ -297,6 +293,12 @@ public class DomainModule extends CommandModule
 	    mesh.setBoundaries(Starfish.getBoundaryList());
 	}
 
+	/*first init nodes, must be done before we call init*/
+        for (Mesh mesh:mesh_list)
+	{
+	    mesh.initNodes();	    
+	}
+	
 	/*synch mesh volumes*/
 	Starfish.getFieldCollection("NodeVol").syncMeshBoundaries();	
 	

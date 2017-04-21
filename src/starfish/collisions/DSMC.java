@@ -60,11 +60,24 @@ public class DSMC extends VolumeInteraction
 	{
 	    ((SigmaBird463)sigma).init(this.mat1,this.mat2);
 	}
-	/*TODO: these need to be per pair*/
-	fc_real_sum = Starfish.domain_module.getFieldManager().add("dsmc-real-sum", "#",null);
-	fc_count_sum = Starfish.domain_module.getFieldManager().add("dsmc-count-sum", "#",null);
-	fc_count = Starfish.domain_module.getFieldManager().add("dsmc-count", "#",null);
-	fc_nu = Starfish.domain_module.getFieldManager().add("nu", "#/s",null);
+	
+	/*figure out how many other DSMC pairs are defined*/
+	ArrayList<VolumeInteraction> vints = Starfish.interactions_module.getInteractionsList();
+	int id = 1;
+	for (VolumeInteraction vint : vints)
+	{
+	    if (vint instanceof DSMC) id++;
+	}
+	
+	/*for backward compatibility, there is no "-1" only "-2"*/
+	String tag = "";
+	if (id>1) tag="-"+id;
+	
+	/*add fields*/
+	fc_real_sum = Starfish.domain_module.getFieldManager().add("dsmc-real-sum"+tag, "#",null);
+	fc_count_sum = Starfish.domain_module.getFieldManager().add("dsmc-count-sum"+tag, "#",null);
+	fc_count = Starfish.domain_module.getFieldManager().add("dsmc-count"+tag, "#",null);
+	fc_nu = Starfish.domain_module.getFieldManager().add("nu"+tag, "#/s",null);
     }
 
     FieldCollection2D fc_count;	    	//number of collisions 

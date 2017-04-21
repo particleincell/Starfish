@@ -191,7 +191,11 @@ public  class RestartModule extends CommandModule
 		    part.spwt = in.readDouble();
 		    km.addParticle(md,part);
 		}
-	    }			
+		
+		/*compute densities, needed by ambient source*/
+		km.updateSamples(md);
+	    }		
+
 	}
 	in.close();
     }

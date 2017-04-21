@@ -17,7 +17,7 @@ public class Constants
     static public final double QE = 1.60217646e-19;	    /*elementary charge*/
     static public final double AMU = 1.66053886e-27;	/*atomic mass unit*/
     static public final double ME = 9.10938e-31;	    /*electron mass*/
-    static public final double FLT_EPS = 1e-6;		    /*epsilon for floating comparisons*/
+    static public final double FLT_EPS = 1e-7;		    /*epsilon for floating comparisons*/
     static public final double PI = Math.PI;
     static public final double KtoEV = K/QE;
     static public final double EVtoK = 1.0/KtoEV;

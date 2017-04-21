@@ -170,10 +170,16 @@ public abstract class Mesh
 	
 	node_vol = Starfish.getFieldCollection("NodeVol").getField(this);
 		
-	/*compute node volumes*/
+	/*compute node volumes on open nodes*/
 	for (i=0;i<ni;i++)
 	    for (j=0;j<nj;j++ )
 		node_vol.set(i,j,nodeVol(i,j));     
+	
+	/*now repeat, but use monte carlo on interface nodes to correct volumes*/
+	for (i=0;i<ni;i++)
+	    for (j=0;j<nj;j++)
+		computeInterfaceNodeVol(i,j);
+	
     }
    
     /**sets neighbors boundary cells*/
@@ -484,9 +490,40 @@ public abstract class Mesh
     /**@return volume for cell i,j*/
     public double cellVol(int i, int j)
     {
-	return nodeVol(i+0.5,j+0.5);
+	double lc[] = {i+0.5,j+0.5};
+	return node_vol.gather(lc);
     }
 
+    /*uses monte carlo approach to compute node volumes in interface node control volumes*/
+    public void computeInterfaceNodeVol(int i, int j)
+    {
+	//only process nodes with surface elements
+	if (node[i][j].segments.isEmpty()) return;
+	
+	int inside = 0;
+	int good = 0;
+	for (int d=0;d<1000;d++)
+	{
+	    /*pick random position from [i-0.5,j-0.5] to [i+0.5,j+0.5]*/
+	    double lc[] = {i+0.5*Starfish.rnd2(), j+0.5*Starfish.rnd2()};
+	    
+	    //is point inside the mesh?
+	    if (lc[0]<0 || lc[1]<0 || lc[0]>=ni-1 || lc[1]>=nj-1) continue;
+	    
+	    inside++;
+	    
+	    if (!isInternalPoint(lc)) good++;
+
+	}
+	
+
+	//scale node volume, but only on interface nodes (fully internal are left alone so can visualize leaks)
+	if (good>0)
+	    node_vol.data[i][j]*=good/(double)(inside);
+	
+    }
+    
+    
     /*returns the two nodes making up edge number e,
      *ordering is counter clockwise from "Right" (R->T->L->B)*/
     public double[] edge(double i, double j, Face face, boolean first) 
