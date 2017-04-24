@@ -474,6 +474,22 @@ public class Spline
     {
 	return nodeArea(i)+nodeArea(i+1);
     }
+    
+    /** @return area of a strip between two endpoints, assumes linear strip    */
+    public double stripArea(double t1, double t2)
+    {
+	double pos1[] = pos(t1);
+	double pos2[] = pos(t2);
+	double l = Vector.dist2(pos1, pos2);	/*arc length*/
+	if (Starfish.domain_module.getDomainType()==DomainType.XY) return l;
+	
+	double r=0;
+	if (Starfish.domain_module.getDomainType()==DomainType.RZ) r = 0.5*(pos1[0]+pos2[0]);
+	else if (Starfish.domain_module.getDomainType()==DomainType.ZR) r = 0.5*(pos1[1]+pos2[1]);
+	else Log.error("Unknown domain type");
+	
+	return 2*Math.PI*l*r;
+    }
 
     /** @return "surface" area of the spline*/
     public double area()

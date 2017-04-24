@@ -161,6 +161,6 @@ public abstract class Segment
     }
 
     public abstract double closestPos(double[] xp);
-   
+    
 }
 

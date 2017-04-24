@@ -14,9 +14,8 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
-import starfish.core.domain.Field2D;
-import starfish.core.domain.FieldCollection2D;
-import starfish.core.domain.FieldCollection2D.MeshEvalFun;
+import starfish.core.domain.DomainModule;
+import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
@@ -66,12 +65,12 @@ public class AmbientSource extends Source
 	/*use iterative method to figure out which cells the spline passes through*/
 	/*TODO: move this to Spline*/
 	
-	final double t_tol = 1e-4;
+	final double t_tol = 0;
 	double dt = 1e-3;
 	/*don't start at t=0 to avoid getting outside cell if starting on cell boundary*/
 	Cell last_cell=null;
 	
-	/*excluding 0 and max to avoid setting neighbor cells*/
+	/*excluding max to avoid setting neighbor cells*/
 	for (double t=t_tol;t<spline.numSegments()-t_tol;t+=dt)
 	{   
 	    double x[] = spline.pos(t);
@@ -146,19 +145,29 @@ public class AmbientSource extends Source
 	/*for now this only works for kinetic materials*/
 	KineticMaterial km = (KineticMaterial)source_mat;
 	
-	for (Cell cell:cells)
+	for (int c=0;c<cells.size();c++)
 	{
 	    double dn=0;  // nd*vol
    	    double nd_cell=0;
 	    double p_partial_cell=0;
 	    double p_total_cell=0;
 	    
+	    /*sample at midpoint, except in the last cell,
+	    otherwise we sample too many particles as the density will be lowered by the "right" node
+	    which now has fever particles as there is no source on it's "right" side*/
+	    double t;
+	    Cell cell = cells.get(c);
+	    t = cell.t1+0.5*(cell.t2-cell.t1);
+	    if (c==cells.size()-1) t=cell.t1;
+	    
+	    double lc[] = cell.mesh.XtoL(spline.pos(t));
+	       
 	    /*compute partial pressure, total pressure, and average temperature*/	    	
 	    for (Material mat:Starfish.getMaterialsList())
 	    {
 		
-	        double nd = mat.getDenAve(cell.mesh).gather(cell.i+0.5,cell.j+0.5);
-		double T = km.getT(cell.mesh).gather(cell.i+0.5,cell.j+0.5);
+		double nd = mat.getDenAve(cell.mesh).gather(lc);
+		double T = km.getT(cell.mesh).gather(lc);
 		double p_partial = nd*Constants.K*T;
 		p_total_cell += p_partial;
 		
@@ -183,9 +192,9 @@ public class AmbientSource extends Source
 		dn = (p_partial_cell - p_fraction*p_total_cell)/(Constants.K*temperature);
 	    }
 	    else Log.error("Unknown enforce type");
-	    	    	    
-	    double num_load = dn*cell.volume;
 	    
+	    double num_load = dn*cell.volume;
+	    	    
 	    /*don't do anything if already at total pressure*/
 	    /*TODO: destroy particles, need particles per cell list, currently done only by DSMC*/
 	    if (num_load<0) {continue;}
@@ -197,6 +206,8 @@ public class AmbientSource extends Source
 	    just because there not enough particles were not created at last time step doesn't 
 	    mean there are now insufficient particles as they could move in from neighbor cell    */
 	    cell.num_to_create = (int)(nmp+Starfish.rnd());
+	    
+	    Log.debug("   Creating "+cell.num_to_create+" in cell "+cell.i+":"+cell.j);
 	    num_mp += cell.num_to_create;
 	}
 	
@@ -227,7 +238,7 @@ public class AmbientSource extends Source
 	}
 	
 	/*this returns external point*/
-	double t = cell.t1 + Starfish.rnd()*(cell.t2-cell.t1);
+	double t = randomT(cell.t1, cell.t2);
 	double x[] = cell.spline.pos(t);
 	double norm[] = spline.normal(t);
 	double tang[] = spline.tangent(t);
@@ -254,6 +265,55 @@ public class AmbientSource extends Source
 	return part;
     }
 
+    /** @return random parametric position taking into account radial weighing*/
+    //TODO: need to test if this works and syncs up properly with stripArea
+    public double randomT(double t1, double t2) 
+    {
+	DomainType type = Starfish.getDomainType();
+	
+	/*sample from uniform distribution on XY*/
+	if (type==DomainModule.DomainType.XY) return t1 + (t2-t1)*Starfish.rnd();
+	
+	/*otherwise, need to weigh by radius*/
+		
+	double t=-1;
+	double A;
+	double Atot = spline.stripArea(t1, t2);
+	double dt = t2-t1;
+	
+	double rp, rm;
+	
+	do {
+	    /*add random distance along the segment*/
+	    t = t1 + Starfish.rnd()*dt;
+	    
+	    /*compute area of a strip centered around the sampled point*/
+	    double tp = t+0.01*dt;
+	    double tm = t-0.01*dt;
+	    if (tp>t2) tp=t2;
+	    if (tm<t1) tm=t1;
+	    
+	    /*r compoment of position*/
+	    if (type==DomainModule.DomainType.RZ)
+	    {
+		rp = spline.pos(tp)[0];
+		rm = spline.pos(tm)[0]; 
+	    }
+	    else if (Starfish.getDomainType()==DomainModule.DomainType.ZR)
+	    {
+		rp = spline.pos(tp)[1];
+		rm = spline.pos(tm)[1]; 
+	    }
+	    else throw new UnsupportedOperationException("Unknown domain type in RandomT");
+			 
+	    /*note, A will be zero if source is parallel with r-axis*/
+	    A = Math.PI*(rp*rp-rm*rm);
+	  
+	} while (A>0 && (A/Atot)<Starfish.rnd());
+	
+	return t;
+    }
+    
     @Override
     public void sampleFluid()
     {
