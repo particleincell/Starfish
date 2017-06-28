@@ -36,10 +36,10 @@ public class FieldCollection2D
 	
 	this.eval_fun = eval_fun;
     }
-	
+
+    /*adds field collection to just a single mesh*/
     public FieldCollection2D(Mesh mesh, MeshEvalFun eval_fun)
     {
-	/*add fields for each mesh*/
 	fields.put(mesh, new Field2D(mesh));
 	this.eval_fun = eval_fun;
     }

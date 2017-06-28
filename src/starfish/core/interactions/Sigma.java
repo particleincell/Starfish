@@ -7,12 +7,17 @@
 
 package starfish.core.interactions;
 
+import starfish.core.materials.Material;
+
 /** Collision cross-sections */
 public abstract class Sigma 
 {
     /**returns cross-section for the given relative velocity*/
     public abstract double eval(double g);
     protected double c[];
+ 
+    //by default doesn't do anything but some sigmas may need to initialize
+    public void init(Material mat1, Material mat2) {};
     
     /*default empty init*/
     protected Sigma () {c=new double[1];c[0]=0;}

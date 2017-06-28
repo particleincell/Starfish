@@ -24,6 +24,7 @@ public abstract class Writer
     PrintWriter pw = null;
     OutputType output_type;
     String variables[];
+    String cell_data[];	    //cell centered variables
     Mesh output_mesh;
     Dim dim;
     int index;
@@ -37,12 +38,13 @@ public abstract class Writer
 	String index_str = InputParser.getValue("index",element);
 	    
 	output_type=OutputType.ONED;
-	open(file_name,variables,mesh_name,index_str);
+	String cell_data[] = {};	
+	open(file_name,variables,cell_data,mesh_name,index_str);
     }
 	
 
     /** open function for 1D output*/
-    protected void open(String file_name, String[] variables, String mesh_name, String index)
+    protected void open(String file_name, String[] variables, String[] cell_data, String mesh_name, String index)
     {
 	/*grab the mesh*/
 	output_mesh =Starfish.domain_module.getMesh(mesh_name);
@@ -66,11 +68,11 @@ public abstract class Writer
 	this.index=Integer.parseInt(pieces[1]);		
 		
 	/*call main open function*/
-	open2D(file_name, variables);	
+	open2D(file_name, variables, cell_data);	
     }
 	
     /** open function for 2D field data*/
-    protected void open2D(String file_name, String[] variables)
+    protected void open2D(String file_name, String[] variables, String[] cell_data)
     {
 	output_type=OutputType.FIELD;
 	
@@ -102,6 +104,26 @@ public abstract class Writer
 	this.variables = new String[temp_length];
 	System.arraycopy(vars_temp, 0, this.variables, 0, temp_length);
 				
+	/*now repeate for cell variables*/
+	String cell_data_temp[] = new String[cell_data.length];
+	int cell_data_temp_length=0;
+		
+	for (int v=0;v<cell_data.length;v++)
+	{
+	    try{
+		Starfish.getField(mesh, cell_data[v]);
+		cell_data_temp[cell_data_temp_length++]=cell_data[v];
+	    }
+	    catch(Exception e)
+	    {
+		Log.warning("Skipping unrecognized variable "+cell_data[v]);
+	    }
+	}
+		
+	/*save vars*/
+	this.cell_data = new String[cell_data_temp_length];
+	System.arraycopy(cell_data_temp, 0, this.cell_data, 0, cell_data_temp_length);
+		
 	/*write header*/
 	writeHeader();
     }
@@ -220,16 +242,7 @@ public abstract class Writer
     {
 	pw.close();
     }
-	
-    /** convenience method for one stop writing*/
-    public final void save2D(String file_name, String[] variables)
-    {
-	open2D(file_name,variables);
-	writeZone();
-	close();
-    }
-
-   	
+	   	
     /** convenience method for one stop writing*/
     public final void saveBoundaries(String file_name, String[] variables)
     {

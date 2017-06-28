@@ -11,6 +11,7 @@ import java.util.Iterator;
 import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.common.Utils;
 import starfish.core.common.Vector;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.Mesh;
@@ -42,6 +43,9 @@ public class MCC extends VolumeInteraction
 	this.product = Starfish.getMaterial(product);
 	this.model = model;
     	
+	//initialize sigma parameters as needed
+	sigma.init(this.source, this.target);
+	    
 	this.sigma = sigma;
     }
 	
@@ -62,17 +66,26 @@ public class MCC extends VolumeInteraction
 	{
 	    Iterator<Particle> iterator = source.getIterator(mesh);
 	    Field2D target_den = target.getDen(mesh);
+	    Field2D target_T = target.getT(mesh);
     	
 	    while (iterator.hasNext())
 	    {
 		Particle part = iterator.next();
 			
 		double den_a = target_den.gather(part.lc);
+		if (den_a<=0) continue;
 				
 		/*create random target particle*/
 		double target_vel[] = target.sampleVelocity(mesh,part.lc);
-				
-		double g = Vector.mag2(part.vel);
+		double T = target_T.gather(part.lc);
+		if (T<0) T=0;
+		double v_th = Utils.computeVth(T, target.getMass());
+		double v_max[] = Utils.SampleMaxw3D(v_th);
+		for (int i=0;i<3;i++) target_vel[i] += v_max[i];
+		
+		double g_vec[] = new double[3];
+		for (int i=0;i<3;i++) g_vec[i] = target_vel[i] - part.vel[i];				
+		double g = Vector.mag3(g_vec);
 
 		/*collision probability*/
 		/*TODO: implement multiple interactions*/

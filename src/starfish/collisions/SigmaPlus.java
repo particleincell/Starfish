@@ -10,6 +10,7 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.interactions.Sigma;
 import starfish.core.materials.KineticMaterial;
+import starfish.core.materials.Material;
 
 public abstract class SigmaPlus
 {
@@ -31,7 +32,8 @@ public abstract class SigmaPlus
     
 	SigmaBird463(double c[]) {super(c);}
 	
-	public void init(KineticMaterial mat1, KineticMaterial mat2) 
+	@Override
+	public void init(Material mat1, Material mat2) 
 	{
 	    /*set collision data*/
 	    double d_ref = (mat1.diam+mat2.diam);

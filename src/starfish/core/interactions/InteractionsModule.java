@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import org.w3c.dom.Element;
+import starfish.collisions.MCC;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
@@ -29,6 +30,7 @@ public class InteractionsModule extends CommandModule
 	registerInteraction("SURFACE_HIT",SurfaceInteraction.surfaceHitFactory);
 	registerInteraction("SURFACE_IMPACT",SurfaceInteraction.surfaceHitFactory);	
 	registerInteraction("CHEMISTRY",ChemicalReaction.chemicalReactionFactory);
+	registerInteraction("MCC", MCC.MCCFactory);
 	
 	/*register surface impact models*/
 	SurfaceInteraction.registerModels();

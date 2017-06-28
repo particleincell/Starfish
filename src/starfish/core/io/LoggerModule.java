@@ -76,6 +76,10 @@ public class LoggerModule extends CommandModule
 
     @Override
     public void exit() {
+	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        log_file.println(dateFormat.format(date));
+	log_file.flush();
     }
 
     @Override

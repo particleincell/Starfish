@@ -17,11 +17,15 @@ public class Field2D
     /**constructor*/
     public Field2D (Mesh mesh) 
     {
+	this(mesh, false);
+    }
+    
+    public Field2D (Mesh mesh, boolean cell_centered) 
+    {
 	this.mesh = mesh;
     
-	/*for now*/
-        this.ni = mesh.ni;
-        this.nj = mesh.nj;
+        if (cell_centered) {ni = mesh.ni-1; nj = mesh.nj-1;}
+	else {ni = mesh.ni; nj = mesh.nj;}
 
         data = new double[ni][nj]; 
     }
@@ -47,7 +51,7 @@ public class Field2D
     }
     
     /*variables*/
-    final int ni,nj;
+    public final int ni,nj;
     
     public double data[][]; 
     final Mesh mesh;

@@ -56,6 +56,17 @@ public class VTKWriter extends Writer
 	    for	(int i=0;i<mesh.ni-1;i++)
 		pw.printf("%g ",mesh.cellVol(i, j));
 	pw.println("\n</DataArray>");
+	
+	for (String var:cell_data)
+	{
+	    double data[][] = Starfish.domain_module.getField(mesh, var).getData();
+	    
+	    pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+	    for (int j=0;j<mesh.nj-1;j++)
+	  	for (int i=0;i<mesh.ni-1;i++)
+		    pw.printf("%g ",(data[i][j]));
+	    pw.println("\n</DataArray>");
+	}	
 	pw.println("</CellData>");
 	
 	pw.println("<PointData>");
@@ -77,7 +88,9 @@ public class VTKWriter extends Writer
 		    pw.printf("%g ",(data[i][j]));
 	    pw.println("\n</DataArray>");
 	}
-	 pw.println("</PointData>");	
+	pw.println("</PointData>");	
+	 
+	 
 	 pw.println("</Piece>");
 	 pw.println("</StructuredGrid>");
 	 pw.println("</VTKFile>");

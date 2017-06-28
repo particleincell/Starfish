@@ -48,6 +48,7 @@ public class MaxwellianSource extends Source
     {
 	Particle part = new Particle((KineticMaterial) source_mat);
 	double t = spline.randomT();
+	
 	double x[] = spline.pos(t);
 	double n[] = spline.normal(t);
 
@@ -66,7 +67,7 @@ public class MaxwellianSource extends Source
 	    part.vel[1] = v_max[1] + n[1] * v_drift;
 	    part.vel[2] = v_max[2];
 	    
-	    part.dt=0.5*Starfish.getDt();
+	    part.dt=Starfish.rnd()*Starfish.getDt();
 	} while (Vector.dot2(n, part.vel) <= 0);
 
 	num_mp--;
@@ -104,7 +105,7 @@ public class MaxwellianSource extends Source
 
 	    /*drift velocity and temperature*/
 	    double v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));
-	    double temp = Double.parseDouble(InputParser.getValue("temp", element));
+	    double temp = Double.parseDouble(InputParser.getValue("temperature", element));
 	    int start_it = InputParser.getInt("start_it",element,0);
 	    
 	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, mdot, v_drift, temp, start_it);

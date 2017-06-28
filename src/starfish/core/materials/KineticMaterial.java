@@ -63,7 +63,7 @@ public class KineticMaterial extends Material
 	}
 	
 	/*fields used to hold sampled data*/
-	field_manager2d.add("count-sum", "#", null);
+	field_manager2d.add("count-sum", "#", null);	
 	field_manager2d.add("u-sum", "m/s", null);
 	field_manager2d.add("v-sum", "m/s", null);
 	field_manager2d.add("w-sum", "m/s", null);
@@ -88,24 +88,8 @@ public class KineticMaterial extends Material
     @Override
     public void updateFields()
     {
-	/*clear all fields*/
-	for (MeshData md : mesh_data)
-	{
-	    getDen(md.mesh).clear();
-	    getU(md.mesh).clear();
-	    getV(md.mesh).clear();
-	    getW(md.mesh).clear();
-	}
-
-	/*update densities and velocities*/
-	for (MeshData md : mesh_data)
-	{
-	    updateFields(md);
-	}
-
-	/*scale momentum by mass*/
-	total_momentum *= mass;
 	
+	/*sampling before pushing particles to include contribution from sources*/
 	/*reset sampling when we reach steady state*/
 	if (Starfish.steady_state() && !steady_state)
 	{
@@ -118,10 +102,15 @@ public class KineticMaterial extends Material
 	for (MeshData md : mesh_data)	    
 	    updateSamples(md);
 	
-	/*apply boundaries*/
-	updateBoundaries();
-		
-	/*put particle move after update otherwise density from boundary sources won't be right*/
+	/*clear all fields*/
+	for (MeshData md : mesh_data)
+	{
+	    getDen(md.mesh).clear();
+	    getU(md.mesh).clear();
+	    getV(md.mesh).clear();
+	    getW(md.mesh).clear();
+	}
+
 	total_momentum = 0;
 	/*first loop through all particles*/
 	for (MeshData md : mesh_data)
@@ -136,6 +125,18 @@ public class KineticMaterial extends Material
 	    moveParticles(md, true);
 	}
 
+	
+	/*update densities and velocities*/
+	for (MeshData md : mesh_data)
+	{
+	    updateFields(md);
+	}
+
+	/*scale momentum by mass*/
+	total_momentum *= mass;
+	
+	/*apply boundaries*/
+	updateBoundaries();
     }
 
     /**
@@ -1024,7 +1025,9 @@ if (Starfish.steady_state())
 	    vv_sum.scatter(part.lc, part.spwt * part.vel[1]*part.vel[1]);
 	    ww_sum.scatter(part.lc, part.spwt * part.vel[2]*part.vel[2]);	    
 	    count_sum.scatter(part.lc, part.spwt);
-	    mpc_sum.scatter(part.lc, 1);
+	    
+	    //mpc is cell data
+	    mpc_sum.add((int)part.lc[0], (int)part.lc[1], 1);
 	}
 	
 	//increment counter, used for density

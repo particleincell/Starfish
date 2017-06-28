@@ -54,12 +54,6 @@ public class DSMC extends VolumeInteraction
 
 	this.sigma = sigma;
 	this.frequency = frequency;	//iteration skip between collisions
-
-	  /*not very elegent but couldn't figure out where else to call this*/
-	if (sigma instanceof SigmaBird463)
-	{
-	    ((SigmaBird463)sigma).init(this.mat1,this.mat2);
-	}
 	
 	/*figure out how many other DSMC pairs are defined*/
 	ArrayList<VolumeInteraction> vints = Starfish.interactions_module.getInteractionsList();
@@ -110,9 +104,12 @@ public class DSMC extends VolumeInteraction
 	
 	double sig_cr_max;	/*TODO: this needs to be per species species pair*/
 	private double rem;
+	double cell_volume;
 	
-	CellInfo(double sig_cr) {
-	    sig_cr_max=sig_cr;}
+	CellInfo(double sig_cr, double cell_vol) {
+	    sig_cr_max=sig_cr;
+	    this.cell_volume = cell_vol;
+	}
     }
     
     class MeshData
@@ -123,7 +120,7 @@ public class DSMC extends VolumeInteraction
 	    cell_info = new CellInfo[mesh.ni-1][mesh.nj-1];
 	    for (int i=0;i<mesh.ni-1;i++)
 		for (int j=0;j<mesh.nj-1;j++)
-		    cell_info[i][j] = new CellInfo(sig_cr);
+		    cell_info[i][j] = new CellInfo(sig_cr, mesh.cellVol(i, j));
 	}
     }
     
@@ -157,7 +154,7 @@ public class DSMC extends VolumeInteraction
 	/*update collision count - number of collisions per cell per call to perform*/
 	fc_count.copy(fc_count_sum);
 	fc_count.mult(1.0/num_samples);
-	
+
 	/*update collision frequency*/
 	fc_nu.copy(fc_real_sum);
 	fc_nu.mult(1.0/(num_samples*frequency*Starfish.getDt()));	
@@ -215,9 +212,15 @@ public class DSMC extends VolumeInteraction
 	for (int i=0;i<mesh.ni-1;i++)
 	    for (int j=0;j<mesh.nj-1;j++)
 	    {
-		double cell_cols=collideCell(cell_info[i][j],mesh.cellVol(i, j),count_sum, real_sum);			
-			
-		nc_tot+=cell_cols;
+		double cell_cols[] = collideCell(cell_info[i][j]);	
+		
+		/*start counting only at ss since dividing by time since ss*/
+		if (Starfish.steady_state())
+		{
+		    count_sum.add(i,j,cell_cols[0]);	    //cell data
+		    real_sum.add(i,j,cell_cols[1]);
+		}
+		nc_tot+=cell_cols[0];
 		if (cell_info[i][j].sig_cr_max>sigma_cr_max) sigma_cr_max=cell_info[i][j].sig_cr_max;
 	    }
 
@@ -226,11 +229,12 @@ public class DSMC extends VolumeInteraction
     }
 
     /**performs DSMC collisions for a single cell, uses Boyd 1996 algorithm for variable weight*/
-    double collideCell(CellInfo cell_info, double cell_volume, Field2D col_sum, Field2D real_sum)
+    double[] collideCell(CellInfo cell_info)
     {	
 	double sig_cr_max=0;	/*used to obtain new value*/	
 	
 	double delta_t=frequency*Starfish.getDt();
+	double sums[] = {0,0};	//[0] is integer sum of collision events, [1] is sum of specific weight
 
 	/*we have just one list if both materials the same*/
 	List<Particle>sp1_list = cell_info.sp1_list;
@@ -242,15 +246,19 @@ public class DSMC extends VolumeInteraction
 	    
 	double spwt1=mat1.getSpwt0();
 	double spwt2=mat2.getSpwt0();
-		
+	
+	if (spwt1!=spwt2 && np1>0 && np2>0)
+	    spwt1=spwt1;
+	
 	/*eq. 5 in Boyd's paper*/
 	double Pab = spwt2/spwt1;
 	double Pba = spwt1/spwt2;
+		
+	if (Pab>1) Pab=1;
+	if (Pba>1) Pba=1;
 	
-	if (Pab<1) Pab=1;
-	if (Pba<1) Pba=1;
 	
-	double nsel_f = ((np1*spwt1/cell_volume)*np2*delta_t*cell_info.sig_cr_max)/(Pab + (spwt2/spwt1)*Pba); 	
+	double nsel_f = ((np1*spwt1/cell_info.cell_volume)*np2*delta_t*cell_info.sig_cr_max)/(Pab + (spwt2/spwt1)*Pba); 	
 	/*since not doing "q-p" collisions for "p-q", need double if different species*/
 	if (mat1!=mat2) nsel_f*=2.0;
 	
@@ -265,8 +273,13 @@ public class DSMC extends VolumeInteraction
 	    
 	cell_info.rem=nsel_f-nsel;
 	
-	double nc = 0;			/*number of collisions*/
-
+	//HACK:
+	if (nsel>(np1*np2)) 
+	{
+	    nsel=(int)(np1*np2);
+	    cell_info.rem=0;
+	}
+	
 	double cr_vec[] = new double[3];
 
 	for (int i=0;i<nsel;i++)
@@ -298,24 +311,15 @@ public class DSMC extends VolumeInteraction
 
 	    if (Starfish.rnd()<P)
 	    {
-		nc++;
-		
 		model.perform(part1, part2,vss_inv);
 		
-		/*start counting only at ss since dividing by time since ss*/
-		if (Starfish.steady_state())
-		{
-		    double lc[] = {0,0};
-		    lc[0] = 0.5*(part1.lc[0]+part2.lc[0]);
-		    lc[1] = 0.5*(part1.lc[1]+part2.lc[1]);
-		    col_sum.scatter(lc[0],lc[1], 1);
-		    real_sum.scatter(lc[0],lc[1], 0.5*(part1.spwt+part2.spwt));
-		}
+		sums[0]+=1.0;
+		sums[1]+=0.5*(part1.spwt+part2.spwt);		
 	    }
 	}
 
 	if (sig_cr_max>0) cell_info.sig_cr_max = sig_cr_max;
-	return nc;
+	return sums;
     }
   
     /**returns magnitude of a 3 component vector*/

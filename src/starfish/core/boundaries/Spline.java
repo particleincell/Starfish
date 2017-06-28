@@ -224,7 +224,7 @@ public class Spline
 			addLinearSegment(x1,x2,flip_normals);
 		else if (mode == SetPathMode.SMOOTH)
 		    	points.add(x2.clone());	    /*add to collection of points making up the smooth curve*/
-		else if (mode == SetPathMode.NONE)
+		else if (mode == SetPathMode.NONE || mode == SetPathMode.MOVE)
 			mode = SetPathMode.LINEAR;
 		
 		/*copy current position down*/

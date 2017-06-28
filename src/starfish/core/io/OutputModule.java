@@ -57,6 +57,7 @@ public class OutputModule extends CommandModule
 		
 	/*grab variables*/
 	String variables[] = InputParser.getList("variables",element);
+	String cell_data[] = InputParser.getList("cell_data",element);
 		
 	/*make writer*/
 	Writer writer;
@@ -67,7 +68,7 @@ public class OutputModule extends CommandModule
 	/*TODO: replace this with "factories"*/
 	/*output data*/
 	if (type.equalsIgnoreCase("2D"))
-	    writer.open2D(file_name,variables);
+	    writer.open2D(file_name,variables,cell_data);
 	else if (type.equalsIgnoreCase("BOUNDARIES"))
 	    writer.openBoundaries(file_name,variables);
 	else if (type.equalsIgnoreCase("PARTICLES"))
