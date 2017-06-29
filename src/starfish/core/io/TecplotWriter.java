@@ -58,7 +58,7 @@ public class TecplotWriter extends Writer
     }
 	
     @Override
-    public void writeZone2D()
+    public void writeZone2D(boolean animation)
     {		
 	/*output all meshes*/
 	for (int m=0;m<Starfish.getMeshList().size();m++)

@@ -211,7 +211,7 @@ public class MaterialsModule extends CommandModule
     public void updateMaterials() 
     {
 	for (Material mat:materials_list)
-	    mat.update();	
+	    if (!mat.frozen) mat.update();	
 	
 	Starfish.domain_module.getPressure().eval();
     }

@@ -7,6 +7,9 @@
 
 package starfish.core.io;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
@@ -26,12 +29,31 @@ public class VTKWriter extends Writer
 	    Log.warning("VTK file format supports only one mesh, only the first mesh will be outputted");		
     }
 	
-    /**saves 2D data in VTK ASCII format*/
+    /**saves 2D data in VTK ASCII forma
+     * @param animation if true, will open new file for each save*/
     @Override
-    public void writeZone2D()
+    public void writeZone2D(boolean animation)
     {
-	/*open file*/
-			
+	//hacked in for now, need to rewrite file output to eliminate opening and header writing by Writer
+	if (animation)
+	{
+	    pw.close();
+	    //split out extension from the file name
+	    int i;
+	    for (i=file_name.length()-1;i>=0;i--) if (file_name.charAt(i)=='.') break;
+	    if (i==0) i=file_name.length()-1;	//if not found, set to end
+	    String substr[] = {file_name.substring(0,i),file_name.substring(i)};
+   	    
+	    String name = substr[0]+String.format("_%06d", Starfish.getIt())+substr[1];    
+	    	    
+	    try {
+		pw = new PrintWriter(new FileWriter(name));
+	    } catch (IOException ex) 
+	    {
+		Log.error("error opening file "+name);
+	    }
+	}
+	
 	Mesh mesh = Starfish.getMeshList().get(0);
 	pw.println("<?xml version=\"1.0\"?>");
 	pw.println("<VTKFile type=\"StructuredGrid\">");
@@ -95,7 +117,7 @@ public class VTKWriter extends Writer
 	 pw.println("</StructuredGrid>");
 	 pw.println("</VTKFile>");
 	/*save output file*/
-        pw.flush();
+        pw.close();
     }
 
     @Override

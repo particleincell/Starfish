@@ -189,6 +189,8 @@ public class SourceModule extends CommandModule
 	{
 	    for (Source source : boundary.getSourceList())
 	    {
+		if (source.source_mat.frozen) continue;
+		
 		//if (source instanceof ParticleListSource) continue;
 		if (Starfish.getIt()<source.start_it) continue;
 		source.update();
@@ -200,6 +202,8 @@ public class SourceModule extends CommandModule
 	/*volume sources*/
 	for (Source source : volume_source_list)
 	{
+	    if (source.source_mat.frozen) continue;
+
 	    source.update();
 	    source.regenerate();
 	    source.sampleAll();

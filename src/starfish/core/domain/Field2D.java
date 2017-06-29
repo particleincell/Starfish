@@ -7,6 +7,9 @@
 
 package starfish.core.domain;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.NoSuchElementException;
 import starfish.core.common.Starfish;
 import starfish.core.domain.DomainModule.DomainType;
@@ -505,5 +508,22 @@ public class Field2D
 	t[1]/=ds;
 
 	return t;
+    }
+
+    /*saves data to a binary file*/
+    public void binaryWrite(DataOutputStream out) throws IOException
+    {
+	for (int i=0;i<ni;i++)
+	    for (int j=0;j<nj;j++)
+		out.writeDouble(data[i][j]);
+    }
+    
+    /*reads data from a binary file*/
+    public void binaryRead(DataInputStream in) throws IOException
+    {
+	for (int i=0;i<ni;i++)
+	    for (int j=0;j<nj;j++)
+		data[i][j] = in.readDouble();
+	
     }
 }

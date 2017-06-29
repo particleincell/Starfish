@@ -119,30 +119,7 @@ public  class RestartModule extends CommandModule
 		
 	for (Material mat:Starfish.getMaterialsList())
 	{
-	    if (!(mat instanceof KineticMaterial)) continue;
-			
-	    KineticMaterial km = (KineticMaterial) mat;
-	    for (Mesh mesh:Starfish.getMeshList())
-	    {		
-		Iterator<KineticMaterial.Particle> iter = km.getIterator(mesh);
-		out.writeLong(km.getMeshData(mesh).getNp());
-				
-		while(iter.hasNext())
-		{
-		    KineticMaterial.Particle part = iter.next();
-		    for (int i=0;i<3;i++)
-		    {
-			out.writeDouble(part.pos[i]);
-			out.writeDouble(part.vel[i]);
-		    }
-		    
-		    for (int i=0;i<2;i++)
-			out.writeDouble(part.lc[i]);
-				
-		    out.writeDouble(part.dt);
-		    out.writeDouble(part.spwt);
-		}
-	    }			
+	    mat.saveRestartData(out);		
 	}
 	out.close();
     }
@@ -165,38 +142,9 @@ public  class RestartModule extends CommandModule
 		
 	for (Material mat:Starfish.getMaterialsList())
 	{
-	    if (!(mat instanceof KineticMaterial)) continue;
-    		
-	    KineticMaterial km = (KineticMaterial) mat;
-	    for (Mesh mesh:Starfish.getMeshList())
-	    {	
-		long np = in.readLong();
-		MeshData md = km.getMeshData(mesh);
-				
-		for (long p=0;p<np;p++)
-		{
-		    Particle part = new Particle(km);
-		    for (int i=0;i<3;i++)
-		    {
-			part.pos[i] = in.readDouble();
-			part.vel[i] = in.readDouble();
-			
-		    }
-			
-		    part.lc = new double[2];
-		    for (int i=0;i<2;i++)
-			part.lc[i] = in.readDouble();
-					
-		    part.dt = in.readDouble();
-		    part.spwt = in.readDouble();
-		    km.addParticle(md,part);
-		}
-		
-		/*compute densities, needed by ambient source*/
-		km.updateSamples(md);
-	    }		
-
+	    mat.loadRestartData(in);
 	}
+	
 	in.close();
     }
 

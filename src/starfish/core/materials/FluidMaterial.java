@@ -14,9 +14,9 @@ public abstract class FluidMaterial extends Material
 {
     /*constructor*/
 
-    public FluidMaterial(String name, double mass, double charge)
+    public FluidMaterial(String name, double mass, double charge, boolean frozen)
     {
-	super(name, mass, charge);
+	super(name, mass, charge, frozen);
     }
 
     @Override

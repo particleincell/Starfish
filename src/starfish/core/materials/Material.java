@@ -6,6 +6,9 @@
  * *****************************************************/
 package starfish.core.materials;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.Field1D;
@@ -43,6 +46,8 @@ public abstract class Material
     public double vss_alpha;
     
     public String name;		/*material name*/
+    
+    public boolean frozen;	//update will be skipped if true
 
     public String getName()
     {
@@ -98,14 +103,15 @@ public abstract class Material
 
     public Material(String name, double mass)
     {
-	this(name, mass, 0);
+	this(name, mass, 0, false);
     }
 
-    public Material(String name, double mass, double charge)
+    public Material(String name, double mass, double charge, boolean frozen)
     {
 	this.mat_index = Starfish.getMaterialsList().size();
 	this.name = name;
 	this.mass = mass * Constants.AMU;  /*from AMU to kg*/
+	this.frozen = frozen;
 
 	/*save properties*/
 	this.charge = charge * Constants.QE;	    /*from e to C*/
@@ -367,6 +373,12 @@ public abstract class Material
 	    fc.syncMeshBoundaries();
 	}
     }
+    
+    /*saves data to file, should be reimplemented by derived classes*/
+    public void saveRestartData(DataOutputStream out)throws IOException {Log.warning("saveRestartData not yet implemented for "+name);}
+
+    /*saves data to file, should be reimplemented by derived classes*/
+    public void loadRestartData(DataInputStream in)throws IOException {Log.warning("loadRestartData not yet implemented for "+name);}
 
     /**
      * initializes material interactions

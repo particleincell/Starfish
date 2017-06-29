@@ -6,6 +6,9 @@
  * *****************************************************/
 package starfish.core.materials;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,9 +35,9 @@ import starfish.core.common.Vector;
 /** definition of particle-based material*/
 public class KineticMaterial extends Material
 {
-    public KineticMaterial(String name, double mass, double charge, double spwt0)
+    public KineticMaterial(String name, double mass, double charge, double spwt0, boolean frozen)
     {
-	super(name, mass, charge);
+	super(name, mass, charge, frozen);
 
 	this.spwt0 = spwt0;	
     }
@@ -726,6 +729,90 @@ if (Starfish.steady_state())
 	    part.vel[dim] = v_plus[dim] + q_over_m * E[dim] * 0.5 * part.dt;
 	}
     }
+    
+    /*saves restart data*/
+    @Override
+    public void saveRestartData(DataOutputStream out) throws IOException
+    {
+	out.writeInt(num_samples);
+
+	for (Mesh mesh:Starfish.getMeshList())
+	{		
+	    /*save particles*/
+	    Iterator<KineticMaterial.Particle> iter = getIterator(mesh);
+	    out.writeLong(getMeshData(mesh).getNp());
+	    				
+	    while(iter.hasNext())
+	    {
+	        Particle part = iter.next();
+		for (int i=0;i<3;i++)
+		{
+		    out.writeDouble(part.pos[i]);
+		    out.writeDouble(part.vel[i]);
+		}
+		    
+		for (int i=0;i<2;i++)
+		    out.writeDouble(part.lc[i]);
+				
+		out.writeDouble(part.dt);
+		out.writeDouble(part.spwt);
+		out.writeDouble(part.mass);
+		out.writeInt(part.born_it);
+	    }
+	    
+	    /*next save fields*/
+	    getDen(mesh).binaryWrite(out);
+	    getDenAve(mesh).binaryWrite(out);
+	    getT(mesh).binaryWrite(out);
+	    getU(mesh).binaryWrite(out);
+	    getV(mesh).binaryWrite(out);
+	    getW(mesh).binaryWrite(out);	    
+	}	
+    }
+    
+        /*saves restart data*/
+    @Override
+    public void loadRestartData(DataInputStream in) throws IOException
+    {
+	num_samples = in.readInt();
+	    
+	/*load in particles*/
+	for (Mesh mesh:Starfish.getMeshList())
+        {	
+	    long np = in.readLong();
+	    MeshData md = getMeshData(mesh);
+				
+	    for (long p=0;p<np;p++)
+	    {
+		Particle part = new Particle(this);
+		for (int i=0;i<3;i++)
+		{
+		    part.pos[i] = in.readDouble();
+		    part.vel[i] = in.readDouble();			
+		}
+			
+		part.lc = new double[2];
+		for (int i=0;i<2;i++)
+		    part.lc[i] = in.readDouble();
+					
+		part.dt = in.readDouble();
+		part.spwt = in.readDouble();
+		part.mass = in.readDouble();
+		part.born_it = in.readInt();
+
+		addParticle(md,part);
+	    }
+	    
+	    /*next load fields*/
+	    getDen(mesh).binaryRead(in);
+	    getDenAve(mesh).binaryRead(in);
+	    getT(mesh).binaryRead(in);
+	    getU(mesh).binaryRead(in);
+	    getV(mesh).binaryRead(in);
+	    getW(mesh).binaryRead(in);	    
+		
+	}		
+    }
 
     /**returns particle with id*/
     public Particle getParticle(long id)
@@ -1098,8 +1185,10 @@ if (Starfish.steady_state())
 
 	    /*kinetic material also need spwt*/
 	    double spwt = InputParser.getDouble("spwt", element);
+	    
+	    boolean frozen = InputParser.getBoolean("frozen", element, false);
 
-	    Material material = new KineticMaterial(name,molwt,charge,spwt);
+	    Material material = new KineticMaterial(name,molwt,charge,spwt,frozen);
 
 	    /*try to get DSMC data*/
 	    material.ref_temp = InputParser.getDouble("ref_temp", element,275);

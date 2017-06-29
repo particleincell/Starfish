@@ -18,7 +18,7 @@ public class FluidElectronsMaterial extends Material
 {
     public FluidElectronsMaterial(int index, String name) 
     {
-	super(name, Constants.ME/Constants.AMU, -1);
+	super(name, Constants.ME/Constants.AMU, -1, false);
     }
 
     @Override

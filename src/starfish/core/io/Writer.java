@@ -28,6 +28,7 @@ public abstract class Writer
     Mesh output_mesh;
     Dim dim;
     int index;
+    String file_name;
     
     /*for particles*/
     int particle_count;
@@ -36,6 +37,7 @@ public abstract class Writer
     {
 	String mesh_name = InputParser.getValue("mesh",element);
 	String index_str = InputParser.getValue("index",element);
+	this.file_name = file_name;
 	    
 	output_type=OutputType.ONED;
 	String cell_data[] = {};	
@@ -53,7 +55,8 @@ public abstract class Writer
 	    Log.error("Mesh "+mesh_name+" does not exist");
 	    return;
 	}
-		
+	this.file_name = file_name;
+	
 	/*parse index*/
 	String pieces[]=index.split("\\s*=\\s*");
 	if (pieces.length!=2)
@@ -75,7 +78,7 @@ public abstract class Writer
     protected void open2D(String file_name, String[] variables, String[] cell_data)
     {
 	output_type=OutputType.FIELD;
-	
+	this.file_name = file_name;
 	
 	try {
 	    pw = new PrintWriter(new FileWriter(file_name));
@@ -213,7 +216,8 @@ public abstract class Writer
 	writeHeader();
     }
 
-    public final void writeZone()
+    public final void writeZone() {writeZone(false);}	   //wrapper for default param
+    public final void writeZone(boolean animation)
     {
 	/*update average data, this is needed mainly to capture anything if not yet at steady state,
 	 true parameter to force sampling even if not yet in steady state*/
@@ -221,7 +225,7 @@ public abstract class Writer
 	
 	switch (output_type)
 	{
-	    case FIELD: writeZone2D();break;
+	    case FIELD: writeZone2D(animation);break;
 	    case ONED: writeZone1D();break;
 	    case BOUNDARIES: writeZoneBoundaries();break;
 	    case PARTICLES: writeParticles();break;
@@ -231,7 +235,7 @@ public abstract class Writer
     }
 	
     protected abstract void writeHeader();
-    protected abstract void writeZone2D();
+    protected abstract void writeZone2D(boolean animation);
     protected abstract void writeZone1D();
     protected abstract void writeZoneBoundaries();
     protected abstract void writeParticles();
