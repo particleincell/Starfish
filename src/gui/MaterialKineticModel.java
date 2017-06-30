@@ -45,7 +45,7 @@ public class MaterialKineticModel extends DefaultTableModel {
 		KineticMaterial material = new KineticMaterial(rowData[0].toString(), 
 		Double.valueOf(rowData[1].toString()), 
 		Double.valueOf(rowData[2].toString()),
-		Double.valueOf(rowData[3].toString()));
+		Double.valueOf(rowData[3].toString()), false);
 		//TODO: FIX: material.setInitValues(new String[] {rowData[4].toString()});
 		Starfish.materials_module.getMaterialsList().add(material);
 		

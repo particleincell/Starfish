@@ -256,6 +256,22 @@ public abstract class Material
     {
 	return field_manager2d.getFieldCollection("w");
     }
+    
+    public FieldCollection2D getUAveCollection()
+    {
+	return field_manager2d.getFieldCollection("u-ave");
+    }
+
+    public FieldCollection2D getVAveCollection()
+    {
+	return field_manager2d.getFieldCollection("v-ave");
+    }
+    
+    public FieldCollection2D getWAveCollection()
+    {
+	return field_manager2d.getFieldCollection("w-ave");
+    }
+
 
     public FieldCollection2D getTempCollection()
     {
@@ -290,6 +306,21 @@ public abstract class Material
     public Field2D getW(Mesh mesh)
     {
 	return getWCollection().getField(mesh);
+    }
+    
+    public Field2D getUAve(Mesh mesh)
+    {
+	return getUAveCollection().getField(mesh);
+    }
+
+    public Field2D getVAve(Mesh mesh)
+    {
+	return getVAveCollection().getField(mesh);
+    }
+    
+    public Field2D getWAve(Mesh mesh)
+    {
+	return getWAveCollection().getField(mesh);
     }
 
     public Field2D getT(Mesh mesh)
@@ -513,11 +544,20 @@ public abstract class Material
 	
     }
 
-    public double[] sampleVelocity(Mesh mesh, double[] lc)
+    /*returns random velocity sampled based on temperature and average stream velocity*/
+    public double[] sampleMaxwellianVelocity(Mesh mesh, double[] lc)
     {
-	/*TODO: implement with correct temperature*/
+	double vel[] = new double[3];
+	vel[0] = getUAve(mesh).gather(lc);
+	vel[1] = getVAve(mesh).gather(lc);
+	vel[2] = getWAve(mesh).gather(lc);
+	
+	double T = getT(mesh).gather(lc);
+	if (T<0) T=0;
+	double v_th = Utils.computeVth(T, getMass());
+	double v_max[] = Utils.SampleMaxw3D(v_th);
+	for (int i=0;i<3;i++) vel[i] += v_max[i];
 
-	/*TODO: implement correct rotation per PIC-C article*/
-	return Utils.SampleMaxw3D(300);
+	return vel;
     }
 }

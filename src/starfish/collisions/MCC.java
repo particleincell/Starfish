@@ -140,14 +140,8 @@ public class MCC extends VolumeInteraction
 	    double den_a = target_den.gather(part.lc);
 	    if (den_a<=0) continue;
 
-	    /*create random target particle*/
-	    double target_vel[] = target.sampleVelocity(mesh,part.lc);
-	    double T = target_T.gather(part.lc);
-	    if (T<0) T=0;
-	    T=0;	//test
-	    double v_th = Utils.computeVth(T, target.getMass());
-	    double v_max[] = Utils.SampleMaxw3D(v_th);
-	    for (int i=0;i<3;i++) target_vel[i] += v_max[i];
+	    /*create random target particle according to target T and stream velocity*/
+	    double target_vel[] = target.sampleMaxwellianVelocity(mesh,part.lc);
 
 	    double g_vec[] = new double[3];
 	    for (int i=0;i<3;i++) g_vec[i] = target_vel[i] - part.vel[i];				
@@ -205,8 +199,7 @@ public class MCC extends VolumeInteraction
 	    double rm1=source.mass/(source.mass+target.mass);  //reduced mass 1
 	    double rm2=target.mass/(source.mass+target.mass);  //reduced mass 2
 	   
-	    double A,B,C,D;
-	    double OC,SC;
+	    double A,B,C;
 	    
 	    /*compute relative velocity, could be passed in */
 	    double g[] = new double[3];

@@ -767,6 +767,10 @@ if (Starfish.steady_state())
 	    getU(mesh).binaryWrite(out);
 	    getV(mesh).binaryWrite(out);
 	    getW(mesh).binaryWrite(out);	    
+    	    getUAve(mesh).binaryWrite(out);
+	    getVAve(mesh).binaryWrite(out);
+	    getWAve(mesh).binaryWrite(out);	    
+
 	}	
     }
     
@@ -810,6 +814,10 @@ if (Starfish.steady_state())
 	    getU(mesh).binaryRead(in);
 	    getV(mesh).binaryRead(in);
 	    getW(mesh).binaryRead(in);	    
+   	    getUAve(mesh).binaryRead(in);
+	    getVAve(mesh).binaryRead(in);
+	    getWAve(mesh).binaryRead(in);	    
+
 		
 	}		
     }
