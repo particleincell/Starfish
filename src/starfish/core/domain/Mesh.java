@@ -626,8 +626,6 @@ for (Mesh mesh:Starfish.getMeshList())
 	/*set node control volumes*/
 	for (Boundary boundary:boundary_list)
 	{
-	    if (boundary.getType()==NodeType.VIRTUAL) continue;
-		
 	    for (Segment segment:boundary.getSegments())
 	    {
 		/*get spline range*/

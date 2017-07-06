@@ -80,7 +80,7 @@ public class MCC extends VolumeInteraction
     
     static MCCModel getModel(String type)
     {
-	if (type.equalsIgnoreCase("MEX"))
+	if (type.equalsIgnoreCase("MEX") || type.equalsIgnoreCase("ELASTIC"))
 	    return new ModelMEX();
 	else if (type.equalsIgnoreCase("CEX"))
 	    return new ModelCEX();

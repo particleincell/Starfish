@@ -10,6 +10,7 @@ package starfish.core.io;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
@@ -23,7 +24,8 @@ public abstract class Writer
 	
     PrintWriter pw = null;
     OutputType output_type;
-    String variables[];
+    String scalars[];
+    ArrayList <String[]> vectors;
     String cell_data[];	    //cell centered variables
     Mesh output_mesh;
     Dim dim;
@@ -40,13 +42,14 @@ public abstract class Writer
 	this.file_name = file_name;
 	    
 	output_type=OutputType.ONED;
+	ArrayList<String[]> vectors = new ArrayList<String[]>();
 	String cell_data[] = {};	
-	open(file_name,variables,cell_data,mesh_name,index_str);
+	open(file_name,variables,vectors,cell_data,mesh_name,index_str);
     }
 	
 
     /** open function for 1D output*/
-    protected void open(String file_name, String[] variables, String[] cell_data, String mesh_name, String index)
+    protected void open(String file_name, String[] scalars, ArrayList<String[]> vectors, String[] cell_data, String mesh_name, String index)
     {
 	/*grab the mesh*/
 	output_mesh =Starfish.domain_module.getMesh(mesh_name);
@@ -71,11 +74,11 @@ public abstract class Writer
 	this.index=Integer.parseInt(pieces[1]);		
 		
 	/*call main open function*/
-	open2D(file_name, variables, cell_data);	
+	open2D(file_name, scalars, vectors, cell_data);	
     }
 	
     /** open function for 2D field data*/
-    protected void open2D(String file_name, String[] variables, String[] cell_data)
+    protected void open2D(String file_name, String[] scalars, ArrayList<String[]> vectors, String[] cell_data)
     {
 	output_type=OutputType.FIELD;
 	this.file_name = file_name;
@@ -87,27 +90,27 @@ public abstract class Writer
 	    Log.error("error opening file "+file_name);
 	}
 		
-	String vars_temp[] = new String[variables.length];
+	String vars_temp[] = new String[scalars.length];
 	int temp_length=0;
 		
 	Mesh mesh = Starfish.getMeshList().get(0);
-	for (int v=0;v<variables.length;v++)
+	for (int v=0;v<scalars.length;v++)
 	{
 	    try{
-		Starfish.getField(mesh, variables[v]);
-		vars_temp[temp_length++]=variables[v];
+		Starfish.getField(mesh, scalars[v]);
+		vars_temp[temp_length++] = scalars[v];
 	    }
 	    catch(Exception e)
 	    {
-		Log.warning("Skipping unrecognized variable "+variables[v]);
+		Log.warning("Skipping unrecognized variable "+scalars[v]);
 	    }
 	}
 		
 	/*save vars*/
-	this.variables = new String[temp_length];
-	System.arraycopy(vars_temp, 0, this.variables, 0, temp_length);
+	this.scalars = new String[temp_length];
+	System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);
 				
-	/*now repeate for cell variables*/
+	/*now repeat for cell variables*/
 	String cell_data_temp[] = new String[cell_data.length];
 	int cell_data_temp_length=0;
 		
@@ -121,12 +124,25 @@ public abstract class Writer
 	    {
 		Log.warning("Skipping unrecognized variable "+cell_data[v]);
 	    }
-	}
-		
+	}		
 	/*save vars*/
 	this.cell_data = new String[cell_data_temp_length];
 	System.arraycopy(cell_data_temp, 0, this.cell_data, 0, cell_data_temp_length);
-		
+	
+	this.vectors = new ArrayList<String[]>();		
+	for (String[] pair:vectors)
+	{
+	    try{
+		Starfish.getField(mesh, pair[0]);
+		Starfish.getField(mesh, pair[1]);	
+		this.vectors.add(pair);
+	    }
+	    catch(Exception e)
+	    {
+		Log.warning("Skipping unrecognized vector pair "+pair[0]+":"+pair[1]);
+	    }
+	}		
+	
 	/*write header*/
 	writeHeader();
     }
@@ -160,8 +176,8 @@ public abstract class Writer
 	}
 		
 	/*save vars*/
-	this.variables = new String[temp_length];
-	System.arraycopy(vars_temp, 0, this.variables, 0, temp_length);
+	this.scalars = new String[temp_length];
+	System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);
 				
 	/*write header*/
 	writeHeader();
@@ -186,31 +202,31 @@ public abstract class Writer
 	    particle_count = 1000;
 	
 	/*save vars*/
-	variables = new String[5];
+	scalars = new String[5];
 	
 	if (Starfish.domain_module.getDomainType()==DomainType.XY)
 	{
-	    variables[0] = "z (m)";
-	    variables[1] = "u";
-	    variables[2] = "v";
-	    variables[3] = "w";
+	    scalars[0] = "z (m)";
+	    scalars[1] = "u";
+	    scalars[2] = "v";
+	    scalars[3] = "w";
 	}
 	else if (Starfish.domain_module.getDomainType()==DomainType.RZ)
 	{
-	    variables[0] = "theta (rad)";
-	    variables[1] = "ur";
-	    variables[2] = "uz";
-	    variables[3] = "utheta";
+	    scalars[0] = "theta (rad)";
+	    scalars[1] = "ur";
+	    scalars[2] = "uz";
+	    scalars[3] = "utheta";
 	}
 	else if (Starfish.domain_module.getDomainType()==DomainType.ZR)
 	{
-	    variables[0] = "theta (rad)";
-	    variables[1] = "uz";
-	    variables[2] = "ur";
-	    variables[3] = "utheta";
+	    scalars[0] = "theta (rad)";
+	    scalars[1] = "uz";
+	    scalars[2] = "ur";
+	    scalars[3] = "utheta";
 	}
 	    
-	variables[4] = "id";
+	scalars[4] = "id";
 	
 	/*write header*/
 	writeHeader();

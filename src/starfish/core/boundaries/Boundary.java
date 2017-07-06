@@ -25,8 +25,9 @@ public class Boundary extends Spline
     {
 	this.name = name;
 	this.type = type;
-	this.value = value;
+	this.value = value;	
 	this.material = mat;
+	if (type!=NodeType.DIRICHLET) this.material = null; //make sure material not set for virtual surfaces
     }
 	
     /**allocates sources*/
@@ -84,7 +85,7 @@ public class Boundary extends Spline
     public ParticleListSource getParticleListSource(int mat_index) {return particle_list_source[mat_index];}
 			
     /*variables*/
-    protected NodeType type;
+    protected final NodeType type;
     protected double value;
     protected String name;
     protected Material material;

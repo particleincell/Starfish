@@ -45,7 +45,7 @@ public class TecplotWriter extends Writer
 	if (output_type==OutputType.BOUNDARIES)
 	    pw.print(" segment ni nj");
 		
-	for (String var:variables)
+	for (String var:scalars)
 	{
 	    /*make sure we have this variable*/
 	 //   if (!Starfish.output_module.validateVar(var)) continue;
@@ -68,9 +68,9 @@ public class TecplotWriter extends Writer
         
 	    /*save fields*/
 	    ArrayList<Field2D> field = new ArrayList<Field2D>();
-	    for (int v=0;v<variables.length;v++)
+	    for (int v=0;v<scalars.length;v++)
 	    {
-		field.add(Starfish.getField(mesh, variables[v]));
+		field.add(Starfish.getField(mesh, scalars[v]));
 	    }
 			
 	    int nv = field.size();
@@ -126,10 +126,10 @@ public class TecplotWriter extends Writer
 	    Log.error("index type must be either I or J");
 
 	/*save fields*/
-	int nv=variables.length;
+	int nv=scalars.length;
 	Field2D field[] = new Field2D[nv];
 	for (int v=0;v<nv;v++)
-	    field[v] = Starfish.domain_module.getField(output_mesh, variables[v]);
+	    field[v] = Starfish.domain_module.getField(output_mesh, scalars[v]);
 
 	for (int j=jm;j<jp;j++)
 	    for (int i=im;i<ip;i++)
@@ -186,10 +186,10 @@ public class TecplotWriter extends Writer
 	    pw.flush();
 
 	    /*save fields*/
-	    int nv=variables.length;
+	    int nv=scalars.length;
 	    Field1D field[] = new Field1D[nv];
 	    for (int v=0;v<nv;v++)
-	    field[v] = 	Starfish.boundary_module.getField(boundary, variables[v]);
+	    field[v] = 	Starfish.boundary_module.getField(boundary, scalars[v]);
 	
 	    
 	    for (int i=0;i<boundary.numSegments();i++)

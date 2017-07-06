@@ -7,6 +7,7 @@
 
 package starfish.core.io;
 
+import java.util.ArrayList;
 import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
@@ -57,8 +58,16 @@ public class OutputModule extends CommandModule
 		
 	/*grab variables*/
 	String variables[] = InputParser.getList("variables",element);
+	String scalars[] = InputParser.getList("scalars",element);  //alternate name of variables		
 	String cell_data[] = InputParser.getList("cell_data",element);
-		
+	ArrayList<String[]> vectors = InputParser.getListOfPairs("vectors",element);
+	
+	//combine "scalars" and "variables", keeping both for backwards compatibility
+	ArrayList<String> vars = new ArrayList<String>();
+	for (String v:variables) vars.add(v);
+	for (String v:scalars) vars.add(v);
+	variables = vars.toArray(new String[0]);
+	
 	/*make writer*/
 	Writer writer;
 	if (format.equalsIgnoreCase("TECPLOT")) writer = new TecplotWriter();
@@ -68,7 +77,7 @@ public class OutputModule extends CommandModule
 	/*TODO: replace this with "factories"*/
 	/*output data*/
 	if (type.equalsIgnoreCase("2D"))
-	    writer.open2D(file_name,variables,cell_data);
+	    writer.open2D(file_name,variables,vectors,cell_data);
 	else if (type.equalsIgnoreCase("BOUNDARIES"))
 	    writer.openBoundaries(file_name,variables);
 	else if (type.equalsIgnoreCase("PARTICLES"))

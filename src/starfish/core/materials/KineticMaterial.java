@@ -410,7 +410,8 @@ public class KineticMaterial extends Material
 		Node node = mesh.getNode(i, j);
 
 		for (Segment seg : node.segments)
-		    if (seg.getBoundaryType() == NodeType.DIRICHLET)
+		    if (seg.getBoundaryType() == NodeType.DIRICHLET ||
+			seg.getBoundaryType() == NodeType.VIRTUAL)
 			segments.add(seg);
 	    }
 
@@ -458,9 +459,9 @@ public class KineticMaterial extends Material
 	    Boundary boundary_hit = seg_min.getBoundary();
 	    Material target_mat = boundary_hit.getMaterial(tsurf_min);
 	    double boundary_t = seg_min.id()+tsurf_min;
-
+	    
 	    /*perform surface interaction*/
-	    boolean alive = false;
+	    boolean alive = true;
 	    if (target_mat!=null)
 		alive = target_mat.performSurfaceInteraction(part.vel, mat_index, seg_min, tsurf_min);
 
@@ -469,17 +470,8 @@ public class KineticMaterial extends Material
 
 	    if (!alive)
 	    {
-		/*we will multiply by mass in "finish"*/
-		
+		/*we will multiply by mass in "finish"*/		
 		addSurfaceMassDeposit(boundary_hit, boundary_t, part.spwt);
-/*testing*/
-		/*
-if (Starfish.steady_state())
-{
-    if (seg_min.boundary.getName().equalsIgnoreCase("INLET")) Starfish.inlet++;
-    else if (seg_min.boundary.getName().equalsIgnoreCase("WALL")) Starfish.wall++;
-    else if (seg_min.boundary.getName().equalsIgnoreCase("OUTLET")) Starfish.outlet++;   		
-}*/
 	    }
 	    
 	    return alive;

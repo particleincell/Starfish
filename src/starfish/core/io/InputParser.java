@@ -292,6 +292,40 @@ public class InputParser implements Iterable
 	return list.toArray(new String[0]);
     }
 
+     /** @return values from a field such as <node_name>[aa, bb], [cc, dd]</node_name> as string list     
+     */
+    public static ArrayList<String[]> getListOfPairs(String node_name, Element element)
+    {
+	String text = getValue(node_name,element,"");
+	ArrayList<String[]> list = new ArrayList<String[]>();
+
+	StringTokenizer st = new StringTokenizer(text,",");
+	boolean first=true;
+	String pair[] = new String[2];
+	while (st.hasMoreTokens()) 
+	{
+	    String token = st.nextToken().trim();
+	    if (first)
+	    {
+		if (token.charAt(0)!='[') Log.error("Expected leading [ in "+token);
+		token = token.substring(1);
+		pair = new String[2];	//ArrayList add  only a shallow copy so need new object for each pair
+		pair[0] = token;
+	    }
+	    else
+	    {
+		if (token.charAt(token.length()-1)!=']') Log.error("Expected trailing ] in "+token);
+		token = token.substring(0,token.length()-1);
+		pair[1] = token;
+		list.add(pair);
+		
+	    }
+	    first = !first;
+	}
+	
+	return list;
+    }
+
     public static double[] getDoubleList(String name, Element element) 
     {
 	String list[] = getList(name,element);

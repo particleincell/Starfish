@@ -98,7 +98,7 @@ public class VTKWriter extends Writer
 		pw.printf("%d ",mesh.getNode(i,j).type.ordinal());
 	pw.println("\n</DataArray>");
 	
-	for (String var:variables)
+	for (String var:scalars)
 	{
 	    /*make sure we have this variable*/
 	  //  if (!Starfish.output_module.validateVar(var)) continue;
@@ -110,6 +110,21 @@ public class VTKWriter extends Writer
 		    pw.printf("%g ",(data[i][j]));
 	    pw.println("\n</DataArray>");
 	}
+	
+	for (String[] vars:vectors)
+	{
+	    /*make sure we have this variable*/
+	  //  if (!Starfish.output_module.validateVar(var)) continue;
+	    double data1[][] = Starfish.domain_module.getField(mesh, vars[0]).getData();
+	    double data2[][] = Starfish.domain_module.getField(mesh, vars[1]).getData();
+	    
+	    pw.println("<DataArray Name=\""+vars[0]+"\" type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
+	    for (int j=0;j<mesh.nj;j++)
+	  	for (int i=0;i<mesh.ni;i++)
+		    pw.printf("%g %g 0 ",data1[i][j], data2[i][j]);
+	    pw.println("\n</DataArray>");
+	}
+		
 	pw.println("</PointData>");	
 	 
 	 
@@ -188,11 +203,20 @@ public class VTKWriter extends Writer
 		pw.printf("%g %g 0 ", norm[0],norm[1]);
 	    }
 	pw.println("\n</DataArray>");
+	
+	pw.println("<DataArray type=\"Int32\" NumberOfComponents=\"1\" Name=\"type\" format=\"ascii\">");
+	for (Boundary boundary:bl)
+	    for (int i=0;i<boundary.numPoints()-1;i++)
+	    {
+		pw.printf("%d ", boundary.getType().ordinal());
+	    }
+	pw.println("\n</DataArray>");
+	
 	pw.println("</CellData>");
 	
 	/*data*/
 	pw.println("<PointData>");
-	for (String var:variables)
+	for (String var:scalars)
 	{
 	    /*make sure we have this variable*/
 	    if (!Starfish.output_module.validateVar(var)) continue;
