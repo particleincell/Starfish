@@ -35,11 +35,12 @@ public class DSMC extends VolumeInteraction
     KineticMaterial mat1;
     KineticMaterial mat2;
     int frequency;
+    double sig_cr_max0;	    //initial sig_cr_max
    // KineticMaterial product;
 
     double vss_inv;
     
-    DSMC(String mat1, String mat2, Sigma sigma, DSMCModel model, int frequency) 
+    DSMC(String mat1, String mat2, Sigma sigma, DSMCModel model, int frequency, double sig_cr_max) 
     {
 	/*make sure we have a kinetic source*/
 	if (!(Starfish.getMaterial(mat1) instanceof KineticMaterial) ||
@@ -54,6 +55,10 @@ public class DSMC extends VolumeInteraction
 
 	this.sigma = sigma;
 	this.frequency = frequency;	//iteration skip between collisions
+	this.sig_cr_max0 = sig_cr_max;
+	
+	//initialize sigma parameters as needed
+	sigma.init(this.mat1, this.mat2);
 	
 	/*figure out how many other DSMC pairs are defined*/
 	ArrayList<VolumeInteraction> vints = Starfish.interactions_module.getInteractionsList();
@@ -93,7 +98,7 @@ public class DSMC extends VolumeInteraction
 	/*allocate memory*/
 	for (Mesh mesh:Starfish.getMeshList())
 	{
-	    mesh_data.put(mesh, new MeshData(mesh,1e-16));
+	    mesh_data.put(mesh, new MeshData(mesh,sig_cr_max0));
 	}				
     }	
 
@@ -266,8 +271,7 @@ public class DSMC extends VolumeInteraction
 	int nsel = (int)(nsel_f);	/*number of groups, round down*/
 	    
 	/*make sure we have enough particles to collide*/
-	if ((mat1==mat2 && (np1<2 || np2<2))||
-		np1<1 || np2<1)
+	if ((mat1==mat2 && (np1<2 || np2<2)) ||	np1<1 || np2<1)    
 	    nsel=0;
 	    
 	cell_info.rem=nsel_f-nsel;
@@ -275,6 +279,7 @@ public class DSMC extends VolumeInteraction
 	//HACK:
 	if (nsel>(np1*np2)) 
 	{
+	    Log.log("Not enough particles for collision pairs, need "+nsel+", have "+np1*np2);
 	    nsel=(int)(np1*np2);
 	    cell_info.rem=0;
 	}
@@ -440,9 +445,12 @@ public class DSMC extends VolumeInteraction
 	    int frequency = InputParser.getInt("frequency", element, 1);
 	    if (frequency<1) frequency=1;
 	    
+	    /*get initial sig_cr_max*/
+	    double sig_cr_max = InputParser.getDouble("sig_cr_max",element, 1e-16);
+	    
 	    Sigma sigma = InteractionsModule.parseSigma(element);
 	    
-	    Starfish.interactions_module.addInteraction(new DSMC(pair[0],pair[1],sigma,model,frequency));
+	    Starfish.interactions_module.addInteraction(new DSMC(pair[0],pair[1],sigma,model,frequency, sig_cr_max));
 	}
     };
 

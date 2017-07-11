@@ -37,6 +37,9 @@ public abstract class Solver
     public double den0 = 1e15;  /* reference values of ion density along bottom edge */
     public double phi0 = 0; /* reference values of potential along bottom edge */
 
+    boolean first = true;
+    boolean initial_only = false;
+
     /* gradient class used to store gradient coefficients at control volume 
      * edge midpoints (i+1/2,j) (i,j+1/2) and so on*/
 

@@ -65,17 +65,22 @@ public class SolverModule extends CommandModule
 	    Log.error("Unrecognized solver type " + type);
 	}
 
+	//how often do we update potential, <=0 implies only initial field?
+	boolean initial_only = InputParser.getBoolean("initial_only", element, false);
+	
 	/*get solver parameters*/
 	int lin_max_it=InputParser.getInt("max_it", element, 5000);
 	double lin_tol=InputParser.getDouble("tol", element, 1e-6);
 	int nl_max_it=InputParser.getInt("nl_max_it", element, 50);
 	double nl_tol=InputParser.getDouble("nl_tol", element, 1e-4);
-	Log.log("> max_it (linear)=" + lin_max_it);
-	Log.log("> tol (linear)=" + lin_tol);
-	Log.log("> nl_max_it (non-linear)=" + nl_max_it);
-	Log.log("> nl_tol (non-linear)=" + nl_tol);
+	Log.log("> max_it (linear) = " + lin_max_it);
+	Log.log("> tol (linear) = " + lin_tol);
+	Log.log("> nl_max_it (non-linear) = " + nl_max_it);
+	Log.log("> nl_tol (non-linear) = " + nl_tol);
+	Log.log("> initial only = " + initial_only);
 	solver.setLinParams(lin_max_it, lin_tol);
 	solver.setNLParams(nl_max_it, nl_tol);
+	solver.initial_only = initial_only;
     }
 
     public interface SolverFactory 
@@ -98,6 +103,8 @@ public class SolverModule extends CommandModule
 
     public void updateFields()
     {
+	if (solver.initial_only && !solver.first) return;
+	
 	/*update rho*/
 	updateRho();
 
@@ -106,6 +113,8 @@ public class SolverModule extends CommandModule
 	
 	/*update electric field*/
 	solver.updateGradientField();
+	
+	solver.first = false;
     }
 
     /**
