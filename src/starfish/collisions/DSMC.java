@@ -134,6 +134,9 @@ public class DSMC extends VolumeInteraction
     {
 	if (Starfish.getIt()%frequency!=0) return;
 	
+	//do not perform DSMC if both materials are frozen
+	if (mat1.frozen && mat2.frozen) return;
+	
 	/*clear samples if we are now at steady state*/
 	if (Starfish.steady_state() && !steady_state)
 	{
@@ -246,18 +249,14 @@ public class DSMC extends VolumeInteraction
 	    
 	double spwt1=mat1.getSpwt0();
 	double spwt2=mat2.getSpwt0();
-	
-	if (spwt1!=spwt2 && np1>0 && np2>0)
-	    spwt1=spwt1;
-	
+		
 	/*eq. 5 in Boyd's paper*/
 	double Pab = spwt2/spwt1;
 	double Pba = spwt1/spwt2;
 		
 	if (Pab>1) Pab=1;
 	if (Pba>1) Pba=1;
-	
-	
+		
 	double nsel_f = ((np1*spwt1/cell_info.cell_volume)*np2*delta_t*cell_info.sig_cr_max)/(Pab + (spwt2/spwt1)*Pba); 	
 	/*since not doing "q-p" collisions for "p-q", need double if different species*/
 	if (mat1!=mat2) nsel_f*=2.0;

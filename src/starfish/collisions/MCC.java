@@ -101,6 +101,7 @@ public class MCC extends VolumeInteraction
 	   steady_state = true;
 	   fc_count_sum.clear();
 	   fc_real_sum.clear();
+	   
 	   num_samples = 0;
 	}
 	
@@ -126,7 +127,6 @@ public class MCC extends VolumeInteraction
     {
 	Iterator<Particle> iterator = source.getIterator(mesh);
 	Field2D target_den = target.getDen(mesh);
-	Field2D target_T = target.getT(mesh);
 	
 	Field2D real_sum = fc_real_sum.getField(mesh);
 	Field2D count_sum = fc_count_sum.getField(mesh);
@@ -141,7 +141,8 @@ public class MCC extends VolumeInteraction
 	    if (den_a<=0) continue;
 
 	    /*create random target particle according to target T and stream velocity*/
-	    double target_vel[] = target.sampleMaxwellianVelocity(mesh,part.lc);
+	    //double target_vel[] = target.sampleMaxwellianVelocity(mesh,part.lc);
+	    double target_vel[] = target.sampleVelocity(mesh,part.lc);
 
 	    double g_vec[] = new double[3];
 	    for (int i=0;i<3;i++) g_vec[i] = target_vel[i] - part.vel[i];				
@@ -161,14 +162,10 @@ public class MCC extends VolumeInteraction
 	    /*otherwise, perform collision*/
 	    model.perform(part,virt_part);
 	    
-	    /*start counting only at ss since dividing by time since ss*/
-	    if (Starfish.steady_state())
-	    {
-		int i = (int) part.lc[0];
-		int j = (int) part.lc[1];
-		count_sum.add(i,j,1);	    //cell data
-		real_sum.add(i,j,part.spwt);
-	    }
+	    int i = (int) part.lc[0];
+	    int j = (int) part.lc[1];
+	    count_sum.add(i,j,1);	    //cell data
+	    real_sum.add(i,j,part.spwt);
 	}	
     }
     

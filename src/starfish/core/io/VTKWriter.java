@@ -216,6 +216,16 @@ public class VTKWriter extends Writer
 	
 	/*data*/
 	pw.println("<PointData>");
+	
+	/*first save node area*/
+	pw.println("<DataArray Name=\"area\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+	for (Boundary boundary:bl)
+	{
+	    for (int i=0;i<boundary.numPoints();i++)
+	        pw.printf("%g ", boundary.nodeArea(i));
+	}
+	pw.println("\n</DataArray>");
+
 	for (String var:scalars)
 	{
 	    /*make sure we have this variable*/
@@ -230,6 +240,7 @@ public class VTKWriter extends Writer
 	    }
 	    pw.println("\n</DataArray>");
 	}
+	
 	 pw.println("</PointData>");	
 	 
 	pw.println("</Piece>");

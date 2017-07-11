@@ -465,7 +465,7 @@ public abstract class Material
 	
 	/*add default 1d fields*/
 	flux_collection = field_manager1d.add("flux", "#/m^2/s");
-	flux_normal_collection = field_manager1d.add("flux_normal", "#/m^2/s");
+	flux_normal_collection = field_manager1d.add("flux-normal", "#/m^2/s");
 	deprate_collection = field_manager1d.add("deprate", "kg/s");
 	depflux_collection = field_manager1d.add("depflux", "kg/m^2/s");
 	
@@ -544,13 +544,21 @@ public abstract class Material
 	
     }
 
-    /*returns random velocity sampled based on temperature and average stream velocity*/
-    public double[] sampleMaxwellianVelocity(Mesh mesh, double[] lc)
+    /*returns average stream velocity at specified point*/
+    public double[] sampleVelocity(Mesh mesh, double[] lc)
     {
 	double vel[] = new double[3];
 	vel[0] = getUAve(mesh).gather(lc);
 	vel[1] = getVAve(mesh).gather(lc);
 	vel[2] = getWAve(mesh).gather(lc);
+	
+	return vel;	
+    }
+
+    /*returns random velocity sampled based on temperature and average stream velocity*/
+    public double[] sampleMaxwellianVelocity(Mesh mesh, double[] lc)
+    {
+	double vel[] = sampleVelocity(mesh, lc);
 	
 	double T = getT(mesh).gather(lc);
 	if (T<0) T=0;

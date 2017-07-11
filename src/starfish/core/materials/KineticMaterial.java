@@ -432,7 +432,8 @@ public class KineticMaterial extends Material
 		/*skip over particles that collide with surface at the beginning of their time step,
 		 * as long as they are moving away from the surface*/
 		double acos=Vector.dot2(seg.normal(t[0]),part.vel)/Vector.mag2(part.vel);
-		if (t_part<Constants.FLT_EPS && acos>0) continue;
+		if (t_part<Constants.FLT_EPS &&		    //ignore direction for virtual walls since particles can pass through
+			(acos>0 || seg.getBoundaryType()==NodeType.VIRTUAL)) continue;
 		
 		/*is this a new minimum?*/
 		if (t_part<tp_min)
@@ -458,7 +459,7 @@ public class KineticMaterial extends Material
 	    /*call handler*/
 	    Boundary boundary_hit = seg_min.getBoundary();
 	    Material target_mat = boundary_hit.getMaterial(tsurf_min);
-	    double boundary_t = seg_min.id()+tsurf_min;
+	    double boundary_t = seg_min.id()+tsurf_min;	    
 	    
 	    /*perform surface interaction*/
 	    boolean alive = true;
