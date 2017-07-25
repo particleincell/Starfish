@@ -24,17 +24,23 @@ public abstract class Source
     protected Spline spline;
     protected String name;
     int start_it;
+    int end_it;
    
     /**
      * constructor
      */   
-    public Source(String name, Material source_mat, Spline spline, double mdot, int start_it)
+    public Source(String name, Material source_mat, Spline spline, double mdot, int start_it){
+	    this(name, source_mat, spline, mdot, start_it,-1);
+    }
+
+    public Source(String name, Material source_mat, Spline spline, double mdot, int start_it, int end_it)
     {
 	this.source_mat = source_mat;
 	this.mdot0 = mdot;
 	this.spline = spline;
 	this.name = name; 
 	this.start_it = start_it;
+	this.end_it = end_it;
     }
 
     /**

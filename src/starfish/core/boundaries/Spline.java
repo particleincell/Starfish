@@ -174,8 +174,7 @@ public class Spline
 			if (flip_normals) xp = con_spline.lastPoint();
 			
 			x2[0] = xp[0];
-			x2[1] = xp[1];
-			mode = SetPathMode.NONE;
+			x2[1] = xp[1];			
 		    }
 		    else if (pieces[1].equalsIgnoreCase("LAST"))
 		    {
@@ -183,7 +182,6 @@ public class Spline
 			if (flip_normals) xp = con_spline.firstPoint();
 			x2[0] = xp[0];
 			x2[1] = xp[1];
-			mode = SetPathMode.NONE;
 		    }
 		    else
 			Log.error("unknown boundary conntector type "+pieces[1]);
@@ -241,6 +239,7 @@ public class Spline
 	if (flip_normals)
 	    reverseSegmentOrdering();
 	
+	if (segments.isEmpty()) Log.error("Failed to add points for spline "+path);
 	computeBoundingBox();
 	computeLength();
     }
@@ -375,7 +374,7 @@ public class Spline
     public final void computeBoundingBox()
     {
 	box = new double[2][];
-	
+	if (segments.isEmpty()) Log.error("Error computing bounding box");
 	box[0] = segments.get(0).firstPoint();
 	box[1] = segments.get(0).firstPoint();
 

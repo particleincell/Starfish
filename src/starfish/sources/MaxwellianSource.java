@@ -30,9 +30,9 @@ public class MaxwellianSource extends Source
 
 
     public MaxwellianSource(String name, Material source_mat, Spline spline,
-	    double mdot, double v_drift, double temp, int start_it)
+	    double mdot, double v_drift, double temp, int start_it, int end_it)
     {
-	super(name, source_mat, spline, mdot,start_it);
+	super(name, source_mat, spline, mdot,start_it,end_it);
 
 	/*calculate density*/
 	double A = spline.area();
@@ -107,8 +107,9 @@ public class MaxwellianSource extends Source
 	    double v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));
 	    double temp = Double.parseDouble(InputParser.getValue("temperature", element));
 	    int start_it = InputParser.getInt("start_it",element,0);
+	    int end_it = InputParser.getInt("end_it",element,-1);
 	    
-	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, mdot, v_drift, temp, start_it);
+	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, mdot, v_drift, temp, start_it, end_it);
 	    boundary.addSource(source);
 
 	    /*log*/
@@ -118,6 +119,8 @@ public class MaxwellianSource extends Source
 	    Starfish.Log.log("> spline  = " + boundary.getName());
 	    Starfish.Log.log("> v_drift  = " + v_drift);
 	    Starfish.Log.log("> temp  = " + temp);
+	    Starfish.Log.log("> start_it  = " + start_it);
+	    Starfish.Log.log("> end_it  = " + end_it);
 	}
 	
     };

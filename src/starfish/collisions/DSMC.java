@@ -279,7 +279,7 @@ public class DSMC extends VolumeInteraction
 	//HACK:
 	if (nsel>(np1*np2)) 
 	{
-	    Log.log("Not enough particles for collision pairs, need "+nsel+", have "+np1*np2);
+	    Log.debug("Not enough particles for collision pairs, need "+nsel+", have "+np1*np2);
 	    nsel=(int)(np1*np2);
 	    cell_info.rem=0;
 	}

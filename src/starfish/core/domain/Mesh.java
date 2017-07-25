@@ -60,7 +60,7 @@ public abstract class Mesh
     BoundaryData boundary_data[][] = new BoundaryData[4][];	/*[face][node_index]*/
 	
     static public enum NodeType {
-	BAD(-99), UNKNOWN(-2), OPEN(-1), DIRICHLET(0), NEUMANN(1), PERIODIC(2), SYMMETRY(3), MESH(4),VIRTUAL(5);
+	BAD(-99), UNKNOWN(-2), OPEN(-1), DIRICHLET(0), NEUMANN(1), PERIODIC(2), SYMMETRY(3), MESH(4), VIRTUAL(5), SINK(6); 
 	
 	protected int val;
 	NodeType(int val) {this.val=val;}

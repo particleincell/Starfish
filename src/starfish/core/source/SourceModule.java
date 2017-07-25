@@ -192,7 +192,8 @@ public class SourceModule extends CommandModule
 		if (source.source_mat.frozen) continue;
 		
 		//if (source instanceof ParticleListSource) continue;
-		if (Starfish.getIt()<source.start_it) continue;
+		if (Starfish.getIt()<source.start_it ||
+		    source.end_it>=0 && Starfish.getIt()>source.end_it) continue;
 		source.update();
 		source.regenerate();
 		source.sampleAll();

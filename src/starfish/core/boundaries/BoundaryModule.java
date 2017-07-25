@@ -103,6 +103,7 @@ public class BoundaryModule extends CommandModule
 	else if (type.equalsIgnoreCase("SOLID")) boundary_type = NodeType.DIRICHLET;
 	else if (type.equalsIgnoreCase("SYMMETRY")) boundary_type = NodeType.SYMMETRY;
 	else if (type.equalsIgnoreCase("VIRTUAL")) boundary_type = NodeType.VIRTUAL;
+	else if (type.equalsIgnoreCase("SINK")) boundary_type = NodeType.SINK;
 	else Log.error("Unknown boundary type "+type);
 		
 	/*material type if solid*/

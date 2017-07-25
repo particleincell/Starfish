@@ -2,7 +2,7 @@
 
 ![Starfish logo](starfish.png)
 
-[Starfish](https://www.particleincell.com/starfish) is a genearl 2D Cartesian or axisymmetric code for simulating plasmas or rarefied gases. 
+[Starfish](https://www.particleincell.com/starfish) is a general 2D Cartesian or axisymmetric code for simulating plasmas or rarefied gases. 
 It consists of two "editions", light and regular. The light edition is what is posted here.
 It includes support for the Particle In Cell (PIC) method with MCC or DSMC collisions,
 several gas injection sources, and preliminary support for fluid and kinetic materials. The

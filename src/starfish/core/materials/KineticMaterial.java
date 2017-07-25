@@ -411,7 +411,8 @@ public class KineticMaterial extends Material
 
 		for (Segment seg : node.segments)
 		    if (seg.getBoundaryType() == NodeType.DIRICHLET ||
-			seg.getBoundaryType() == NodeType.VIRTUAL)
+			seg.getBoundaryType() == NodeType.VIRTUAL ||
+			seg.getBoundaryType() == NodeType.SINK)
 			segments.add(seg);
 	    }
 
@@ -465,6 +466,8 @@ public class KineticMaterial extends Material
 	    boolean alive = true;
 	    if (target_mat!=null)
 		alive = target_mat.performSurfaceInteraction(part.vel, mat_index, seg_min, tsurf_min);
+	    
+	    if (boundary_hit.getType()==NodeType.SINK) alive = false;
 
 	    /*deposit flux and deposit, if stuck*/
 	    addSurfaceMomentum(boundary_hit, boundary_t, part.vel, part.spwt);

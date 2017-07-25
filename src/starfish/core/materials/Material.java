@@ -517,7 +517,8 @@ public abstract class Material
 	Field1D deprate[] = deprate_collection.getFields();
 	Field1D depflux[] = depflux_collection.getFields();
 	
-	double f = 1.0 / (Starfish.time_module.getSteadyStateTime());
+	double f=1;
+	if (Starfish.time_module.getSteadyStateTime()>0) f = 1.0 / (Starfish.time_module.getSteadyStateTime());
 
 	for (int j = 0; j < flux.length; j++)
 	{
