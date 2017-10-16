@@ -203,8 +203,7 @@ public class ChemicalReaction extends VolumeInteraction
 		    /*max we can remove is k*dt*n so need n<1*/
 		    if (dn>1.0) 
 			dn=1.0;
-		    
-		    
+		    		    
 		    for (int s=0;s<num_sources;s++)
 		    {
 			dn*=den[s][i][j];
@@ -218,8 +217,9 @@ public class ChemicalReaction extends VolumeInteraction
 		    
 		    /*update rates*/
 		    for (int s=0;s<num_sources;s++)
+		    {
 			dn_src[s].data[i][j] -= source_coeff[s]*dn;
-		    
+		    }
 		    for (int p=0;p<num_products;p++)
 		    {
 			prod_source[p].getDn(mesh).data[i][j] += prod_coeff[p]*dn;

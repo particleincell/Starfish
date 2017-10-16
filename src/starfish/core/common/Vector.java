@@ -8,6 +8,9 @@
 
 package starfish.core.common;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 /**classes for performing vector math*/
 public class Vector 
 {
@@ -87,6 +90,16 @@ public class Vector
 	return r;
     }
 	
+    /** generates empty vector
+     @param n length of the vector*/
+    public static double[] zeros(int n)
+    {
+	double r[] = new double[n];
+	Arrays.fill(r, 0);
+	return r;
+    }
+
+    
     /** computes l2 norm, sqrt(sum(v^2)/size)*/
     public static double norm (double v[])
     {

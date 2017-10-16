@@ -181,8 +181,8 @@ public class Field2D
 	    dj = 1-(0.5*(rp-r)*(2*rp+3*rm-r)/(rp*rp-rm*rm));
 	}
 	
-	if (Double.isNaN(dj) || Double.isNaN(di))
-	    i=i;
+	if (Double.isNaN(dj) || Double.isNaN(di) || Double.isNaN(val))
+	    System.out.printf("Nan in scatter");
 	
 	data[i][j] += (1-di)*(1-dj)*val;
 	data[i+1][j] += di*(1-dj)*val;
@@ -273,10 +273,16 @@ public class Field2D
     public void scaleByVol() 
     {
 	double node_vol[][] = mesh.node_vol.data;
-
+	
 	for (int i=0;i<ni;i++)
 	    for (int j=0;j<nj;j++)
+	    {
 		data[i][j]/=node_vol[i][j];	
+		
+		if (Double.isNaN(data[i][j])||Double.isInfinite(data[i][j]))
+		    System.out.printf("NaN at %d %d, vol:%g\n",i,j,node_vol[i][j]);
+		
+	    }
     }
 
     /**computes d/dx (x derivative)*/

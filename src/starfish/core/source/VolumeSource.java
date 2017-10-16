@@ -67,6 +67,9 @@ public class VolumeSource extends Source
 
 	/*grab temperature in the cell*/
 	double temp_p = getTemp(sample_mesh).gather(ip,jp);
+	//negative temperature indicates we are in a boundary cell that has neighbors set to -1
+	if (temp_p<50) temp_p = 50;	//todo: for now added limit
+	
 	double v_th=Utils.computeVth(temp_p, source_mat.mass);
 	
 	/*velocity*/

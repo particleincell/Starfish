@@ -104,7 +104,7 @@ public class KineticMaterial extends Material
 	/*update velocity moments and recompute temperature*/	
 	for (MeshData md : mesh_data)	    
 	    updateSamples(md);
-	
+
 	/*clear all fields*/
 	for (MeshData md : mesh_data)
 	{
@@ -127,7 +127,6 @@ public class KineticMaterial extends Material
 	{
 	    moveParticles(md, true);
 	}
-
 	
 	/*update densities and velocities*/
 	for (MeshData md : mesh_data)
@@ -249,6 +248,9 @@ public class KineticMaterial extends Material
 		UpdateVelocityBoris(part, ef, bf);
 	    }
 
+	    if (Double.isNaN(part.vel[0]) || Double.isNaN(part.vel[1]))
+		System.out.println("Infinite vel");
+	    
 	    int bounces = 0;
 	    boolean alive = true;
 
@@ -276,6 +278,9 @@ public class KineticMaterial extends Material
 		}		
 		else
 		    part.pos[2] += part.vel[2]*part.dt;
+		
+		if (Double.isNaN(part.vel[0]) || Double.isNaN(part.vel[1]))
+		System.out.println("Infinite vel");
 
 		part.lc = mesh.XtoL(part.pos);
 		
