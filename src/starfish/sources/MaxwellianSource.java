@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.Spline;
 import starfish.core.common.Starfish;
+import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
@@ -29,18 +30,29 @@ public class MaxwellianSource extends Source
     final double v_th;			/*thermal velocity*/
 
 
-    public MaxwellianSource(String name, Material source_mat, Spline spline,
+    public MaxwellianSource(String name, Material source_mat, Boundary boundary,
 	    double mdot, double v_drift, double temp, int start_it, int end_it)
     {
-	super(name, source_mat, spline, mdot,start_it,end_it);
+	super(name, source_mat, boundary, mdot,start_it,end_it);
 
 	/*calculate density*/
-	double A = spline.area();
+	double A = boundary.area();
 	den0 = mdot / (A * v_drift * source_mat.getMass());
 
 	this.v_drift = v_drift;
 
-	v_th = Utils.computeVth(temp, source_mat.getMass());
+	v_th = Utils.computeVth(temp, source_mat.getMass());	
+	
+	Starfish.Log.log("Added MAXWELLIAN source '" + name + "'");
+	Starfish.Log.log("> mdot   = " + mdot + "(kg/s)");
+	Starfish.Log.log(String.format("> den0 = %.5g (#/m^3)",den0));
+	Starfish.Log.log(String.format("> flux = %.5g (kg/s/m^2)",mdot/A));
+	Starfish.Log.log("> spline  = " + boundary.getName());
+	Starfish.Log.log("> temp  = " + temp);
+	Starfish.Log.log("> v_drift  = " + v_drift);
+	Starfish.Log.log("> v_th  = " + v_th);
+	Starfish.Log.log("> start_it  = " + start_it);
+	Starfish.Log.log("> end_it  = " + end_it);
     }
 
     @Override
@@ -112,15 +124,7 @@ public class MaxwellianSource extends Source
 	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, mdot, v_drift, temp, start_it, end_it);
 	    boundary.addSource(source);
 
-	    /*log*/
-	    Starfish.Log.log("Added MAXWELLIAN source '" + name + "'");
-	    Starfish.Log.log("> mdot   = " + mdot + "(kg/s)");
-	    Starfish.Log.log("> flux = " + mdot/boundary.area() + "(kg/s/m^2)");
-	    Starfish.Log.log("> spline  = " + boundary.getName());
-	    Starfish.Log.log("> v_drift  = " + v_drift);
-	    Starfish.Log.log("> temp  = " + temp);
-	    Starfish.Log.log("> start_it  = " + start_it);
-	    Starfish.Log.log("> end_it  = " + end_it);
+	    
 	}
 	
     };

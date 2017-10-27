@@ -23,6 +23,7 @@ import java.util.NoSuchElementException;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.CommandModule;
+import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
@@ -36,6 +37,9 @@ public class SourceModule extends CommandModule
 {
     protected ArrayList<VolumeSource> volume_source_list = new ArrayList<VolumeSource>();
 
+    //hack
+    public double charge_flux = 0;
+    
     @Override
     public void init()
     {
@@ -194,9 +198,22 @@ public class SourceModule extends CommandModule
 		//if (source instanceof ParticleListSource) continue;
 		if (Starfish.getIt()<source.start_it ||
 		    source.end_it>=0 && Starfish.getIt()>source.end_it) continue;
+		
+		//HACK for neutralization paper, circuit to model to inject electrons lost to the wall
+		double mdot_bk=source.mdot0;
+		if (source.mdot0>0 && source.name.equals("inlet_e")&& source.getMaterial().charge<0)
+		{
+		    //negative since electrons contribute negative flux
+		    double d = -Constants.ME*charge_flux/Constants.QE/Starfish.getDt();
+		    source.mdot0 += d;
+		    charge_flux=0;
+		}
 		source.update();
 		source.regenerate();
 		source.sampleAll();
+		
+		//HACK
+		if (source.getMaterial().charge<0) source.mdot0 = mdot_bk;
 	    }/*for source*/
 	}
 

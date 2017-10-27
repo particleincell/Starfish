@@ -247,9 +247,6 @@ public class KineticMaterial extends Material
 	    {
 		UpdateVelocityBoris(part, ef, bf);
 	    }
-
-	    if (Double.isNaN(part.vel[0]) || Double.isNaN(part.vel[1]))
-		System.out.println("Infinite vel");
 	    
 	    int bounces = 0;
 	    boolean alive = true;
@@ -279,9 +276,6 @@ public class KineticMaterial extends Material
 		else
 		    part.pos[2] += part.vel[2]*part.dt;
 		
-		if (Double.isNaN(part.vel[0]) || Double.isNaN(part.vel[1]))
-		System.out.println("Infinite vel");
-
 		part.lc = mesh.XtoL(part.pos);
 		
 		Particle part_old = new Particle(part);
@@ -289,6 +283,12 @@ public class KineticMaterial extends Material
 		/*check if particle hit anything or left the domain*/		
 		alive = ProcessBoundary(part, mesh, old, old_lc);
 	
+		if (alive && part.lc[0]>mesh.ni || part.lc[1]>mesh.nj)
+		{
+		    part = part_old;
+		    alive = ProcessBoundary(part, mesh, old, old_lc);
+
+		}
 		if (!alive)
 		{
 		    part = new Particle(part_old);
@@ -309,6 +309,7 @@ public class KineticMaterial extends Material
 	    if (alive)
 	    {		
 		synchronized(this){
+		    		
 		Den.scatter(part.lc, part.spwt);
 		U.scatter(part.lc, part.vel[0] * part.spwt);
 		V.scatter(part.lc, part.vel[1] * part.spwt);
@@ -381,6 +382,7 @@ public class KineticMaterial extends Material
     {
 	boolean left_mesh = false;
 	Face exit_face = null;
+	boolean alive=true;
 
 	double dt0 = part.dt;	/*initial time step*/
 	part.dt = 0;		/*default, used up all time*/
@@ -467,9 +469,13 @@ public class KineticMaterial extends Material
 	    double boundary_t = seg_min.id()+tsurf_min;	    
 	    
 	    /*perform surface interaction*/
-	    boolean alive = true;
-	    if (target_mat!=null)
+	   if (target_mat!=null)
 		alive = target_mat.performSurfaceInteraction(part.vel, mat_index, seg_min, tsurf_min);
+	   
+	   //TODO: hack
+	   if (!alive && charge>0)
+	       //Starfish.source_module.charge_flux+=Constants.QE*part.vel[0];	//ions only lost to sink so horizontal velocity
+	       Starfish.source_module.charge_flux+=part.spwt*Constants.QE;	//ions only lost to sink so horizontal velocity
 	    
 	    if (boundary_hit.getType()==NodeType.SINK) alive = false;
 
@@ -480,12 +486,11 @@ public class KineticMaterial extends Material
 	    {
 		/*we will multiply by mass in "finish"*/		
 		addSurfaceMassDeposit(boundary_hit, boundary_t, part.spwt);
-	    }
-	    
-	    return alive;
+		return alive;
+	    }	    
 	}
   
-	/*did particle leave the domain*/
+	/*particle still alive, did it leave the domain*/
 	if (part.lc[0] < 0 || part.lc[1] < 0
 	    || part.lc[0] >= mesh.ni - 1 || part.lc[1] >= mesh.nj - 1)
 	{
@@ -589,6 +594,33 @@ public class KineticMaterial extends Material
 			    break;
 			}
 		    }
+		    return false;
+		case ENERGY:	//energy boundary for electrons
+		    if (charge>=0) return false;
+		    //double T = this.getT(mesh).gather(part.lc);
+		    double T = 1*Constants.EVtoK;
+		    double vth = Math.sqrt(2*Constants.K*T/mass);
+		    double phi_b = Starfish.domain_module.getPhi(mesh).gather(part.lc);
+		    double v = Vector.mag3(part.vel);
+		    double KE = 0.5*mass*v*v;
+		    double PE = Constants.QE*(phi_b-0);
+		    //if (Vector.mag3(part.vel)<=vth)
+		    
+		    double flux;
+		/*    if (part.lc[0]<0) flux = -Constants.QE*part.vel[0];
+		    else if (part.lc[0]>=mesh.ni) flux =Constants.QE*part.vel[0];
+		    else flux = Constants.QE*part.vel[1];
+		    */
+		    flux = Constants.QE;
+		    
+		    Starfish.source_module.charge_flux-=part.spwt*flux;	//minus since electrons
+		    
+		    /*if (KE<PE || PE<0)
+		    {
+			Vector.mult(part.vel, -1);  //flip
+			return true;
+		    }*/
+		    
 		    return false;
 
 		default:
