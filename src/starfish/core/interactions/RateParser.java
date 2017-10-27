@@ -54,7 +54,7 @@ public class RateParser
 	return (rate>0)?rate:0;
     }
     
-    static protected HashMap<String,MathParser> parsers_list = new HashMap();
+    static protected HashMap<String,MathParser> parsers_list = new HashMap<String,MathParser>();
     static public void registerMathParser(String name, MathParser parser)
     {
 	parsers_list.put(name.toUpperCase(), parser);

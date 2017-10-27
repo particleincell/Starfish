@@ -147,7 +147,7 @@ public class Utils
     /*class for storing 1D list and interpolating*/
     public static class LinearList
     {
-	public ArrayList<XYData> data = new ArrayList();
+	public ArrayList<XYData> data = new ArrayList<XYData>();
 	
 	public void insert(double x, double y)
 	{

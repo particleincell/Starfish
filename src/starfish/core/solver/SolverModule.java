@@ -88,7 +88,7 @@ public class SolverModule extends CommandModule
 	public Solver makeSolver(Element element);
     }
     
-    static HashMap<String,SolverFactory> solver_factories = new HashMap();
+    static HashMap<String,SolverFactory> solver_factories = new HashMap<String,SolverFactory>();
     public static void registerSolver(String name, SolverFactory fac)
     {
 	solver_factories.put(name.toUpperCase(),fac);

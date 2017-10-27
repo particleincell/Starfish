@@ -60,6 +60,8 @@ public abstract class Solver
 	public Matrix Gi;	/*gradient matrix in i direction*/
 	public Matrix Gj;	/*gradient matrix in j direction*/
 	public Matrix A;
+	public Matrix L;	//LU decomposition of matrix A, if available
+	public Matrix U;
 	public boolean fixed_node[];
 	public double b[];
 	public double x[];	    /*solution vector*/
@@ -105,7 +107,7 @@ public abstract class Solver
 	    int nu = ni*nj;
 
 	    /* initialize coefficient matrix */
-	    md.A = new Matrix(nu, 9);
+	    md.A = new Matrix(nu);
 
 	    /* initialize array of fixed (dirichlet) nodes*/
 	    md.fixed_node = new boolean[nu];
@@ -131,8 +133,8 @@ public abstract class Solver
 	int nu = ni*nj;
 	
 	/* *** 1) set coefficients for electric field ******/
-	md.Gi = new Matrix(nu,6);
-	md.Gj = new Matrix(nu,6);
+	md.Gi = new Matrix(nu);
+	md.Gj = new Matrix(nu);
 	
 	for (i = 0; i < ni; i++)
 	    for (j = 0; j < nj; j++)
@@ -271,7 +273,7 @@ public abstract class Solver
 	/*create threads*/
 	int np = Starfish.getNumProcessors();
 
-	Collection<Callable<String>> workers = new ArrayList();
+	Collection<Callable<String>> workers = new ArrayList<Callable<String>>();
 	ExecutorService executor = Executors.newFixedThreadPool(np);
 	
 	for (MeshData md:mesh_data)
@@ -349,7 +351,7 @@ public abstract class Solver
 	return it;
     }
 
-    class ParLinearGS<String> implements Callable
+    class ParLinearGS<K> implements Callable
     {
 	int i_min,i_max;
 	Matrix A;
@@ -373,12 +375,12 @@ public abstract class Solver
 	    {
 		/* tau = [A-D]x */
 		double tau = A.multRowNonDiag(x, u);
-		double g = (b[u] - tau) / A.val(u,u);
+		double g = (b[u] - tau) / A.get(u,u);
 
 		 x[u] = x[u] + 1.4*(g-x[u]); /*SOR*/
 	    }
 	    
-	    return (String) "OK";
+	    return new String("OK");
 	}
 	
     }
@@ -389,8 +391,54 @@ public abstract class Solver
     protected int solveLinearMultigrid(Matrix A, double x[], double b[])
     {
 	/*TODO: Implement*/
-	throw new UnsupportedOperationException("Not yet implemented");
+	throw new UnsupportedOperationException("Not yet implemented");	
+    }
+    
+    protected int solveLU(MeshData mesh_data[])
+    {
+	for (MeshData md:mesh_data)
+	{
+	    if (md.L==null || md.U==null)
+	    {
+		try {
+		Matrix ret[] = md.A.decomposeLU();
+		md.L = ret[0]; md.U = ret[1];
+		}
+		catch (UnsupportedOperationException e)
+		{
+		    Log.error("LU decomposition failed");
+		}
+	    }
+	    
+	    double b[] = md.b;
+	    double x[] = md.x;
+	    Matrix L = md.L;
+	    Matrix U = md.U;
+	    
+	    //first solve Ly=b using forward subsitution
+	    int n = md.A.nr;
+	    double y[] = new double[n];
+	    y[0] = b[0] / L.get(0,0);
+	    for (int i=1;i<n;i++)
+	    {
+		double s = b[i];
+		for (int j=0;j<i;j++)
+		    s -= L.get(i,j) * y[j];
+		y[i] = s/L.get(i, i);		
+	    }	   
+	    
+	    //now solve Ux=y
+	    x[n-1] = y[n-1]/U.get(n-1,n-1);
+	    for (int i=n-2;i>=0;i--)
+	    {
+		double s = y[i];
+		for (int j=i+1;j<n;j++)
+		    s -= U.get(i,j) * x[j];
+		x[i] = s/U.get(i,i);
+	    }
+	}
 	
+	return 0;
     }
 
     /**
@@ -528,7 +576,7 @@ public abstract class Solver
 	{
 	    /*set phi*/
 	    phi[i0][j0] = node[i0][j0].bc_value;
-	    md.A.clear(u);
+	    md.A.clearRow(u);
 	    md.A.set(u,u, 1);	    /*set one on the diagonal*/
 	    md.fixed_node[u] = true;
 	    return;

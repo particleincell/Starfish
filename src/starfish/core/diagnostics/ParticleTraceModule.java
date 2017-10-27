@@ -43,7 +43,7 @@ public class ParticleTraceModule extends CommandModule
 	tracer_list.add(new Tracer(file_name,format,(KineticMaterial) mat, id, start_it));
     }
 
-    ArrayList<Tracer> tracer_list = new ArrayList();
+    ArrayList<Tracer> tracer_list = new ArrayList<Tracer>();
     
     @Override
     public void start() { /*do nothing*/}

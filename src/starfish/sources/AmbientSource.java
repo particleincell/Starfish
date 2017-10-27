@@ -111,7 +111,7 @@ public class AmbientSource extends Source
     }
 
     /*list of cells where we load particles*/
-    ArrayList<Cell> cells = new ArrayList();
+    ArrayList<Cell> cells = new ArrayList<Cell>();
     protected int curr_cell;
     
     class Cell

@@ -529,7 +529,7 @@ public class GUI {
 		/****/
 		domainSettingsPanel.add(new JLabel("Domain: "));
 		String[] domainTypes = { "xy", "rz" };
-		domainList = new JComboBox(domainTypes);
+		domainList = new JComboBox<String>(domainTypes);
 		domainSettingsPanel.add(domainList);
 		/****/
 		panel.add(domainSettingsPanel);
@@ -541,7 +541,7 @@ public class GUI {
 		/****/
 		meshSettingsPanel.add(new JLabel("Type: "));
 		String[] meshTypes = { "", "Uniform", "Elliptic" };
-		final JComboBox meshList = new JComboBox(meshTypes);
+		final JComboBox meshList = new JComboBox<String>(meshTypes);
 		meshSettingsPanel.add(meshList);
 		/****/
 		//Add Uniform Swing Items
@@ -559,10 +559,10 @@ public class GUI {
 		JLabel boundaryLabel = new JLabel("Boundary Cond: ");
 		meshSettingsPanel.add(boundaryLabel);
 		String[] bcTypes = { "Dirichlet", "Neumann", "Symmetry" };
-		JComboBox bcList = new JComboBox(bcTypes);
+		JComboBox bcList = new JComboBox<String>(bcTypes);
 		meshSettingsPanel.add(bcList);
 		String[] wallTypes = { "left", "bottom", "right", "top" };
-		JComboBox wallList = new JComboBox(wallTypes);
+		JComboBox wallList = new JComboBox<String>(wallTypes);
 		meshSettingsPanel.add(wallList);
 		boundaryLabel.setVisible(false);
 		bcList.setVisible(false);
@@ -860,7 +860,7 @@ public class GUI {
 		/****/
 		materialSettingsPanel.add(new JLabel("Type: "));
 		String[] materialTypes = { "", "Kinetic", "Solid" };
-		final JComboBox materialList = new JComboBox(materialTypes);
+		final JComboBox materialList = new JComboBox<String>(materialTypes);
 		materialSettingsPanel.add(materialList);
 		/****/
 		final InputTextBox nameTextBox = new InputTextBox("Name: ", 6);
@@ -1299,7 +1299,7 @@ public class GUI {
 		/****/
 		materialSettingsPanel.add(new JLabel("Type: "));
 		String[] materialTypes = { "", "Chemical", "DSMC", "MMC", "Surface" };
-		final JComboBox materialList = new JComboBox(materialTypes);
+		final JComboBox materialList = new JComboBox<String>(materialTypes);
 		materialSettingsPanel.add(materialList);
 		/****/
 		final InputTextBox processTextBox = new InputTextBox("Process: ", 6);

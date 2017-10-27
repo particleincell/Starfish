@@ -71,7 +71,7 @@ public class MaterialsModule extends CommandModule
 	Log.log("Added material type "+type_name.toUpperCase());
     }
     
-    static HashMap<String,MaterialParser> parser_list = new HashMap();
+    static HashMap<String,MaterialParser> parser_list = new HashMap<String,MaterialParser>();
 
     /*TODO: comput on demand but also save so don't have to compute multiple times per time step*/
     /** return Total neutral density*/

@@ -106,17 +106,15 @@ public class BoundaryModule extends CommandModule
 	else if (type.equalsIgnoreCase("SINK")) boundary_type = NodeType.SINK;
 	else Log.error("Unknown boundary type "+type);
 		
-	/*material type if solid*/
+	/*try to grab material, only require for dirichlet*/
 	Material material = null;
-	if (boundary_type==NodeType.DIRICHLET)
-	{
-	    try{
-		String mat_name = InputParser.getValue("material", element);
-		material = Starfish.getMaterial(mat_name);
-	    }
-	    catch (Exception e) {
+	String mat_name = InputParser.getValue("material", element,"");
+	try{
+	    material = Starfish.getMaterial(mat_name);	
+	}
+	catch (Exception e) {
+	    if (boundary_type == NodeType.DIRICHLET)
 		Log.error(e.getMessage());
-	    }
 	}
 		
 	/*also try to grab temperature*/
@@ -183,7 +181,7 @@ public class BoundaryModule extends CommandModule
 	    boundary.init();
 			
 	/*build a list of all segments for visibility checking*/
-	seg_list = new ArrayList();
+	seg_list = new ArrayList<Segment>();
 	for (Boundary boundary:boundary_list)
 	    for (int i=0;i<boundary.numSegments();i++)
 		seg_list.add(boundary.getSegment(i));

@@ -34,7 +34,7 @@ import starfish.sources.UniformSource;
 /** Handles \<source\> command */
 public class SourceModule extends CommandModule
 {
-    protected ArrayList<VolumeSource> volume_source_list = new ArrayList();
+    protected ArrayList<VolumeSource> volume_source_list = new ArrayList<VolumeSource>();
 
     @Override
     public void init()
@@ -89,8 +89,8 @@ public class SourceModule extends CommandModule
 	Log.log("Added volume source "+name.toUpperCase());
     }
    
-    static public HashMap<String,SurfaceSourceFactory> surface_source_factories = new HashMap();
-    static public HashMap<String,VolumeSourceFactory> volume_source_factories = new HashMap();
+    static public HashMap<String,SurfaceSourceFactory> surface_source_factories = new HashMap<String,SurfaceSourceFactory>();
+    static public HashMap<String,VolumeSourceFactory> volume_source_factories = new HashMap<String,VolumeSourceFactory>();
     
     /**interfaces for source factories*/
     public interface SurfaceSourceFactory 

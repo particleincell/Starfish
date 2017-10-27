@@ -28,13 +28,13 @@ public class SurfaceInteraction
     static void registerModels()
     {
 	registerSurfaceModel("NONE",SurfaceEmissionNone);
-	registerSurfaceModel("ABSORB",SurfaceEmissionNone);
+	registerSurfaceModel("ABSORB",SurfaceEmissionAbsorb);
 	registerSurfaceModel("SPECULAR",SurfaceEmissionSpecular);
 	registerSurfaceModel("DIFFUSE",SurfaceEmissionDiffuse);
 	registerSurfaceModel("COSINE",SurfaceEmissionCosine);
     }
     
-    static public HashMap<String,SurfaceImpactHandler> surface_model_factories = new HashMap();
+    static public HashMap<String,SurfaceImpactHandler> surface_model_factories = new HashMap<String,SurfaceImpactHandler>();
     static public void registerSurfaceModel(String name, SurfaceImpactHandler fac)
     {
 	surface_model_factories.put(name.toUpperCase(),fac);
@@ -58,8 +58,18 @@ public class SurfaceInteraction
 	}
     }
 	
-    /** absorbs particles*/
+    /** doesn't do anything - particles will pass*/
     public static SurfaceImpactHandler SurfaceEmissionNone = new SurfaceImpactHandler() 
+    {
+	@Override
+	public boolean perform(double[] vel, Segment segment, double t_int, MaterialInteraction mat_int) 
+	{	
+	    return true;
+	}		
+    };
+
+        /** absorbs particles*/
+    public static SurfaceImpactHandler SurfaceEmissionAbsorb = new SurfaceImpactHandler() 
     {
 	@Override
 	public boolean perform(double[] vel, Segment segment, double t_int, MaterialInteraction mat_int) 

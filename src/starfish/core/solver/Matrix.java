@@ -7,129 +7,74 @@
 
 package starfish.core.solver;
 
-import starfish.core.solver.Solver.Gradient;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import starfish.core.common.Starfish;
+import starfish.core.common.Starfish.Log;
 
-/*this class handles basic multi-column coefficient matrix
- It's sort of like a sparse matrix with a fixed number of entries per line*/
+/*this class provides support for a sparse matrix*/
 public class Matrix 
 {
     /*variables*/
-    protected double value[][];		/*data held by the matrix*/
-    protected int jx[][];		/*j index to full matrix*/	
-    public final int nr;		/*number of rows and values in each row*/
-    public final int nv;			/*maximum number of values in each row*/
-  	
+    protected HashMap<Integer,Double> data[];	//data for each row consisting of column / value
+    //protected ArrayList<Double> value[];    /*data held by the matrix*/
+    //protected ArrayList<Integer> jx[];	    /*j index in full matrix for each value*/
+    public final int nr;		    /*number of rows and values in each row*/
+    	
     /**sparse matrix constructor */
-    public Matrix(int nr, int n_values)
+    public Matrix(int nr)
     {
-	this.nr = nr;
-	this.nv = n_values;
+	this.nr = nr;	    //save number of rows
 	
-	value=new double[nr][nv];
-	jx=new int[nr][nv];
+	data = new HashMap[nr];
 	
-	/*initialize columns to -1*/
 	for (int i=0;i<nr;i++)
-	    for (int v=0;v<nv;v++)
-	    {
-		jx[i][v]=-1;
-	    }
-    }
-
-    /**full matrix constructor*/
-    public Matrix(int ni)
-    {
-	this(ni,ni);
-	
-	/*init full matrix*/
-	for (int i=0;i<nr;i++)
-	    clear(i);
+	    data[i] = new HashMap<Integer,Double>();
     }
 
     /**copy constructor */
     public static Matrix copy(Matrix A)
     {
-	Matrix C = new Matrix(A.nr, A.nv);
-	C.value = new double[A.nr][A.nv];
-	
+	Matrix C = new Matrix(A.nr);
 	
 	for (int i=0;i<A.nr;i++)
-	    for (int v=0;v<A.nv;v++)
-	    {
-		C.value[i][v] = A.value[i][v];
-		C.jx[i][v] = A.jx[i][v];
-	    } 
+	    C.data[i] = (HashMap<Integer,Double>)A.data[i].clone();	    
 	return C;
     }
 
-    /**returns the value held by full matrix at row i and column j*/
-    public double val(int i, int j)
-    {
-	for (int v=0;v<nv;v++)
-	    if (jx[i][v]==j)
-		return value[i][v];
-
-	return 0;
-    }
-
+    
     /**clears (sets to zero) a single row*/
-    public void clear(int r)
+    public void clearRow(int i)
     {
-	for (int v=0;v<nv;v++)
-	{
-	    jx[r][v]=-1;
-	    value[r][v]=0;
-	}
+	data[i] = new HashMap<Integer,Double>();
     }
 
-    /**sets value at row r, column c in full matrix*/
-    public void set(int r, int c, double val)
+    /**returns the value held by full matrix at row i and column j*/
+    public double get(int i, int j)
     {
-	int v=0;
-	while (v<nv)
-	{
-	    if (jx[r][v]==c)
-	    {
-		value[r][v]=val;
-		return;
-	    }
-	    else if (jx[r][v]<0)
-	    {
-		/*this column does not yet exist*/
-		value[r][v]=val;
-		jx[r][v]=c;		
-	    }
-	    else v++;
-	}
-	
-	throw new IndexOutOfBoundsException();
+	Double val = data[i].get(j);	//returns null if not found, so need object
+	if (val==null) return 0; else return val;
+    }
+
+    /**sets value at row i, column j in full matrix*/
+    public void set(int i, int j, double val)
+    {
+	data[i].put(j, val);	
     }
 
     /**add value to row r, column c in full matrix*/
-    public void add(int r, int c, double val)
+    public void add(int i, int j, double val)
     {
-	for (int v=0;v<nv;v++)
-	    if (jx[r][v]==c)
-	    {
-		value[r][v]+=val;
-		return;
-	    }
-	    else if (jx[r][v]<0)
-	    {
-		value[r][v] = val;
-		jx[r][v] = c;
-		return;
-	    }
-	   
-	throw new IndexOutOfBoundsException();
+	set(i,j, get(i,j)+val);
     }
 
     /** copies single row between matrixes*/
-    public void copyRow(Matrix A, int row)
+    public void copyRow(Matrix A, int i)
     {
-	assert (A.nv<=nv);
-	for (int v=0;v<nv&&A.jx[row][v]>=0;v++)
-	    set(row,A.jx[row][v],A.value[row][v]);
+	assert(nr==A.nr);	
+	data[i] = (HashMap<Integer,Double>)A.data[i].clone();	
     }
     
     /**add value to row r, column c in full matrix*/
@@ -138,20 +83,22 @@ public class Matrix
 	add(i,j,-val);
     }
     
-    /**returns A-B, for now defined only for identical matrices (nv is equal)*/
+    /**returns A-B*/
     public Matrix subtract(Matrix B)
     {
 	assert(nr==B.nr);
-	assert(nv==B.nv);
 	
-	Matrix R = new Matrix(nr, nv);
+	Matrix R = copy(this);
 		
 	for (int i=0;i<nr;i++)
-	    for (int v=0;v<nv;v++)
+	{
+	    for(Map.Entry<Integer, Double> it : data[i].entrySet())
 	    {
-		R.value[i][v] = value[i][v]-B.value[i][v];
-		R.jx[i][v] = jx[i][v];
-	    } 
+		int j = it.getKey();
+		double val = it.getValue();
+		R.add(i,j,-val);
+	    }
+	}
 	return R;
     }
 
@@ -164,11 +111,10 @@ public class Matrix
 	Matrix R = Matrix.copy(this);
 	
 	for (int i=0;i<nr;i++)
-	    R.set(i, i, val(i,i)-b[i]);
+	    R.set(i, i, get(i,i)-b[i]);
 		 
 	return R;
     }
-
 
     /** performs matrix matrix multiplication
      * 
@@ -177,7 +123,7 @@ public class Matrix
      */
     public Matrix mult(Matrix A)
     {
-	Matrix R = new Matrix(nr,nv);
+	Matrix R = new Matrix(nr);
 	
 	/*simple algorithm, not optimized in any way*/
 	for (int ri=0;ri<nr;ri++)
@@ -187,7 +133,7 @@ public class Matrix
 		double prod=0;
 		for (int k=0;k<nr;k++)
 		{
-		    prod += val(ri,k)*A.val(k,rj);
+		    prod += get(ri,k)*A.get(k,rj);
 		}
 		R.set(ri, rj, prod);
 	    }
@@ -200,15 +146,8 @@ public class Matrix
     public double[] mult(double x[])
     {
 	double b[] = new double[this.nr];
-	
-	for (int r=0;r<nr;r++)
-	{
-	    double prod=0;
-	    for (int v=0;v<nv && jx[r][v]>=0;v++)
-	        prod+=value[r][v]*x[jx[r][v]];
-	    b[r] = prod;	
-	}
-    	return b;
+	mult(x,b);
+	return b;
     }
     
     /**performs matrix vector multiplication and stores it in result vector
@@ -218,31 +157,31 @@ public class Matrix
 	for (int r=0;r<nr;r++)
 	{
 	    double prod=0;
-	    for (int v=0;v<nv && jx[r][v]>=0;v++)
-	        prod+=value[r][v]*x[jx[r][v]];
+	     for (Map.Entry<Integer, Double> it : data[r].entrySet())
+	     {
+		 int j = it.getKey();
+		 double val = it.getValue();
+		 prod += val * x[j];
+	     }
 	    result[r] = prod;	
 	}    	
     }
 
-    /**multiplies value held in row r, column c, by value*/
+    /**multiplies value held in full matrix row i, column j, by value*/
     public void mult(int i, int j,  double val)
     {
-	for (int v=0;v<nv;v++)
-	    if (jx[i][v]==j)
-	    {
-		value[i][v]*=val;
-		return;
-	    }
-
-	throw new IndexOutOfBoundsException();
+	data[i].put(j, data[i].get(j)*val);
     }
 
-    /**multiplies entire row by val*/
-    public void multRow(int row, double val)
+    /**multiplies entire row by s*/
+    public void multRow(int i, double s)
     {
-	int v=0;
-	while (v<nv && jx[row][v]>=0)
-	    value[row][v++]*=val;
+	for (Map.Entry<Integer, Double> it : data[i].entrySet())
+	{
+	    int j = it.getKey();
+	    double val = it.getValue();
+	    it.setValue(val*s);
+	}
     }
 
     /**multiplies one row of the matrix by a vector but
@@ -250,15 +189,12 @@ public class Matrix
     public double multRowNonDiag(double x[], int i)
     {
 	double prod=0;
-	int v=0;
-	while (v<nv)
+	
+	for (Map.Entry<Integer, Double> it : data[i].entrySet())
 	{
-	    int cj = jx[i][v];
-	    if (cj<0) break;		/*no more data*/
-
-	    if (cj!=i)
-		prod+=value[i][v]*x[cj];
-	    v++;
+	    int j = it.getKey();
+	    double val = it.getValue();
+	    if (j!=i) prod+=val*x[j];
 	}
 	
 	return prod;
@@ -267,7 +203,7 @@ public class Matrix
     /**returns the identity matrix of size of A*/
     public Matrix identity()
     {
-	Matrix I = new Matrix(nr,1);		/*diagonal matrix*/
+	Matrix I = new Matrix(nr);		/*diagonal matrix*/
         
 	for (int i=0;i<nr;i++)
 	    I.set(i, i, 1);
@@ -278,10 +214,10 @@ public class Matrix
     /**returns a new matrix which is the diagonal of the specified one*/
     public Matrix diag_matrix()
     {
-	Matrix D = new Matrix(nr,1);		/*diagonal matrix*/
+	Matrix D = new Matrix(nr);		/*diagonal matrix*/
 
 	for (int i=0;i<D.nr;i++)
-	    D.set(i, i, val(i,i));
+	    D.set(i, i, get(i,i));
 
 	return D;
     }
@@ -292,7 +228,7 @@ public class Matrix
 	double D[]= new double[A.nr];		/*diagonal matrix*/
 
 	for (int i=0;i<A.nr;i++)
-	    D[i]=A.val(i,i);
+	    D[i]=A.get(i,i);
 
 	return D;
     }
@@ -302,12 +238,14 @@ public class Matrix
      */
     public Matrix inverse()
     {
-	assert(nv==1);		/*diagonal matrix*/
-
-	Matrix I = new Matrix(nr,1);		/*diagonal matrix*/
+	//make sure we have a diagonal matrix*/
+	for (int i=0;i<nr;i++)
+	    if (data[i].size()>1) Log.error("Matrix inverse currently defined only for diagonal matrixes");
+	
+	Matrix I = new Matrix(nr);		/*diagonal matrix*/
 
 	for (int i=0;i<I.nr;i++)
-	    I.set(i,i, 1.0/val(i,i));	/*inverse of a diagonal is 1/D[i,i]*/
+	    I.set(i,i, 1.0/get(i,i));	/*inverse of a diagonal is 1/D[i,i]*/
 
 	return I;
     }
@@ -316,12 +254,15 @@ public class Matrix
      */
     public Matrix transpose()
     {
-	Matrix T = new Matrix(nr,nv);		/*diagonal matrix*/
+	Matrix T = new Matrix(nr);		/*diagonal matrix*/
 
 	for (int i=0;i<nr;i++)
-	    for (int v=0;v<nv;v++)
-		T.set(i, jx[i][v],val(jx[i][v],i));	/*TODO: check this!*/
-
+	    for (Map.Entry<Integer, Double> it : data[i].entrySet())
+	    {
+		int j = it.getKey();
+		double val = it.getValue();
+		T.set(j,i,val);
+	    }
 	return T;		
     }
 	
@@ -334,7 +275,7 @@ public class Matrix
 	{
 	    for (int j=0;j<nr;j++)
 	    {
-		System.out.printf("%8.2g", val(i,j));
+		System.out.printf("%8.2g", get(i,j));
 	    }
 	    System.out.println();
 	}
@@ -355,7 +296,7 @@ public class Matrix
 	 *     [S  C  0]
 	 *     [0  0  1]
 	 */
-	Matrix R = new Matrix(3,3);
+	Matrix R = new Matrix(3);
 	R.set(0, 0, Math.cos(theta));
 	R.set(1, 0, -Math.sin(theta));
 	R.set(0, 1, Math.sin(theta));
@@ -368,7 +309,7 @@ public class Matrix
 	 *     [0  sy 0]
 	 *     [0  0  1]
 	 */
-	Matrix S = new Matrix(3,3);
+	Matrix S = new Matrix(3);
 	S.set(0,0,scaling[0]);
 	S.set(1,1,scaling[1]);
 	S.set(2,2,1);
@@ -379,7 +320,7 @@ public class Matrix
 	 *     [0 1 vy]
 	 *     [0 0  0]
 	 */
-	Matrix T = new Matrix(3,3);
+	Matrix T = new Matrix(3);
 	T.set(0, 0, 1);
 	T.set(0, 2, translation[0]);
 	T.set(1, 1, 1);
@@ -389,17 +330,99 @@ public class Matrix
 	/*apply transformation, rotation->scaling->translation*/
 	return T.mult(R.mult(S));
     }
-
-    void println(int u, int nj)
+    
+    /*cleans up the matrix by removing zero entries*/
+    void removeZeros() 
     {
-	boolean output = false;
-	for (int v=0;v<nv && jx[u][v]>=0;v++)
+	for (int i = 0;i<nr;i++)
 	{
-	    int i = jx[u][v] / nj;
-	    int j = jx[u][v] % nj;
-		System.out.printf("[%d,%d]*%g ",i,j,value[u][v]);
-	    output=true;
+	    //new empty data
+	    HashMap<Integer,Double> d = new HashMap<Integer,Double>();
+	    
+	    for (Map.Entry<Integer, Double> it : data[i].entrySet())
+	    {
+		int j = it.getKey();
+		double val = it.getValue();
+		if (val!=0) d.put(j, val);
+	    }
+	    data[i] = d;
 	}
-	if (output) System.out.println();
     }
+    
+    
+    /*computes LU decomposition of the matrix without pivoting
+    based on the algorithm in Numerical Analysis
+    */
+    public Matrix[] decomposeLU() throws UnsupportedOperationException
+    {
+	Log.message("Computing LU decomposition, nr = "+nr);
+	Matrix L = new Matrix(nr);
+	Matrix U = new Matrix(nr);
+	Matrix A = this;    //to make the eq below more explicit
+	double s;
+	
+	//step 1
+	L.set(0,0,1);
+	U.set(0,0,A.get(0,0));
+	if (A.get(0,0)==0) throw new UnsupportedOperationException(); 
+	
+	//step 2
+	for (int j=1;j<nr;j++)
+	{
+	    U.set(0,j,A.get(0,j)/L.get(0,0));
+	    L.set(j,0,A.get(j,0)/U.get(0,0));
+	}
+	
+	//step 3
+	for (int i=1;i<nr-1;i++)
+	{
+	    System.out.printf("%d of %d\n",i,nr);
+	    //step 4
+	    L.set(i,i,1);
+	    s = A.get(i,i);
+	    for (int k=0;k<i;k++)
+		s-=L.get(i,k)*U.get(k,i);
+	    U.set(i,i,s);
+	    if (s==0) throw new UnsupportedOperationException();
+	    
+	    //step 5
+	    double Lii = L.get(i,i);
+	    double Uii = U.get(i,i);
+	    
+	    for (int j=i+1;j<nr;j++)
+	    {
+		s = A.get(i,j);
+		for (int k=0;k<i;k++)
+		    s -= L.get(i,k)*U.get(k,j);
+		U.set(i, j, s/Lii);
+		
+		s = A.get(j,i);
+		for (int k=0;k<i;k++)
+		    s -= L.get(j,k)*U.get(k,i);
+		L.set(j,i,s/Uii);
+	    }
+	}
+	
+	//step 6
+	L.set(nr-1,nr-1,1);
+	s = A.get(nr-1,nr-1);
+	for (int k=0;k<nr-1;k++)
+	    s -= L.get(nr-1,k)*U.get(k,nr-1);
+	U.set(nr-1,nr-1,s);
+	if (s==0) throw new UnsupportedOperationException();
+	
+	L.removeZeros();
+	U.removeZeros();
+	
+	Log.debug("LU decomposition complete");
+	Matrix ret[] = {L,U};
+	/*A.print();
+	System.out.println();
+	L.print();
+	System.out.println();
+	U.print();*/
+	return ret;	
+    }
+    
+    
 }

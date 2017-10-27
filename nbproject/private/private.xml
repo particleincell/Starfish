@@ -6,15 +6,18 @@
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/pic/PotentialSolver.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/common/Starfish.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/materials/KineticMaterial.java</file>
+            <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/solver/Solver.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/interactions/ChemicalReaction.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/common/Vector.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/pic/ConstantEF.java</file>
+            <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/solver/Matrix.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/pic/PoissonSolver.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/io/VTKWriter.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/domain/Field2D.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/solver/SolverModule.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/materials/MaterialsModule.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/io/OutputModule.java</file>
+            <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/boundaries/BoundaryModule.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/materials/Material.java</file>
             <file>file:/C:/Users/lbrie_000/Documents/codes/starfish-LE/src/starfish/core/common/RestartModule.java</file>
         </group>

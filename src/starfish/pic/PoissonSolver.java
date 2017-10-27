@@ -23,20 +23,48 @@ public class PoissonSolver extends PotentialSolver
 {
     boolean linear_mode;
     double eps;	    /*permittivity*/
+    enum Method {DIRECT, GS, PCG, MULTIGRID};
+    Method method;
 	
-    public PoissonSolver (double den0, double phi0,double kTe,double eps, boolean linear)
+    public PoissonSolver (Element element)
     {
 	super();
 		
-	/*reference values*/
-	this.den0 = den0;
-	this.kTe0 = kTe;	    /* in eV */
-	this.phi0 = phi0;
-	this.linear_mode = linear;
-	this.eps = eps;
+	linear_mode = InputParser.getBoolean("linear", element, false);
+	if (!linear_mode)
+	{
+	    den0=InputParser.getDouble("n0", element);
+	    kTe0=InputParser.getDouble("Te0", element);
+	    phi0=InputParser.getDouble("phi0", element);
+	     /*log*/
+	    Log.log("Added NONLINEAR POISSON solver");
+	    Log.log("> n0: " + den0 + " (#/m^3)");
+	    Log.log("> T0: " + kTe0 + " (eV)");
+	    Log.log("> phi0: " + phi0 + " (V)");
+	}
+	else
+	{
+	    den0=InputParser.getDouble("n0", element,1e15);
+	    kTe0=InputParser.getDouble("Te0", element,1);
+	    /*log*/
+	    Log.log("Added LINEAR POISSON solver");
+	}
+	
+	double eps_r = InputParser.getDouble("eps_r",element,1);	/*relative permittivity*/	    
+	eps = Constants.EPS0*eps_r;
+	Log.log("> eps_r: "+eps_r);
 
+	String sm = (InputParser.getValue("method", element, "direct")).toUpperCase();
+	if (sm.equals("DIRECT")) method = Method.DIRECT;
+	else if (sm.equals("GS")) method= Method.GS;
+	else if (sm.equals("PCG")) method = Method.PCG;
+	else if (sm.equals("MULTIGRID")) method = Method.MULTIGRID;
+	else Log.error("Unknown method "+sm);
+	Log.log("> method: "+sm);
+	   
+	
 	/*output debye length*/
-	double lambda_d = Math.sqrt(eps*kTe/(Constants.QE*den0));
+	double lambda_d = Math.sqrt(eps*kTe0/(Constants.QE*den0));
 	Log.log(String.format("> Debye length: %.3g (m)",lambda_d));
     }
 
@@ -70,6 +98,7 @@ public class PoissonSolver extends PotentialSolver
 	}
 		
 	/* solve potential */
+	
 	if (linear_mode)
 		solvePotentialLin();
 	else
@@ -82,19 +111,15 @@ public class PoissonSolver extends PotentialSolver
         
     protected int solvePotentialLin() 
     {
-
-	/*call linear solver*/
-	int it = solveLinearGS(mesh_data);
+	int it = 0;
 	
-	/*TODO: hack for IEPC*/
-	//int it = solveLinearGSsimple();
-	for (MeshData md:mesh_data)
-	{
-	    Mesh mesh = md.mesh;
-
-	    /*flatten data*/
-	    md.x = Vector.deflate(Starfish.domain_module.getPhi(mesh).getData());
-	}
+	/*call linear solver*/
+	if (method==Method.DIRECT)
+	    it = solveLU(mesh_data);
+	else if (method==Method.GS)
+	    it = solveLinearGS(mesh_data);
+	else if (method==Method.PCG)
+	    it = solveLinearPCG(mesh_data);
 	
 	return it;
     }
@@ -239,32 +264,8 @@ public class PoissonSolver extends PotentialSolver
     {
 	@Override
 	public Solver makeSolver(Element element)
-	{
-	    double eps_r = InputParser.getDouble("eps_r",element,1);	/*relative permittivity*/
-	    Solver solver;
-	    
-	    boolean linear = InputParser.getBoolean("linear", element, false);
-	    if (!linear)
-	    {
-		double n0=InputParser.getDouble("n0", element);
-		double Te0=InputParser.getDouble("Te0", element);
-		double phi0=InputParser.getDouble("phi0", element);
-		solver=new PoissonSolver(n0, phi0, Te0, eps_r*Constants.EPS0, false);
-		 /*log*/
-		Log.log("Added NONLINEAR POISSON solver");
-		Log.log("> n0: " + n0 + " (#/m^3)");
-		Log.log("> T0: " + Te0 + " (eV)");
-		Log.log("> phi0: " + phi0 + " (V)");
-	    }
-	    else
-	    {
-		solver=new PoissonSolver(1e15, 0, 1, eps_r*Constants.EPS0, true);
-		 /*log*/
-		Log.log("Added LINEAR POISSON solver");
-	    }
-	    
-	    Log.log("> eps_r: "+eps_r);
-	    return solver;
+	{	    
+	    return new PoissonSolver(element);
 	}
     };
 

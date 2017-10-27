@@ -42,7 +42,7 @@ public class Main
      public static void main(String args[]) 
     {
 	/*demo of starting Starfish with plugins*/
-	ArrayList<Plugin> plugins = new ArrayList();
+	ArrayList<Plugin> plugins = new ArrayList<Plugin>();
 	plugins.add(new CollisionsPlugin());
 	
 	/*make a new instance*/

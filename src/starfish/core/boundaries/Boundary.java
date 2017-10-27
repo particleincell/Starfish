@@ -27,7 +27,6 @@ public class Boundary extends Spline
 	this.type = type;
 	this.value = value;	
 	this.material = mat;
-	if (type!=NodeType.DIRICHLET) this.material = null; //make sure material not set for virtual surfaces
     }
 	
     /**allocates sources*/

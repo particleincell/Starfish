@@ -50,7 +50,7 @@ public class InteractionsModule extends CommandModule
 	public void  getInteraction(Element element);
     }
     
-    static HashMap<String,InteractionFactory> interactions_types = new HashMap();
+    static HashMap<String,InteractionFactory> interactions_types = new HashMap<String, InteractionFactory>();
     
     @Override
     public void process(Element element) 
@@ -106,7 +106,7 @@ public class InteractionsModule extends CommandModule
 	return getSigma(sigma_name,coeffs);
     }
     
-    static HashMap<String,Sigma.SigmaFactory> sigma_list = new HashMap();
+    static HashMap<String,Sigma.SigmaFactory> sigma_list = new HashMap<String,Sigma.SigmaFactory>();
     public static void registerSigma(String name, Sigma.SigmaFactory fac)
     {
 	sigma_list.put(name.toUpperCase(),fac);

@@ -246,7 +246,7 @@ public class Spline
 
     protected void reverseSegmentOrdering()
     {
-	ArrayList<Segment> list = new ArrayList();
+	ArrayList<Segment> list = new ArrayList<Segment>();
 	int ns=segments.size();
 	
 	for (int i=0;i<ns;i++)

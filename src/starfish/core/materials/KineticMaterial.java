@@ -406,7 +406,7 @@ public class KineticMaterial extends Material
 	if (j_max>=mesh.nj) j_max=mesh.nj-1;
 	
 	/*assemble a list of segments in this block*/
-	Set<Segment> segments = new HashSet();
+	Set<Segment> segments = new HashSet<Segment>();
 	
 	/*make a set of all segments in the bounding box*/
 	for (int i = i_min; i <= i_max; i++)
@@ -432,8 +432,7 @@ public class KineticMaterial extends Material
 	    
 	    /*do we have an intersection, excluding starting point?*/
 	    /*todo: need to consider velocity direction, only makes sense if moving away from surface*/
-	   // if (t_part > 1e-10)
-	    if (t_part>=0)
+	    if (t_part>0)
 	    {
 		/*skip over particles that collide with surface at the beginning of their time step,
 		 * as long as they are moving away from the surface*/

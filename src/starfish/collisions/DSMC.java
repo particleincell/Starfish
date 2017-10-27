@@ -104,8 +104,8 @@ public class DSMC extends VolumeInteraction
 
     class CellInfo
     {
-	List<Particle> sp1_list = new ArrayList();
-	List<Particle> sp2_list = new ArrayList();
+	List<Particle> sp1_list = new ArrayList<Particle>();
+	List<Particle> sp2_list = new ArrayList<Particle>();
 	
 	double sig_cr_max;	/*TODO: this needs to be per species species pair*/
 	private double rem;
@@ -129,7 +129,7 @@ public class DSMC extends VolumeInteraction
 	}
     }
     
-    HashMap<Mesh,MeshData> mesh_data = new HashMap();
+    HashMap<Mesh,MeshData> mesh_data = new HashMap<Mesh,MeshData>();
     
     int num_samples = 0;
     boolean steady_state = false;
