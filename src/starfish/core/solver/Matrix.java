@@ -10,6 +10,7 @@ package starfish.core.solver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
@@ -18,9 +19,7 @@ import starfish.core.common.Starfish.Log;
 public class Matrix 
 {
     /*variables*/
-    protected HashMap<Integer,Double> data[];	//data for each row consisting of column / value
-    //protected ArrayList<Double> value[];    /*data held by the matrix*/
-    //protected ArrayList<Integer> jx[];	    /*j index in full matrix for each value*/
+    protected List<HashMap<Integer,Double>> data;
     public final int nr;		    /*number of rows and values in each row*/
     	
     /**sparse matrix constructor */
@@ -28,10 +27,11 @@ public class Matrix
     {
 	this.nr = nr;	    //save number of rows
 	
-	data = new HashMap[nr];
+	//data = new HashMap[nr];
+	data = new ArrayList<HashMap<Integer,Double>>();
 	
 	for (int i=0;i<nr;i++)
-	    data[i] = new HashMap<Integer,Double>();
+	    data.add (new HashMap<Integer,Double>());
     }
 
     /**copy constructor */
@@ -40,7 +40,7 @@ public class Matrix
 	Matrix C = new Matrix(A.nr);
 	
 	for (int i=0;i<A.nr;i++)
-	    C.data[i] = (HashMap<Integer,Double>)A.data[i].clone();	    
+	    C.data.set(i, (HashMap<Integer,Double>)A.data.get(i).clone());	    
 	return C;
     }
 
@@ -48,20 +48,20 @@ public class Matrix
     /**clears (sets to zero) a single row*/
     public void clearRow(int i)
     {
-	data[i] = new HashMap<Integer,Double>();
+	data.set(i, new HashMap<Integer,Double>());
     }
 
     /**returns the value held by full matrix at row i and column j*/
     public double get(int i, int j)
     {
-	Double val = data[i].get(j);	//returns null if not found, so need object
+	Double val = data.get(i).get(j);	//returns null if not found, so need object
 	if (val==null) return 0; else return val;
     }
 
     /**sets value at row i, column j in full matrix*/
     public void set(int i, int j, double val)
     {
-	data[i].put(j, val);	
+	data.get(i).put(j, val);	
     }
 
     /**add value to row r, column c in full matrix*/
@@ -74,7 +74,7 @@ public class Matrix
     public void copyRow(Matrix A, int i)
     {
 	assert(nr==A.nr);	
-	data[i] = (HashMap<Integer,Double>)A.data[i].clone();	
+	data.set(i, (HashMap<Integer,Double>)A.data.get(i).clone());	
     }
     
     /**add value to row r, column c in full matrix*/
@@ -92,7 +92,7 @@ public class Matrix
 		
 	for (int i=0;i<nr;i++)
 	{
-	    for(Map.Entry<Integer, Double> it : data[i].entrySet())
+	    for(Map.Entry<Integer, Double> it : data.get(i).entrySet())
 	    {
 		int j = it.getKey();
 		double val = it.getValue();
@@ -154,29 +154,29 @@ public class Matrix
     @return A*x*/
     public void mult(double x[], double result[])
     {
-	for (int r=0;r<nr;r++)
+	for (int i=0;i<nr;i++)
 	{
 	    double prod=0;
-	     for (Map.Entry<Integer, Double> it : data[r].entrySet())
+	     for (Map.Entry<Integer, Double> it : data.get(i).entrySet())
 	     {
 		 int j = it.getKey();
 		 double val = it.getValue();
 		 prod += val * x[j];
 	     }
-	    result[r] = prod;	
+	    result[i] = prod;	
 	}    	
     }
 
     /**multiplies value held in full matrix row i, column j, by value*/
     public void mult(int i, int j,  double val)
     {
-	data[i].put(j, data[i].get(j)*val);
+	data.get(i).put(j, data.get(i).get(j)*val);
     }
 
     /**multiplies entire row by s*/
     public void multRow(int i, double s)
     {
-	for (Map.Entry<Integer, Double> it : data[i].entrySet())
+	for (Map.Entry<Integer, Double> it : data.get(i).entrySet())
 	{
 	    int j = it.getKey();
 	    double val = it.getValue();
@@ -190,7 +190,7 @@ public class Matrix
     {
 	double prod=0;
 	
-	for (Map.Entry<Integer, Double> it : data[i].entrySet())
+	for (Map.Entry<Integer, Double> it : data.get(i).entrySet())
 	{
 	    int j = it.getKey();
 	    double val = it.getValue();
@@ -240,7 +240,7 @@ public class Matrix
     {
 	//make sure we have a diagonal matrix*/
 	for (int i=0;i<nr;i++)
-	    if (data[i].size()>1) Log.error("Matrix inverse currently defined only for diagonal matrixes");
+	    if (data.get(i).size()>1) Log.error("Matrix inverse currently defined only for diagonal matrixes");
 	
 	Matrix I = new Matrix(nr);		/*diagonal matrix*/
 
@@ -257,7 +257,7 @@ public class Matrix
 	Matrix T = new Matrix(nr);		/*diagonal matrix*/
 
 	for (int i=0;i<nr;i++)
-	    for (Map.Entry<Integer, Double> it : data[i].entrySet())
+	    for (Map.Entry<Integer, Double> it : data.get(i).entrySet())
 	    {
 		int j = it.getKey();
 		double val = it.getValue();
@@ -339,13 +339,13 @@ public class Matrix
 	    //new empty data
 	    HashMap<Integer,Double> d = new HashMap<Integer,Double>();
 	    
-	    for (Map.Entry<Integer, Double> it : data[i].entrySet())
+	    for (Map.Entry<Integer, Double> it : data.get(i).entrySet())
 	    {
 		int j = it.getKey();
 		double val = it.getValue();
 		if (val!=0) d.put(j, val);
 	    }
-	    data[i] = d;
+	    data.set(i, d);
 	}
     }
     

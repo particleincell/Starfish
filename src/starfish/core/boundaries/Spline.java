@@ -454,11 +454,15 @@ public class Spline
 	    double area=0;
 	    double R1,R2;
 	    
-	    if (i>0) R1=segments.get(i-1).centroid()[0];   
-	    else R1=segments.get(i).x1[0];
+	    int j;
+	    if (Starfish.domain_module.getDomainType()==DomainType.RZ) j=0;
+	    else j=1;
 	    
-	    if (i<segments.size()) R2=segments.get(i).centroid()[0];
-	    else R2=segments.get(i-1).x2[0];
+	    if (i>0) R1=segments.get(i-1).centroid()[j];   
+	    else R1=segments.get(i).x1[j];
+	    
+	    if (i<segments.size()) R2=segments.get(i).centroid()[j];
+	    else R2=segments.get(i-1).x2[j];
 	    
 	    /*mean centroid*/
 	    double R0 = 0.5*(R1+R2);
@@ -491,6 +495,7 @@ public class Spline
     }
 
     /** @return "surface" area of the spline*/
+    /*TODO: why is this being recomputed?*/
     public double area()
     {
 	if (segments.size()<1) return 0;
@@ -543,7 +548,7 @@ public class Spline
 	    if (Starfish.getDomainType()==DomainType.RZ)
 	    {
 		rp = pos(tp)[0];
-		rm = pos(tm)[0]; 
+		rm = pos(tm)[0]; 		
 	    }
 	    else if (Starfish.getDomainType()==DomainType.ZR)
 	    {
@@ -551,8 +556,9 @@ public class Spline
 		rm = pos(tm)[1]; 
 	    }
 	    else throw new UnsupportedOperationException("Unknown domain type in RandomT");
-		
-	 
+	
+	    //swap if needed
+	    if (rm>rp) {double s=rp;rp=rm;rm=s;}
 	    /*note, A will be zero if source is parallel with r-axis*/
 	    A = Math.PI*(rp*rp-rm*rm);
 	  
