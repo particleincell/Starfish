@@ -283,18 +283,8 @@ public class KineticMaterial extends Material
 		/*check if particle hit anything or left the domain*/		
 		alive = ProcessBoundary(part, mesh, old, old_lc);
 	
-		if (alive && part.lc[0]>mesh.ni || part.lc[1]>mesh.nj)
-		{
-		    part = part_old;
-		    alive = ProcessBoundary(part, mesh, old, old_lc);
-
-		}
 		if (!alive)
 		{
-		    part = new Particle(part_old);
-		
-		  //  if (part.lc[1]<1)
-			alive = ProcessBoundary(part_old, mesh, old, old_lc);
 		    iterator.remove();
 		    break;
 		}				
@@ -472,10 +462,9 @@ public class KineticMaterial extends Material
 	   if (target_mat!=null)
 		alive = target_mat.performSurfaceInteraction(part.vel, mat_index, seg_min, tsurf_min);
 	   
-	   //TODO: hack
-	   if (!alive && charge>0)
-	       //Starfish.source_module.charge_flux+=Constants.QE*part.vel[0];	//ions only lost to sink so horizontal velocity
-	       Starfish.source_module.charge_flux+=part.spwt*Constants.QE;	//ions only lost to sink so horizontal velocity
+	   //track boundary charge
+	   if (!alive )
+	       Starfish.source_module.boundary_charge+=part.spwt*charge;	
 	    
 	    if (boundary_hit.getType()==NodeType.SINK) alive = false;
 
@@ -595,7 +584,7 @@ public class KineticMaterial extends Material
 			}
 		    }
 		    return false;
-		case ENERGY:	//energy boundary for electrons
+		case CIRCUIT:	//energy boundary for electrons
 		    if (charge>=0) return false;
 		    //double T = this.getT(mesh).gather(part.lc);
 		    double T = 1*Constants.EVtoK;
@@ -606,22 +595,19 @@ public class KineticMaterial extends Material
 		    double PE = Constants.QE*(phi_b-0);
 		    //if (Vector.mag3(part.vel)<=vth)
 		    
-		    double flux;
-		/*    if (part.lc[0]<0) flux = -Constants.QE*part.vel[0];
-		    else if (part.lc[0]>=mesh.ni) flux =Constants.QE*part.vel[0];
-		    else flux = Constants.QE*part.vel[1];
-		    */
-		    flux = Constants.QE;
-		    
-		    Starfish.source_module.charge_flux-=part.spwt*flux;	//minus since electrons
-		    
-		    /*if (KE<PE || PE<0)
+		    //absorb particle if ions collected on the wall
+		    if (Starfish.source_module.boundary_charge/(-charge)>part.spwt)
 		    {
-			Vector.mult(part.vel, -1);  //flip
+			Starfish.source_module.boundary_charge += part.spwt*charge;	
+			return false;
+		    }
+		    else 
+		    {
+			part.vel=Vector.mult(part.vel, -1);  //flip
 			return true;
-		    }*/
+		    }
 		    
-		    return false;
+		    
 
 		default:
 		    return false;

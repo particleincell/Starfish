@@ -28,6 +28,7 @@ import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
 import starfish.core.io.LoggerModule.Level;
+import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
 import starfish.sources.CosineSource;
 import starfish.sources.UniformSource;
@@ -38,7 +39,7 @@ public class SourceModule extends CommandModule
     protected ArrayList<VolumeSource> volume_source_list = new ArrayList<VolumeSource>();
 
     //hack
-    public double charge_flux = 0;
+    public double boundary_charge = 0;
     
     @Override
     public void init()
@@ -199,21 +200,32 @@ public class SourceModule extends CommandModule
 		if (Starfish.getIt()<source.start_it ||
 		    source.end_it>=0 && Starfish.getIt()>source.end_it) continue;
 		
-		//HACK for neutralization paper, circuit to model to inject electrons lost to the wall
-		double mdot_bk=source.mdot0;
-		if (source.mdot0>0 && source.name.equals("inlet_e")&& source.getMaterial().charge<0)
+		//circuit to model to inject electrons lost to the wall
+		int num_mp_delta = 0;
+				
+		if (source.circuit_model && boundary_charge<0 && source.name.equals("inlet_e")&& source.getMaterial().charge<0)
 		{
+		    KineticMaterial km = (KineticMaterial)source.getMaterial();
+		    double spwt = km.getSpwt0();
+			
 		    //negative since electrons contribute negative flux
-		    double d = -Constants.ME*charge_flux/Constants.QE/Starfish.getDt();
-		    source.mdot0 += d;
-		    charge_flux=0;
+		    num_mp_delta = (int)(boundary_charge/(km.charge*spwt));
+		    if (num_mp_delta>0)
+		    {
+		//	System.out.printf("Reinjecting %d electrons\n",num_mp_delta);
+		    }
+		    boundary_charge-=num_mp_delta*km.charge*spwt;
 		}
+		
 		source.update();
 		source.regenerate();
+		
+		//part of the above circuit model
+		source.num_mp += num_mp_delta;
+		
 		source.sampleAll();
 		
-		//HACK
-		if (source.getMaterial().charge<0) source.mdot0 = mdot_bk;
+		
 	    }/*for source*/
 	}
 
