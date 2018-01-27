@@ -120,8 +120,12 @@ public class MaxwellianSource extends Source
 	    double temp = Double.parseDouble(InputParser.getValue("temperature", element));
 	    int start_it = InputParser.getInt("start_it",element,0);
 	    int end_it = InputParser.getInt("end_it",element,-1);
-	    
+	    	    
 	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, mdot, v_drift, temp, start_it, end_it);
+	    
+	    /*TODO: clean this up*/
+    	    source.circuit_model = InputParser.getBoolean("circuit_model", element, false);
+	    
 	    boundary.addSource(source);
 
 	    

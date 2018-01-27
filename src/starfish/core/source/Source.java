@@ -25,6 +25,9 @@ public abstract class Source
     protected String name;
     int start_it;
     int end_it;
+    
+    /*temporary implementation of a circuit model*/
+    public boolean circuit_model;
    
     /**
      * constructor

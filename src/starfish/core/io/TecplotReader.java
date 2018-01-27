@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.Field2D;
@@ -22,7 +23,7 @@ import starfish.core.domain.QuadrilateralMesh;
 /** reader for simple ASCII Tecplot(r) - formatted files*/
 public class TecplotReader extends Reader
 {
-    public TecplotReader(String file_name)
+    public TecplotReader(String file_name, Element element)
     {
 	this.file_name = file_name;
 	try {

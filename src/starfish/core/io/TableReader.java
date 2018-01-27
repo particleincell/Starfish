@@ -10,6 +10,7 @@ package starfish.core.io;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.Field2D;
@@ -20,7 +21,7 @@ import starfish.core.domain.QuadrilateralMesh;
 /*-----tecplot reader --------------*/
 public class TableReader extends Reader
 {
-    public TableReader(String file_name)
+    public TableReader(String file_name, Element element)
     {
 	/*open file*/
 	Log.log("Opening file "+file_name);

@@ -31,7 +31,7 @@ public class LoadFieldModule extends CommandModule
 	String file_name = InputParser.getValue("file_name", element);
 		
 	Reader reader;
-	reader = Reader.getReader(file_name,format);
+	reader = Reader.getReader(file_name,format, element);
 		
 	String coord_vars[] = InputParser.getList("coords", element);
 	String field_vars[] = InputParser.getList("vars", element);

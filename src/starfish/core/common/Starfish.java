@@ -37,6 +37,7 @@ import starfish.core.boundaries.BoundaryModule;
 import starfish.core.diagnostics.AnimationModule;
 import starfish.core.diagnostics.AveragingModule;
 import starfish.core.diagnostics.ParticleTraceModule;
+import starfish.core.diagnostics.StatsModule;
 import starfish.core.domain.DomainModule;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
@@ -49,7 +50,6 @@ import starfish.core.io.LoggerModule;
 import starfish.core.io.LoggerModule.Level;
 import starfish.core.io.NoteModule;
 import starfish.core.io.OutputModule;
-import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
 import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
@@ -69,11 +69,11 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	
 	while(time_module.hasTime())
 	{
-	    /*add new particles*/
-	    source_module.sampleSources();
-	
 	    /*solve potential and recompute electric field*/
 	    solver_module.updateFields();
+	    
+	    /*add new particles*/
+	    source_module.sampleSources();
 	    
 	    /*update densities and velocities*/
 	    materials_module.updateMaterials();
@@ -90,7 +90,8 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	    /*save average data*/
 	    averaging_module.sample();
 	    
-	    printStats();	    
+	    /*screen and file output*/
+	    stats_module.printStats();	    
 	    
 	    /*advance time*/
 	    time_module.advance();	 
@@ -176,6 +177,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     public static AnimationModule animation_module;
     public static AveragingModule averaging_module;
     public static ParticleTraceModule particle_trace_module;
+    public static StatsModule stats_module;
 
     /*iterable list of registered modules, using LinkedHashMap to get predictable ordering*/
     static LinkedHashMap<String,CommandModule> modules = new LinkedHashMap<String,CommandModule>();
@@ -293,6 +295,11 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	/*averaging*/
 	averaging_module = new AveragingModule();
 	modules.put("averaging", averaging_module);
+	
+	/*screen and file output*/
+	stats_module = new StatsModule();
+	modules.put("stats", stats_module);
+	
     }
 	
     /** calls exit subroutines*/
@@ -308,7 +315,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	}
     }
 
-    /** calls exit subroutines*/
+    /** calls start subroutines*/
     protected void StartModules()
     {
 	Iterator<String> iter = modules.keySet().iterator();
@@ -374,23 +381,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     {
 	/*do nothing*/
     }
-
-    public void printStats()
-    {
-	String msg = String.format("it: %d\t",getIt());
-		
-	for (Material mat:getMaterialsList())
-	{
-	    if (mat instanceof KineticMaterial)
-	    {
-		KineticMaterial km = (KineticMaterial)mat;
-		msg += String.format("%s: %d ", km.getName(),km.getNp());
-	    }
-	}
-	
-	Log.message(msg);
-    }
-	
+    
     /**outputs code header*/
     public void PrintHeader()
     {

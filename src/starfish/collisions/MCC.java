@@ -141,7 +141,7 @@ public class MCC extends VolumeInteraction
 	    if (den_a<=0) continue;
 
 	    /*create random target particle according to target T and stream velocity*/
-	    double target_vel[] = target.sampleMaxwellianVelocity(mesh,part.lc);
+	    double target_vel[] = target.sampleMaxwellianVelocity(mesh,part.lc, 50);
 	    //double target_vel[] = target.sampleVelocity(mesh,part.lc);
 
 	    double g_vec[] = new double[3];

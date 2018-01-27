@@ -557,12 +557,12 @@ public abstract class Material
     }
 
     /*returns random velocity sampled based on temperature and average stream velocity*/
-    public double[] sampleMaxwellianVelocity(Mesh mesh, double[] lc)
+    public double[] sampleMaxwellianVelocity(Mesh mesh, double[] lc, double T_min)
     {
 	double vel[] = sampleVelocity(mesh, lc);
 	
 	double T = getT(mesh).gather(lc);
-	if (T<0) T=0;
+	if (T<T_min) T=T_min;
 	double v_th = Utils.computeVth(T, getMass());
 	double v_max[] = Utils.SampleMaxw3D(v_th);
 	for (int i=0;i<3;i++) vel[i] += v_max[i];
