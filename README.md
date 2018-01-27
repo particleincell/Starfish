@@ -1,5 +1,7 @@
-# Starfish-LE
+# Announcements
+The next Starfish seminar will be held January 25th. Please visit [https://www.particleincell.com/starfish](https://www.particleincell.com/starfish) for more info. 
 
+# Starfish-LE
 ![Starfish logo](starfish.png)
 
 [Starfish](https://www.particleincell.com/starfish) is a general 2D Cartesian or axisymmetric code for simulating plasmas or rarefied gases. 
