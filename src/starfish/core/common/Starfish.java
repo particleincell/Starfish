@@ -191,7 +191,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     static public double rnd2() {return -1.0+2*random.nextDouble();}  //[-1,1)
 	
     /*code version*/
-    static String VERSION = "v0.17 LE  (Development)";
+    static String VERSION = "v0.18 LE  (Development)";
     static public String HEADER_MESSAGE = "General 2D Plasma / Gas Kinetic Code\n ";
     	
     /*accessors*/

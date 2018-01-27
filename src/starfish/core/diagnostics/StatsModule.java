@@ -102,7 +102,6 @@ public class StatsModule extends CommandModule
 		pw.printf(",%g",km.getSpwt0()*km.getNp());
 	    }
 	}
-	pw.printf(",%g",-Starfish.source_module.boundary_charge/Constants.QE);
 	pw.printf("\n");
 	lines++;
 	if (lines>10) {pw.flush();lines=0;}
