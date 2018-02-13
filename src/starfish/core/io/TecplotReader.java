@@ -23,6 +23,12 @@ import starfish.core.domain.QuadrilateralMesh;
 /** reader for simple ASCII Tecplot(r) - formatted files*/
 public class TecplotReader extends Reader
 {
+
+    /**
+     *
+     * @param file_name
+     * @param element
+     */
     public TecplotReader(String file_name, Element element)
     {
 	this.file_name = file_name;
@@ -33,7 +39,14 @@ public class TecplotReader extends Reader
 	}		
     }
     
+    /**
+     *
+     */
     protected String file_name;
+
+    /**
+     *
+     */
     protected Scanner sc = null;
 			
     @Override
@@ -159,4 +172,15 @@ public class TecplotReader extends Reader
 	    } /*ZONE*/
 	}
     }
+    
+    static ReaderFactory tecplotReaderFactory = new ReaderFactory() {
+	@Override
+	public Reader makeReader(String file_name, Element element)
+	{
+	    return new TecplotReader(file_name,element); 
+	}
+    };
 }
+
+
+

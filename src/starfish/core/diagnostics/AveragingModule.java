@@ -17,6 +17,10 @@ import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class AveragingModule extends CommandModule
 {
     class AveData
@@ -41,6 +45,11 @@ public class AveragingModule extends CommandModule
 	
     ArrayList<AveData> ave_data = new ArrayList<AveData>();
 	
+    /**
+     *
+     * @param var_name
+     * @return
+     */
     public FieldCollection2D getFieldCollection(String var_name) 
     {
 	for (AveData ave:ave_data)
@@ -52,6 +61,12 @@ public class AveragingModule extends CommandModule
 	return null;
     }
 	
+    /**
+     *
+     * @param mesh
+     * @param var_name
+     * @return
+     */
     public Field2D getField(Mesh mesh, String var_name) 
     {
 	return getFieldCollection(var_name).getField(mesh);
@@ -66,7 +81,7 @@ public class AveragingModule extends CommandModule
 	data.frequency = InputParser.getInt("frequency", element,1);
 	data.start_it = InputParser.getInt("start_it", element,-1);	
 	data.var_list = InputParser.getList("variables", element);
-
+	
 	for (int i=0;i<data.var_list.length;i++)
 	    Log.log(" Added: "+data.var_list[i]);
 	

@@ -5,8 +5,9 @@
 build
 dist
 doc
-dat/dsmc/jet/cases
-nbproject/private
+**/dat/dsmc/jet/cases
+**/nbproject/
+**/nbproject/private/
 
 #other files
 *.log
@@ -67,3 +68,4 @@ starfish-LE.jar
 *.vts
 *.bashrc
 nbproject/private/private.xml
+*.zip

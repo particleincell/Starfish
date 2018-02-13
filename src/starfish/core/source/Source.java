@@ -19,23 +19,59 @@ import starfish.core.materials.SolidMaterial;
 public abstract class Source
 {
     /*variables*/
+
+    /**
+     *
+     */
+
     protected Material source_mat;
+
+    /**
+     *
+     */
     protected double mdot0;
+
+    /**
+     *
+     */
     protected Spline spline;
+
+    /**
+     *
+     */
     protected String name;
     int start_it;
     int end_it;
     
     /*temporary implementation of a circuit model*/
+
+    /**
+     *
+     */
+
     public boolean circuit_model;
    
     /**
      * constructor
+     * @param name
+     * @param source_mat
+     * @param start_it
+     * @param spline
+     * @param mdot
      */   
     public Source(String name, Material source_mat, Spline spline, double mdot, int start_it){
 	    this(name, source_mat, spline, mdot, start_it,-1);
     }
 
+    /**
+     *
+     * @param name
+     * @param source_mat
+     * @param spline
+     * @param mdot
+     * @param start_it
+     * @param end_it
+     */
     public Source(String name, Material source_mat, Spline spline, double mdot, int start_it, int end_it)
     {
 	this.source_mat = source_mat;
@@ -48,6 +84,8 @@ public abstract class Source
 
     /**
      * constructor for sources not associated with a spline
+     * @param name
+     * @param source_mat
      */
     public Source(String name, Material source_mat)
     {
@@ -56,6 +94,10 @@ public abstract class Source
     
     /**
      * constructor without start-it
+     * @param name
+     * @param source_mat
+     * @param mdot
+     * @param spline
      */
     public Source(String name, Material source_mat, Spline spline, double mdot)
     {
@@ -63,17 +105,30 @@ public abstract class Source
     }
 
     /*called by simulation after add*/
+
+    /**
+     *
+     */
+
     public void start()
     {
 	/*do nothing*/
     }
     
+    /**
+     *
+     */
     protected int num_mp;	/*number of macroparticles to sample*/
+
+    /**
+     *
+     */
     protected double mp_rem;
 
 
     /**
      * returns true if there are more particles to sample
+     * @return 
      */
     public boolean hasParticles()
     {
@@ -120,6 +175,7 @@ public abstract class Source
 
     /**
      * returns a new particle
+     * @return 
      */
     public abstract Particle sampleParticle();
 
@@ -173,10 +229,18 @@ public abstract class Source
      */
     public abstract void sampleFluid();
 
+    /**
+     *
+     * @return
+     */
     public Material getMaterial()
     {
 	return source_mat;
     }
     
+    /**
+     *
+     * @return
+     */
     public String getName() {return name;}
 }

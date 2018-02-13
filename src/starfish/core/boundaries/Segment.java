@@ -25,23 +25,59 @@ import starfish.core.common.Vector;
 public abstract class Segment
 {
 
+    /**
+     *
+     */
     public Boundary boundary;		/*parent boundary*/
     int id;							/*segment id in the parent structure*/
 	
     boolean smooth = false;
 	
+    /**
+     *
+     */
     protected Segment() {}
 	
+    /**
+     *
+     * @param boundary
+     * @param id
+     */
     public void setParentInfo(Boundary boundary, int id) {this.boundary=boundary;this.id=id;}
+
+    /**
+     *
+     * @return
+     */
     public Boundary getBoundary() {return boundary;}
+
+    /**
+     *
+     * @return
+     */
     public NodeType getBoundaryType() {return boundary.type;}
+
+    /**
+     *
+     * @return
+     */
     public int id() {return id;}
 	
+    /**
+     *
+     * @param x1
+     * @param x2
+     * @return
+     */
     public static LinearSegment newLinearSegment(double x1[], double x2[])
     {
 	return new LinearSegment(x1,x2);
     }
     	
+    /**
+     *
+     * @return
+     */
     public boolean isSmooth() {return smooth;}
 	
     double x1[] = new double[3];
@@ -50,10 +86,20 @@ public abstract class Segment
     double centroid[] = new double[3];
     double length;
 
-    /**returns normal vector at segment position t=[0,1]*/
+    /**returns normal vector at segment position t=[0,1
+     * @return ]*/
     public final double length() {return length;}
+
+    /**
+     *
+     * @return
+     */
     public final double[] centroid() {return centroid;}
 
+    /**
+     *
+     * @return
+     */
     public final double[][] getBox() 
     {
 	double box[][] = new double[2][2];
@@ -64,31 +110,60 @@ public abstract class Segment
 	return box;
     }
 			    
-    /**returns normal vector at segment position t=[0,1]*/
+    /**returns normal vector at segment position t=[0,1
+     * @param t]
+     * @return */
     public abstract double[] normal(double t);
     
-    /**returns tangent vector at segment position t=[0,1]*/
+    /**returns tangent vector at segment position t=[0,1
+     * @param t]
+     * @return */
     public abstract double[] tangent(double t);
 
-    /**returns position at t=[0,1]*/
+    /**returns position at t=[0,1
+     * @param t
+     * @return ]*/
     public abstract double[] pos(double t);
 
-    /**returns parametric t for position or -1 if not containing*/
+    /**returns parametric t for position or -1 if not containin
+     * @param pos
+     * @return g*/
     public abstract double evalT(double pos[]);
     
+    /**
+     *
+     * @return
+     */
     public double[] firstPoint() {return x1.clone();}
 
+    /**
+     *
+     * @return
+     */
     public double[] lastPoint() {return x2.clone();}
 
+    /**
+     *
+     * @param s2
+     * @return
+     */
     public double intersect0(Segment s2)
     {
 	return intersect(s2)[0];
     }
 
-    /**intersects line segments, 
+    /**intersects line segments,
+     * @param s2
     * @return t[0]  parametric intersection along parent segment
     * @return t[1]  parametric intersection along segment s2*/
     public abstract double[] intersect (Segment s2);
+
+    /**
+     *
+     * @param x1
+     * @param x2
+     * @return
+     */
     public abstract double[] intersect (double x1[], double x2[]);
     
 
@@ -113,7 +188,9 @@ public abstract class Segment
 	return false;	
     }
     
-    /**@return a list of segments either intersecting or fully located in a box
+    /**
+     * @param b1 * @return a list of segments either intersecting or fully located in a box
+     * @param b2
      */
     public boolean segmentInBox(double b1[], double b2[])
     {
@@ -152,6 +229,15 @@ public abstract class Segment
     }
 
     /*returns true if p is in the box given by diagonal points b1 and b2*/
+
+    /**
+     *
+     * @param p
+     * @param b1
+     * @param b2
+     * @return
+     */
+
     public static boolean inBox(double p[], double b1[], double b2[])
     {
 	if (p[0]>=b1[0] && p[0]<=b2[0] &&
@@ -160,6 +246,11 @@ public abstract class Segment
 	return false;
     }
 
+    /**
+     *
+     * @param xp
+     * @return
+     */
     public abstract double closestPos(double[] xp);
     
 }

@@ -52,7 +52,7 @@
 </output>
 
 <output type="boundaries" file_name="boundaries.dat" format="tecplot">
-<variables>flux.o+, flux_normal.o+, deprate</variables>
+<variables>flux.o+, flux-normal.o+, deprate</variables>
 </output>
 
 </simulation>

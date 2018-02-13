@@ -7,26 +7,66 @@
 
 package starfish.core.domain;
 
-import starfish.core.boundaries.Boundary;
 import starfish.core.domain.DomainModule.DomainType;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class UniformMesh extends Mesh
 {
     /*variables*/
+
+    /**
+     *
+     */
+
     public double x0[]=new double[2]; /*node origin*/
+
+    /**
+     *
+     */
     public double dh[]=new double[2]; /*node spacing*/
+
+    /**
+     *
+     */
     public double xd[]=new double[2]; /*diagonal point*/
 	
     /*methods*/
+
+    /**
+     *
+     * @param ni
+     * @param nj
+     * @param domain_type
+     */
+
     public UniformMesh (int ni, int nj, DomainType domain_type)
     {
 	super(ni,nj, domain_type);  
     }
     
+    /**
+     *
+     * @return
+     */
     public double getDi() {return dh[0];}
+
+    /**
+     *
+     * @return
+     */
     public double getDj() {return dh[1];}
 	
     /*sets mesh origin*/
+
+    /**
+     *
+     * @param x1
+     * @param x2
+     */
+
     public void setOrigin(double x1, double x2)
     {
 	x0[0]=x1;
@@ -35,6 +75,13 @@ public class UniformMesh extends Mesh
     }
     
     /*sets mesh spacing*/
+
+    /**
+     *
+     * @param d1
+     * @param d2
+     */
+
     public void setSpacing(double d1, double d2)
     {
 	dh[0]=d1;
@@ -43,6 +90,11 @@ public class UniformMesh extends Mesh
     }
 	
     /*computes diagonal point*/
+
+    /**
+     *
+     */
+
     protected void setXd()
     {
 	xd[0]=x0[0]+(ni-1)*dh[0];
@@ -59,6 +111,12 @@ public class UniformMesh extends Mesh
 	return x;
     }
 
+    /**
+     *
+     * @param d1
+     * @param d2
+     * @return
+     */
     @Override
     public double[] XtoL(double d1, double d2)
     {

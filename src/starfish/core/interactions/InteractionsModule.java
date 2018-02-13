@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import org.w3c.dom.Element;
-import starfish.collisions.MCC;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
@@ -30,7 +29,6 @@ public class InteractionsModule extends CommandModule
 	registerInteraction("SURFACE_HIT",SurfaceInteraction.surfaceHitFactory);
 	registerInteraction("SURFACE_IMPACT",SurfaceInteraction.surfaceHitFactory);	
 	registerInteraction("CHEMISTRY",ChemicalReaction.chemicalReactionFactory);
-	registerInteraction("MCC", MCC.MCCFactory);
 	
 	/*register surface impact models*/
 	SurfaceInteraction.registerModels();
@@ -39,14 +37,27 @@ public class InteractionsModule extends CommandModule
 	RateParser.registerMathParser("POLYNOMIAL",RateParser.MathParserPolynomial);
     }
 	
+    /**
+     *
+     * @param type
+     * @param fac
+     */
     static public void registerInteraction(String type, InteractionFactory fac)
     {
 	interactions_types.put(type.toUpperCase(), fac);
 	Log.log("Added interaction "+type.toUpperCase());
     }
     
+    /**
+     *
+     */
     public interface InteractionFactory
     {
+
+	/**
+	 *
+	 * @param element
+	 */
 	public void  getInteraction(Element element);
     }
     
@@ -70,15 +81,31 @@ public class InteractionsModule extends CommandModule
 	
     
     ArrayList<VolumeInteraction> interactions_list = new ArrayList<VolumeInteraction>();
+
+    /**
+     *
+     * @return
+     */
     public ArrayList<VolumeInteraction> getInteractionsList() {return interactions_list;}
 
     /*adds material interaction*/
+
+    /**
+     *
+     * @param handler
+     */
+
     public void addInteraction(VolumeInteraction handler)
     {
 	interactions_list.add(handler);
     }
 
     /*performs material interactions*/
+
+    /**
+     *
+     */
+
     public void performInteractions()
     {
 	for (VolumeInteraction vint:interactions_list)
@@ -96,7 +123,9 @@ public class InteractionsModule extends CommandModule
     }
 
     
-    /** cross-sections*/
+    /** cross-section
+     * @param element
+     * @return s*/
     static public Sigma parseSigma(Element element)
     {
 	String sigma_name = InputParser.getValue("sigma", element);
@@ -107,12 +136,24 @@ public class InteractionsModule extends CommandModule
     }
     
     static HashMap<String,Sigma.SigmaFactory> sigma_list = new HashMap<String,Sigma.SigmaFactory>();
+
+    /**
+     *
+     * @param name
+     * @param fac
+     */
     public static void registerSigma(String name, Sigma.SigmaFactory fac)
     {
 	sigma_list.put(name.toUpperCase(),fac);
 	Log.log("Added sigma "+name.toUpperCase());
     }
 
+    /**
+     *
+     * @param type
+     * @param c
+     * @return
+     */
     public static Sigma getSigma(String type, double c[])
     {
 	Sigma.SigmaFactory fac = sigma_list.get(type.toUpperCase());

@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author lbrieda
+ * @author Lubos Brieda
  */
 public class MatrixTest
 {

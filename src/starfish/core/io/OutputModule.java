@@ -13,7 +13,7 @@ import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 
-/** handles <output> commands*/
+/** handles &lt; output &gt; commands*/
 public class OutputModule extends CommandModule
 {
     @Override
@@ -34,11 +34,20 @@ public class OutputModule extends CommandModule
 	writer.close();
     }
 
+    /**
+     *
+     * @return
+     */
     public static Writer createWriter1D()
     {
 	throw new UnsupportedOperationException("Not yet implemented");
     }
     
+    /**
+     *
+     * @param element
+     * @return
+     */
     public static Writer createWriter(Element element)
     {
 	String type;
@@ -52,7 +61,7 @@ public class OutputModule extends CommandModule
 	}
 	catch (Exception e)
 	{
-	    Log.error("Syntax <output type=\"2D/1D/PARTICLES\" file_name=\"...\" [format=\"TECPLOT\"]>");
+	    Log.error("Syntax <output type=\"2D/1D/BOUNDARIES/PARTICLES\" file_name=\"...\" [format=\"TECPLOT\"]>");
 	    return null;
 	}
 		
@@ -93,7 +102,9 @@ public class OutputModule extends CommandModule
 }
 
     /*TODO: this doesn't work properly for averaged values*/
-    /** checks if variable exists and if not, prints an error message and terminates*/
+    /** checks if variable exists and if not, prints an error message and terminate
+     * @param var
+     * @return s*/
     public boolean validateVar(String var)
     {
 	String pieces[] = var.split("\\.");

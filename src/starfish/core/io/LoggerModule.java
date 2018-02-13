@@ -16,8 +16,16 @@ import java.util.Date;
 import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class LoggerModule extends CommandModule
 {
+
+    /**
+     *
+     */
     public LoggerModule() 
     {
 	super();
@@ -26,9 +34,19 @@ public class LoggerModule extends CommandModule
 	file_name = "starfish.log";
     }
 	
+    /**
+     *
+     */
     protected PrintWriter log_file=null;
+
+    /**
+     *
+     */
     protected String file_name;
 	
+    /**
+     *
+     */
     protected void openLogFile() 
     {
 	if (log_file!=null)
@@ -96,10 +114,30 @@ public class LoggerModule extends CommandModule
      * ERROR: error message, screen (err) and log, terminates execution
      * FORCED: like message but cannot be disabled
      */
-    public enum Level {DEBUG, LOG_LOW, LOG, MESSAGE, WARNING, ERROR, EXCEPTION, FORCED}
+
+    /**
+     *
+     */
+
+    public enum Level { 
+
+	DEBUG, 
+	LOG_LOW, 
+	LOG, 
+	MESSAGE, 
+	WARNING, 
+	ERROR, 
+	EXCEPTION, 
+	FORCED}
+
+    /**
+     *
+     */
     protected Level logging_level = Level.LOG;
 
-    /**outputs message to screen and/or log file*/
+    /**outputs message to screen and/or log file
+     * @param level
+     * @param message*/
     public void log(Level level, String message)
     {
 	if (log_file==null)

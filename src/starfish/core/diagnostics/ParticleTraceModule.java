@@ -54,7 +54,8 @@ public class ParticleTraceModule extends CommandModule
 	for (Tracer tracer: tracer_list) tracer.close();
     }
 
-    /** @return trace id associated with particle id, or -1 if no trace*/
+    /**
+     * @param part_id *  @return trace id associated with particle id, or -1 if no trace*/
     public int getTraceId(long part_id)
     {
 	for (int i=0;i<tracer_list.size();i++)
@@ -63,7 +64,8 @@ public class ParticleTraceModule extends CommandModule
 	return -1;
     }
 
-    /** saves new trace for the specified particle*/	
+    /** saves new trace for the specified particl
+     * @param parte*/	
     public void addTrace(Particle part)
     {
 	if (part.trace_id>=0)

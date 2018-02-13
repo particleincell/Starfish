@@ -20,9 +20,18 @@ import starfish.core.common.Starfish.Log;
 /**spline which defines a contour line*/
 public class Contour 
 {
+
+    /**
+     *
+     */
     protected double value;
 	
-    /**Creates a contour of field collection at value bounded by start and end splines*/
+    /**Creates a contour of field collection at value bounded by start and end splines
+     * @param value 
+     * @param field_collection
+     * @param start
+     * @param end
+     * @param num_points*/
     public Contour (double value, FieldCollection2D field_collection, Spline start, Spline end, int num_points)
     {		
 	int i,j;
@@ -48,12 +57,12 @@ public class Contour
 	mesh_loop:
 	for (int m=0;m<Starfish.getMeshList().size();m++)
 	{
-	    mesh = Starfish.getMeshList().get(m);
+	    mesh = Starfish.getMeshList().get(m);	   
 	    field = field_collection.getField(mesh);
 			
 	    /*set tolerance*/
 	    double range[] = field.getRange();
-	    double tolerance = Math.abs(0.001*(range[1]-range[0]));
+	    double tolerance = Math.abs(1e-5*(range[1]-range[0]));
 	    if (tolerance < Float.MIN_VALUE)
 		Log.warning("No variation in field value");
 			
@@ -88,13 +97,18 @@ public class Contour
 		/*have we found the value?*/
 		if (Math.abs(v2-value)<tolerance) {found=true; break mesh_loop;}
 				
-		/*check if the value is between the current and the last position*/
-		if ((v1-value)*(v2-value)<0)
+		/*check if the value is between the current and the last position
+		check for v2<v1 to capture maximum lambda line beyond which lambda=0
+		*/		
+		if ((v1-value)*(v2-value)<0 || (v2<v1))
 		{
 		    t-=dt;
 		    dt=0.5*dt;
 		    continue;
 		}
+		
+		//so we don't run forever
+		if (dt<1e-6) break;
 				
 		/*else copy down and continue*/
 		v1=v2;
@@ -102,8 +116,11 @@ public class Contour
 	    } while(t<start.numSegments()+1);	
 	}
 		
-	if (!found)
-	    Log.warning(String.format("Failed to find contour line for %g\n",value));
+	if (mesh==null || !found)
+	{
+	    Log.warning(String.format("Failed to find contour line for %g",value));
+	    return;
+	}
 
 		
 	/*2) create the contour from the starting point by intersecting cell edges,
@@ -111,7 +128,7 @@ public class Contour
 	* prescribed value */
 		
 	double x[] = start.pos(t);
-	double lc[]=mesh.XtoL(x);
+	double lc[] = mesh.XtoL(x);
 	i = (int)lc[0];
 	j = (int)lc[1];
 		
@@ -126,13 +143,16 @@ public class Contour
 	{
 	    if (mesh != mesh_old)
 	    {
-		if (mesh==null) break;
 		field=field_collection.getField(mesh);
+		
 		lc=mesh.XtoL(point[np-1].x);
 		i = (int)lc[0];
 		j = (int)lc[1];			
 		mesh_old=mesh;
 	    }
+		
+	    /*make sure field is set*/
+	    if (field==null) continue;
 		
 	    edge=SetCell(field,i,j,edge,end);
 	    if (edge<0) break;	
@@ -187,7 +207,7 @@ public class Contour
 	    return;
 	}
 			
-		this.save("contour.dat");
+	this.save("contour.csv");
 
 	/*3) describe the contour by num_points equidistant points*/
 	/*compute length*/
@@ -197,6 +217,15 @@ public class Contour
 	    double dx = point[i+1].x[0]-point[i].x[0];
 	    double dy = point[i+1].x[1]-point[i].x[1];
 	    point[i].ds = Math.sqrt(dx*dx + dy*dy);
+	    if (point[i].ds<=0) 
+	    {
+		/*elimininate the next point*/
+		for (j=i+1;j<np-2;j++)
+		    point[j]=point[j+1];
+		i--; //to recompute
+		np--;	//reduce point count
+		continue;
+	    }		
 	    length+=point[i].ds;
 	}
 
@@ -221,7 +250,7 @@ public class Contour
 		accum+=point[j].ds;
 		j++;
 		if (j>=np)
-		    throw new IndexOutOfBoundsException("Error parsing contour");
+		    Log.error("Error parsing contour");
 	    }
 	    double f=(s-accum)/point[j].ds;
 	    up[i] = new ContourPoint();
@@ -252,7 +281,13 @@ public class Contour
     /** SetCell
      * this function adds control point on cell specified by
      * i,j, skipping over ignore edge (counterclockwise from XMAX)
-     * function returns the edge that was set or -1 if not found*/
+     * function returns the edge that was set or -1 if not found
+     * @param field
+     * @param i
+     * @param j
+     * @param ignore
+     * @param end
+     * @return */
     protected final int SetCell (Field2D field, int i, int j, int ignore, Spline end)
     {
 	/*are we in domain?*/
@@ -321,15 +356,20 @@ public class Contour
 		px = end.pos(t);
 
 	    /*save just the intersections with j grid lines*/
-	    AddPoint(field.getMesh(),px,f);
-
-	    return edge;
+	    if (AddPoint(field.getMesh(),px,f))
+		return edge;
+	    else return -1; //if we ran out of points
 	}
 
 	/*not found*/
 	return -1;
     }
 
+    /**
+     *
+     * @param xi
+     * @param xj
+     */
     public void pos(double[] xi, double[] xj) 
     {
 	for (int i=0;i<xi.length;i++)
@@ -339,6 +379,10 @@ public class Contour
 	}
     }
 
+    /**
+     *
+     * @param ds
+     */
     public void ds(double[] ds) 
     {
 	for (int i=0;i<ds.length;i++)
@@ -368,16 +412,54 @@ public class Contour
     ContourPoint point[];
     int np;
 
+    /**
+     *
+     * @param i
+     * @return
+     */
     public double getFi(int i) {return point[i].lc[0];}
+
+    /**
+     *
+     * @param i
+     * @return
+     */
     public double getFj(int i) {return point[i].lc[1];}
+
+    /**
+     *
+     * @param i
+     * @return
+     */
     public Mesh getMesh(int i) {return point[i].mesh;}
+
+    /**
+     *
+     * @return
+     */
     public int numPoints() {return np;}
 
+    /**
+     *
+     */
     protected final int max_segments=1000;
+
+    /**
+     *
+     */
     protected final int segments_in_box=500;		/*number of line segments in a box*/
 
     /* AddPoint
      * Adds new point (segment) and also updates bounding boxes*/
+
+    /**
+     *
+     * @param mesh
+     * @param x
+     * @param lc
+     * @return
+     */
+
     public final boolean AddPoint(Mesh mesh, double x[], double lc[])
     {
     //	System.out.printf("%d: %g, %g\n", np,x[0],x[1]);
@@ -386,11 +468,17 @@ public class Contour
 	point[np].mesh = mesh;
 	np++;
 	if (np>=max_segments) return false;
-
+	
 	return true;
     }
 
     /*returns array of distances to the next point*/
+
+    /**
+     *
+     * @return
+     */
+
     public double[] getDs()
     {
 	double ds[] = new double[np];
@@ -409,6 +497,12 @@ public class Contour
     /*Save
      * Saves spline to a file in tecplot format
      */
+
+    /**
+     *
+     * @param filename
+     */
+
     public final void save(String filename)
     {
 	FileOutputStream out; 
@@ -423,18 +517,16 @@ public class Contour
 	    out = new FileOutputStream(filename);
 	    p = new PrintStream( out );
 
-	    p.println ("VARIABLES = \"x (m)\" \"y (m)\"");
+	    p.println ("x,y");
 	}
 	catch (Exception e)
 	{
 	    System.err.println ("Error writing results");
 	}
 
-	p.printf("ZONE I=%d \n",np);
-
 	/*iterate over the field*/
 	for (i=0;i<np;i++)
-	    p.printf("%g %g\n", point[i].x[0],point[i].x[1]);
+	    p.printf("%g, %g\n", point[i].x[0],point[i].x[1]);
 
 	p.close();
     }

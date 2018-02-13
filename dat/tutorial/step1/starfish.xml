@@ -4,7 +4,7 @@
 <!-- load input files -->
 <load>domain.xml</load>
 <load>materials.xml</load>
-<load>cylinder.xml</load>
+<load>boundaries.xml</load>
 
 <!-- set potential solver -->
 <solver type="poisson">
@@ -12,10 +12,6 @@
 <Te0>1.5</Te0>
 <phi0>0</phi0>
 <max_it>1e4</max_it>
-<nl_max_it>25</nl_max_it>
-<tol>1e-4</tol>
-<nl_tol>1e-3</nl_tol>
-<linear>false</linear>
 </solver>
 
 <!-- set time parameters -->
@@ -29,13 +25,13 @@
         
 <!-- save results -->
 <output type="2D" file_name="field.dat" format="tecplot">
-<variables>phi, efi, efj, rho, nd.O+</variables>
+<scalars>phi, efi, efj, rho, nd.O+</scalars>
 </output>
 
 <output type="1D" file_name="profile.dat" format="tecplot">
 <mesh>mesh1</mesh>
 <index>J=0</index>
-<variables>phi, efi, efj, rho, nd.o+</variables>
+<scalars>phi, efi, efj, rho, nd.o+</scalars>
 </output>
 
 <output type="boundaries" file_name="boundaries.dat" format="tecplot" />

@@ -13,20 +13,52 @@ package starfish.core.domain;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class QuadrilateralMesh extends Mesh
 {
     /*variables*/
+
+    /**
+     *
+     */
+
     protected double IPOS[][];
+
+    /**
+     *
+     */
     protected double JPOS[][];
 	
     /*coefficients*/
     double alpha[][][];
     double beta[][][];
 	
+    /**
+     *
+     * @return
+     */
     public double[][] getIPos() {return IPOS;}
+
+    /**
+     *
+     * @return
+     */
     public double[][] getJPos() {return JPOS;}
 
     /*methods*/
+
+    /**
+     *
+     * @param ni
+     * @param nj
+     * @param ipos
+     * @param jpos
+     * @param domain_type
+     */
+
     public QuadrilateralMesh (int ni, int nj, double ipos[][], double jpos[][], DomainType domain_type)
     {
 	super(ni,nj, domain_type);  
@@ -34,11 +66,22 @@ public class QuadrilateralMesh extends Mesh
 	setPos(ipos,jpos);
     }
 	
+    /**
+     *
+     * @param ni
+     * @param nj
+     * @param domain_type
+     */
     public QuadrilateralMesh (int ni, int nj, DomainType domain_type)
     {
 	super(ni,nj,domain_type);
     }
   
+    /**
+     *
+     * @param ipos
+     * @param jpos
+     */
     public final void setPos(double ipos[][], double jpos[][])
     {
 	/*make sure we have the right size*/
@@ -70,6 +113,8 @@ public class QuadrilateralMesh extends Mesh
     
     /**computes alphas and betas for interpolation, see
     * http://www.particleincell.com/2012/quad-interpolation/
+     * @param i
+     * @param j
     */
     protected final void ComputeCoeffs(int i, int j)
     {
@@ -128,8 +173,19 @@ public class QuadrilateralMesh extends Mesh
     }
 
     /*visited array*/
+
+    /**
+     *
+     */
+
     protected boolean visited[][];
 			
+    /**
+     *
+     * @param xi
+     * @param xj
+     * @return
+     */
     @Override
     public double[] XtoL(double xi, double xj)
     {
@@ -138,7 +194,12 @@ public class QuadrilateralMesh extends Mesh
 	return XtoL(xi,xj,i,j);
     }
 	
-    /**starts searching in specified cell*/
+    /**starts searching in specified cel
+     * @param xi
+     * @param xjl
+     * @param i
+     * @param j
+     * @return */
     public double[] XtoL(double xi, double xj, int i, int j)
     {
 	/*start searching in the center
@@ -173,6 +234,17 @@ public class QuadrilateralMesh extends Mesh
     }
 	
     /*recursively searches for cell containinging (xi,xj)*/
+
+    /**
+     *
+     * @param xi
+     * @param xj
+     * @param i
+     * @param j
+     * @param lc
+     * @return
+     */
+
     protected boolean XtoLrecursive(double xi, double xj, int i, int j, double lc[])
     {
 	visited[i][j] = true;

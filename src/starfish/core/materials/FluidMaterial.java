@@ -14,6 +14,15 @@ public abstract class FluidMaterial extends Material
 {
     /*constructor*/
 
+    /**
+     *
+     * @param name
+     * @param mass
+     * @param charge
+     * @param frozen
+     */
+
+
     public FluidMaterial(String name, double mass, double charge, boolean frozen)
     {
 	super(name, mass, charge, frozen);

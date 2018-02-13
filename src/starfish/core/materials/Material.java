@@ -25,35 +25,83 @@ import starfish.core.domain.FieldManager2D;
 import starfish.core.domain.Mesh;
 import starfish.core.interactions.MaterialInteraction;
 import starfish.core.common.Vector;
-import starfish.core.interactions.MaterialInteraction.SurfaceImpactHandler;
-import starfish.core.interactions.SurfaceInteraction;
 
 /**
  * Basic definition of a material
  */
 public abstract class Material
 {
+
+    /**
+     *
+     */
     public int mat_index;	/*material index*/
+
+    /**
+     *
+     */
     public double mass;		/*molecular weight in kg*/
+
+    /**
+     *
+     */
     public double density;		/*density in kg/m^3*/
+
+    /**
+     *
+     */
     public double charge;
+
+    /**
+     *
+     */
     public double q_over_m;
     
     /*data for DSMC*/
+
+    /**
+     *
+     */
+
     public double diam;
+
+    /**
+     *
+     */
     public double ref_temp;
+
+    /**
+     *
+     */
     public double visc_temp_index;
+
+    /**
+     *
+     */
     public double vss_alpha;
     
+    /**
+     *
+     */
     public String name;		/*material name*/
     
+    /**
+     *
+     */
     public boolean frozen;	//update will be skipped if true
 
+    /**
+     *
+     * @return
+     */
     public String getName()
     {
 	return name;
     }
 
+    /**
+     *
+     */
     protected class InitVals		/*initialization values*/
     {
 	double nd, nd_back;
@@ -62,50 +110,113 @@ public abstract class Material
     };
     
     InitVals init_vals = new InitVals();
+
+    /**
+     *
+     */
     protected FieldManager2D field_manager2d;	/*field data*/
+
+    /**
+     *
+     */
     protected FieldManager1D field_manager1d;	/*field data*/
 
+    /**
+     *
+     */
     protected FieldCollection1D flux_collection;		/*pointer to flux for quick access*/  
+
+    /**
+     *
+     */
     protected FieldCollection1D flux_normal_collection;    /*pointer to flux_normal for quick access*/  
+
+    /**
+     *
+     */
     protected FieldCollection1D deprate_collection;	/*pointer to deprate for quick access*/  
+
+    /**
+     *
+     */
     protected FieldCollection1D depflux_collection;	/*pointer to depflux for quick access*/  
 	    
+    /**
+     *
+     * @return
+     */
     public FieldManager2D getFieldManager2d()
     {
 	return field_manager2d;
     }
 
+    /**
+     *
+     * @return
+     */
     public FieldManager1D getFieldManager1d()
     {
 	return field_manager1d;
     }
 
+    /**
+     *
+     * @return
+     */
     public int getIndex()
     {
 	return mat_index;
     }
 
+    /**
+     *
+     * @return
+     */
     public double getMass()
     {
 	return mass;
     }
 
+    /**
+     *
+     * @return
+     */
     public double getDensity()
     {
 	return density;
     }
+
+    /**
+     *
+     */
     protected double total_momentum;
 
+    /**
+     *
+     * @return
+     */
     public double getTotalMomentum()
     {
 	return total_momentum;
     }
 
+    /**
+     *
+     * @param name
+     * @param mass
+     */
     public Material(String name, double mass)
     {
 	this(name, mass, 0, false);
     }
 
+    /**
+     *
+     * @param name
+     * @param mass
+     * @param charge
+     * @param frozen
+     */
     public Material(String name, double mass, double charge, boolean frozen)
     {
 	this.mat_index = Starfish.getMaterialsList().size();
@@ -118,6 +229,9 @@ public abstract class Material
 	this.q_over_m = this.charge / this.mass;
     }
     
+    /**
+     *
+     */
     public static class InteractionList
     {
 	InteractionList()
@@ -132,8 +246,16 @@ public abstract class Material
 
 	}
   
+	/**
+	 *
+	 */
 	protected ArrayList<MaterialInteraction> interaction_list[];
 
+	/**
+	 *
+	 * @param source
+	 * @return
+	 */
 	public ArrayList<MaterialInteraction> getInteractionList(int source)
 	{
 	    return interaction_list[source];
@@ -141,6 +263,7 @@ public abstract class Material
 	
 	/**
 	 * sets material interaction for material_interaction.source_mat_index
+	 * @param material_interaction
 	 */
 	public void addInteraction(MaterialInteraction material_interaction)
 	{
@@ -149,6 +272,8 @@ public abstract class Material
 
 	/**
 	 * returns surface impact handler for the specified material pair
+	 * @param source_index
+	 * @return 
 	 */
 	public ArrayList<MaterialInteraction> getMaterialInteractions(int source_index)
 	{
@@ -231,114 +356,211 @@ public abstract class Material
     }
 
     /*accessors*/
+
+    /**
+     *
+     * @return
+     */
+
     public FieldCollection2D getDenCollection()
     {
 	return field_manager2d.getFieldCollection("nd");
     }
 
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getDenAveCollection()
     {
 	return field_manager2d.getFieldCollection("nd-ave");
     }
 
-
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getUCollection()
     {
 	return field_manager2d.getFieldCollection("u");
     }
 
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getVCollection()
     {
 	return field_manager2d.getFieldCollection("v");
     }
     
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getWCollection()
     {
 	return field_manager2d.getFieldCollection("w");
     }
     
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getUAveCollection()
     {
 	return field_manager2d.getFieldCollection("u-ave");
     }
 
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getVAveCollection()
     {
 	return field_manager2d.getFieldCollection("v-ave");
     }
     
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getWAveCollection()
     {
 	return field_manager2d.getFieldCollection("w-ave");
     }
 
-
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getTempCollection()
     {
 	return field_manager2d.getFieldCollection("T");
     }
     
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getPressureCollection()
     {
 	return field_manager2d.getFieldCollection("p");
     }
 
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getDen(Mesh mesh)
     {
 	return getDenCollection().getField(mesh);
     }
 
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getDenAve(Mesh mesh)
     {
 	return getDenAveCollection().getField(mesh);
     }
 
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getU(Mesh mesh)
     {
 	return getUCollection().getField(mesh);
     }
 
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getV(Mesh mesh)
     {
 	return getVCollection().getField(mesh);
     }
     
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getW(Mesh mesh)
     {
 	return getWCollection().getField(mesh);
     }
     
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getUAve(Mesh mesh)
     {
 	return getUAveCollection().getField(mesh);
     }
 
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getVAve(Mesh mesh)
     {
 	return getVAveCollection().getField(mesh);
     }
     
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getWAve(Mesh mesh)
     {
 	return getWAveCollection().getField(mesh);
     }
 
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getT(Mesh mesh)
     {
 	return getTempCollection().getField(mesh);
     }
     
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getP(Mesh mesh)
     {
 	return getPressureCollection().getField(mesh);
     }
 
-
+    /**
+     *
+     * @return
+     */
     public double getCharge()
     {
 	return charge;
     }
 
+    /**
+     *
+     * @param init_strings
+     */
     public void setInitValues(String init_strings[])
     {
 	for (String string : init_strings)
@@ -396,6 +618,9 @@ public abstract class Material
      */
     public abstract void updateFields();
 
+    /**
+     *
+     */
     public void updateBoundaries()
     {
 	/*apply boundaries*/
@@ -406,9 +631,23 @@ public abstract class Material
     }
     
     /*saves data to file, should be reimplemented by derived classes*/
+
+    /**
+     *
+     * @param out
+     * @throws IOException
+     */
+
     public void saveRestartData(DataOutputStream out)throws IOException {Log.warning("saveRestartData not yet implemented for "+name);}
 
     /*saves data to file, should be reimplemented by derived classes*/
+
+    /**
+     *
+     * @param in
+     * @throws IOException
+     */
+
     public void loadRestartData(DataInputStream in)throws IOException {Log.warning("loadRestartData not yet implemented for "+name);}
 
     /**
@@ -546,6 +785,14 @@ public abstract class Material
     }
 
     /*returns average stream velocity at specified point*/
+
+    /**
+     *
+     * @param mesh
+     * @param lc
+     * @return
+     */
+
     public double[] sampleVelocity(Mesh mesh, double[] lc)
     {
 	double vel[] = new double[3];
@@ -557,6 +804,15 @@ public abstract class Material
     }
 
     /*returns random velocity sampled based on temperature and average stream velocity*/
+
+    /**
+     *
+     * @param mesh
+     * @param lc
+     * @param T_min
+     * @return
+     */
+
     public double[] sampleMaxwellianVelocity(Mesh mesh, double[] lc, double T_min)
     {
 	double vel[] = sampleVelocity(mesh, lc);

@@ -10,8 +10,16 @@ package starfish.core.common;
 
 import org.w3c.dom.Element;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public abstract class CommandModule 
 {
+
+    /**
+     *
+     */
     protected boolean has_started = false;	/*used by some modules to prevent repeated start*/
     
     /**Constructor for level 1 module*/

@@ -19,26 +19,74 @@ import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
 import starfish.core.solver.Matrix;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class BoundaryModule extends CommandModule
 {
     /*variables*/
+
+    /**
+     *
+     */
+
     protected ArrayList<Boundary> boundary_list = new ArrayList<Boundary>();
+
+    /**
+     *
+     */
     protected FieldManager1D field_manager;
 	
     /*methods*/
+
+    /**
+     *
+     * @param boundary
+     * @param var_name
+     * @return
+     */
+
     public Field1D getField(Boundary boundary, String var_name) {return field_manager.getField(boundary,var_name);}
+
+    /**
+     *
+     * @return
+     */
     public ArrayList<Boundary> getBoundaryList() {return boundary_list;}
     
+    /**
+     *
+     * @return
+     */
     public FieldManager1D getFieldManager() {return field_manager;}
+
+    /**
+     *
+     * @param name
+     * @return
+     */
     public FieldCollection1D getFieldCollection(String name) {return field_manager.getFieldCollection(name);}
 
+    /**
+     *
+     */
     protected ArrayList<Segment> seg_list;
     
+    /**
+     *
+     * @param boundary
+     */
     public void addBoundary(Boundary boundary)
     {
 	boundary_list.add(boundary);
     }
 	
+    /**
+     *
+     * @param name
+     * @return
+     */
     public Boundary getBoundary(String name) 
     {
 	for (Boundary boundary:boundary_list)
@@ -87,6 +135,7 @@ public class BoundaryModule extends CommandModule
      *
      * @param element Parent element for this boundary
      * @param G	global transformation matrix
+     * @param flip_normals_global
      */
     public void NewBoundary(Element element, Matrix G, boolean flip_normals_global)
     {
@@ -123,7 +172,7 @@ public class BoundaryModule extends CommandModule
 	/*make new boundary*/
 	Boundary boundary = new Boundary(name, boundary_type, value, material);
 	boundary.setTemp(temp);
-		
+	
 	/*read reverse flag if defined*/
 	boolean flip_normals = InputParser.getBoolean("reverse", element, flip_normals_global);
 
@@ -141,6 +190,9 @@ public class BoundaryModule extends CommandModule
 	    scaling = InputParser.getDoubleList("scaling", transf,scaling);
 	    translation = InputParser.getDoubleList("translation",transf,translation);
 	    rotation = InputParser.getDouble("rotation",transf,rotation);
+           /*read reverse flag if defined inside transform element*/
+	   flip_normals = InputParser.getBoolean("reverse", element, flip_normals);
+
 	}
 
 	/*make local transformation matrix*/
@@ -208,7 +260,8 @@ public class BoundaryModule extends CommandModule
     }
     
     
-    /**@return true if the point xp is internal to any boundary spline*/
+    /**
+     * @param xp * @return true if the point xp is internal to any boundary spline*/
     public boolean isInternal(double xp[])
     {
 	Segment seg = Spline.visibleSegment(xp, seg_list);

@@ -9,20 +9,34 @@ package starfish.core.solver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 
 /*this class provides support for a sparse matrix*/
+
+/**
+ *
+ * @author Lubos Brieda
+ */
+
 public class Matrix 
 {
     /*variables*/
+
+    /**
+     *
+     */
+
     protected List<HashMap<Integer,Double>> data;
+
+    /**
+     *
+     */
     public final int nr;		    /*number of rows and values in each row*/
     	
-    /**sparse matrix constructor */
+    /**sparse matrix constructor
+     * @param nr */
     public Matrix(int nr)
     {
 	this.nr = nr;	    //save number of rows
@@ -34,7 +48,9 @@ public class Matrix
 	    data.add (new HashMap<Integer,Double>());
     }
 
-    /**copy constructor */
+    /**copy constructor
+     * @param A
+     * @return  */
     public static Matrix copy(Matrix A)
     {
 	Matrix C = new Matrix(A.nr);
@@ -45,45 +61,62 @@ public class Matrix
     }
 
     
-    /**clears (sets to zero) a single row*/
+    /**clears (sets to zero) a single ro
+     * @param iw*/
     public void clearRow(int i)
     {
 	data.set(i, new HashMap<Integer,Double>());
     }
 
-    /**returns the value held by full matrix at row i and column j*/
+    /**returns the value held by full matrix at row i and column
+     * @param i
+     * @param jj
+     * @return */
     public double get(int i, int j)
     {
 	Double val = data.get(i).get(j);	//returns null if not found, so need object
 	if (val==null) return 0; else return val;
     }
 
-    /**sets value at row i, column j in full matrix*/
+    /**sets value at row i, column j in full matri
+     * @param i
+     * @param jx
+     * @param val*/
     public void set(int i, int j, double val)
     {
 	data.get(i).put(j, val);	
     }
 
-    /**add value to row r, column c in full matrix*/
+    /**add value to row r, column c in full matri
+     * @param i
+     * @param jx
+     * @param val*/
     public void add(int i, int j, double val)
     {
 	set(i,j, get(i,j)+val);
     }
 
-    /** copies single row between matrixes*/
+    /** copies single row between matrixe
+     * @param A
+     * @param is*/
     public void copyRow(Matrix A, int i)
     {
 	assert(nr==A.nr);	
 	data.set(i, (HashMap<Integer,Double>)A.data.get(i).clone());	
     }
     
-    /**add value to row r, column c in full matrix*/
+    /**add value to row r, column c in full matri
+     * @param i
+     * @param jx
+     * @param val*/
     public void subtract(int i, int j,  double val)
     {
 	add(i,j,-val);
     }
     
-    /**returns A-B*/
+    /**returns A-
+     * @param BB
+     * @return */
     public Matrix subtract(Matrix B)
     {
 	assert(nr==B.nr);
@@ -103,7 +136,9 @@ public class Matrix
     }
 
 
-    /**returns A-diag(B), for now defined only for identical matrices (nv is equal)*/
+    /**returns A-diag(B), for now defined only for identical matrices (nv is equal
+     * @param b
+     * @return )*/
     public Matrix subtractDiag(double b[])
     {
 	assert(nr==b.length);
@@ -142,6 +177,7 @@ public class Matrix
     }
 
       /**performs matrix vector multiplication
+     * @param x
     @return A*x*/
     public double[] mult(double x[])
     {
@@ -151,7 +187,9 @@ public class Matrix
     }
     
     /**performs matrix vector multiplication and stores it in result vector
-    @return A*x*/
+     * @param x
+     * @param result
+    */
     public void mult(double x[], double result[])
     {
 	for (int i=0;i<nr;i++)
@@ -167,13 +205,18 @@ public class Matrix
 	}    	
     }
 
-    /**multiplies value held in full matrix row i, column j, by value*/
+    /**multiplies value held in full matrix row i, column j, by valu
+     * @param i
+     * @param j
+     * @param vale*/
     public void mult(int i, int j,  double val)
     {
 	data.get(i).put(j, data.get(i).get(j)*val);
     }
 
-    /**multiplies entire row by s*/
+    /**multiplies entire row by
+     * @param is
+     * @param s*/
     public void multRow(int i, double s)
     {
 	for (Map.Entry<Integer, Double> it : data.get(i).entrySet())
@@ -185,7 +228,10 @@ public class Matrix
     }
 
     /**multiplies one row of the matrix by a vector but
-     * excludes the diagonal element  */
+     * excludes the diagonal element
+     * @param x
+     * @param i
+     * @return  */
     public double multRowNonDiag(double x[], int i)
     {
 	double prod=0;
@@ -200,7 +246,8 @@ public class Matrix
 	return prod;
     }
 	
-    /**returns the identity matrix of size of A*/
+    /**returns the identity matrix of size of
+     * @return A*/
     public Matrix identity()
     {
 	Matrix I = new Matrix(nr);		/*diagonal matrix*/
@@ -211,7 +258,8 @@ public class Matrix
 	return I;
     }
 
-    /**returns a new matrix which is the diagonal of the specified one*/
+    /**returns a new matrix which is the diagonal of the specified on
+     * @return e*/
     public Matrix diag_matrix()
     {
 	Matrix D = new Matrix(nr);		/*diagonal matrix*/
@@ -222,7 +270,9 @@ public class Matrix
 	return D;
     }
 
-    /**returns a vector containing the diagonal*/
+    /**returns a vector containing the diagona
+     * @param A
+     * @return l*/
     public double[]diag(Matrix A)
     {
 	double D[]= new double[A.nr];		/*diagonal matrix*/
@@ -235,6 +285,7 @@ public class Matrix
 
     /**returns the inverse
      * NOTE: this is currently defined only for diagonal matrix!
+     * @return 
      */
     public Matrix inverse()
     {
@@ -251,6 +302,7 @@ public class Matrix
     }
 
     /**returns the transpose
+     * @return 
      */
     public Matrix transpose()
     {
@@ -284,6 +336,10 @@ public class Matrix
     
     /**creates 2D transformation matrix
      * M = T*R*S 
+     * @param scaling
+     * @param theta
+     * @param translation
+     * @return 
      */
     public static Matrix makeTransformationMatrix(double scaling[], double theta, double translation[])
     {
@@ -353,6 +409,13 @@ public class Matrix
     /*computes LU decomposition of the matrix without pivoting
     based on the algorithm in Numerical Analysis
     */
+
+    /**
+     *
+     * @return
+     * @throws UnsupportedOperationException
+     */
+
     public Matrix[] decomposeLU() throws UnsupportedOperationException
     {
 	Log.message("Computing LU decomposition, nr = "+nr);

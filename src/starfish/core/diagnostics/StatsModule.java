@@ -8,11 +8,8 @@ package starfish.core.diagnostics;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
-import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import static starfish.core.common.Starfish.getIt;
@@ -23,18 +20,22 @@ import starfish.core.materials.Material;
 
 /**
  *
- * @author lbrieda
+ * @author Lubos Brieda
  */
 public class StatsModule extends CommandModule
 {
+
+    /**
+     *
+     */
     protected int stats_skip = 1;	    //frequency of file saves;
-    String file_name = "stafish_stats.csv";
+    String file_name = "starfish_stats.csv";
     PrintWriter pw;
 	    
     @Override
     public void process(Element element)
     {
-	stats_skip = InputParser.getInt("stats_skip", element, stats_skip);
+	stats_skip = InputParser.getInt("skip", element, stats_skip);
 	file_name = InputParser.getValue("file_name",element,file_name);
     }
     
@@ -69,6 +70,10 @@ public class StatsModule extends CommandModule
     }
         
     //generates screen and file output
+
+    /**
+     *
+     */
     public void printStats()
     {
 	String msg = String.format("it: %d\t",getIt());
@@ -85,12 +90,20 @@ public class StatsModule extends CommandModule
 	Starfish.Log.message(msg);
 	
 	//now save to the file
-	if (getIt()%stats_skip == 0)
+	if (stats_skip>0 && getIt()%stats_skip == 0)
 	    saveStats();
     }
     
     //saves stats to the file
+
+    /**
+     *
+     */
     protected int lines = 0;
+
+    /**
+     *
+     */
     protected void saveStats()
     {
 	pw.printf("%d,%g",getIt(),Starfish.time_module.getTime());	

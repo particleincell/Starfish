@@ -8,9 +8,7 @@ package starfish.sources;
 
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
-import starfish.core.boundaries.Spline;
 import starfish.core.common.Starfish;
-import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
@@ -29,7 +27,17 @@ public class MaxwellianSource extends Source
     final double v_drift;
     final double v_th;			/*thermal velocity*/
 
-
+    /**
+     *
+     * @param name
+     * @param source_mat
+     * @param boundary
+     * @param mdot
+     * @param v_drift
+     * @param temp
+     * @param start_it
+     * @param end_it
+     */
     public MaxwellianSource(String name, Material source_mat, Boundary boundary,
 	    double mdot, double v_drift, double temp, int start_it, int end_it)
     {
@@ -108,6 +116,9 @@ public class MaxwellianSource extends Source
 	}
     }
     
+    /**
+     *
+     */
     static public SourceModule.SurfaceSourceFactory maxwellianSourceFactory = new SourceModule.SurfaceSourceFactory()
     {
 	@Override

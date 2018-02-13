@@ -12,23 +12,52 @@ import starfish.core.materials.Material;
 /** Collision cross-sections */
 public abstract class Sigma 
 {
-    /**returns cross-section for the given relative velocity*/
+    /**returns cross-section for the given relative velocit
+     * @param g
+     * @return y*/
     public abstract double eval(double g);
+
+    /**
+     *
+     */
     protected double c[];
  
     //by default doesn't do anything but some sigmas may need to initialize
+
+    /**
+     *
+     * @param mat1
+     * @param mat2
+     */
     public void init(Material mat1, Material mat2) {};
     
     /*default empty init*/
+
+    /**
+     *
+     */
+
     protected Sigma () {c=new double[1];c[0]=0;}
     
+    /**
+     *
+     * @param c
+     */
     protected Sigma (double c[]) 
     {
 	this.c=c;
     }
      
+    /**
+     *
+     */
     public interface SigmaFactory
     {
+	/** creates a sigma handler of this type
+	 *
+	 * @param sigma coefficients
+	 * @return new sigma method
+	 */
 	public Sigma makeSigma(double c[]);
     }
     

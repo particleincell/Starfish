@@ -18,9 +18,21 @@ import starfish.core.domain.FieldManager2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.QuadrilateralMesh;
 
-/*-----tecplot reader --------------*/
+/*-----table format reader --------------*/
+
+/**
+ *
+ * @author Lubos Brieda
+ */
+
 public class TableReader extends Reader
 {
+
+    /**
+     *
+     * @param file_name
+     * @param element
+     */
     public TableReader(String file_name, Element element)
     {
 	/*open file*/
@@ -72,5 +84,13 @@ public class TableReader extends Reader
     public void parse(String[] coord_vars, String[] field_vars) {
 	throw new UnsupportedOperationException("Not supported yet.");
     }
+    
+    static ReaderFactory tableReaderFactory = new ReaderFactory() {
+	@Override
+	public Reader makeReader(String file_name, Element element)
+	{
+	    return new TableReader(file_name,element); 
+	}
+    };
 }
 

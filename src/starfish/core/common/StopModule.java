@@ -9,7 +9,7 @@ package starfish.core.common;
 import org.w3c.dom.Element;
 import starfish.core.common.Starfish.Log;
 
-/** implements <stop> command*/
+/** implements lt; stop &gt; command*/
 public class StopModule extends CommandModule
 {
     @Override

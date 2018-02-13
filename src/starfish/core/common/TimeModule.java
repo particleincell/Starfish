@@ -16,24 +16,83 @@ import starfish.core.materials.Material;
 /** Module for maintaining current simulation time*/
 public class TimeModule extends CommandModule
 {
+
+    /**
+     *
+     */
     protected int it;
+
+    /**
+     *
+     */
     protected double dt;
+
+    /**
+     *
+     */
     protected int num_it;
+
+    /**
+     *
+     */
     protected double time;
 	
+    /**
+     *
+     */
     public boolean steady_state;
     int it_steady_state=-1;		/*user set it for steady state*/
+
+    /**
+     *
+     */
     protected double ss_time;
 	
+    /**
+     *
+     * @return
+     */
     public double getDt() {return dt;}
+
+    /**
+     *
+     * @return
+     */
     public int getNumIt() {return num_it;}
+
+    /**
+     *
+     * @return
+     */
     public int getIt() {return it;}
+
+    /**
+     *
+     * @return
+     */
     public double getTime() {return it*dt;}
 	
+    /**
+     *
+     * @param it
+     */
     public void setIt(int it) {this.it=it;}
+
+    /**
+     *
+     * @param num_it
+     */
     public void setNumIt(int num_it) {this.num_it=num_it;}
+
+    /**
+     *
+     * @param dt
+     */
     public void setDt(double dt) {this.dt=dt;}
 	
+    /**
+     *
+     */
     public TimeModule() 
     {
 	super();
@@ -45,6 +104,10 @@ public class TimeModule extends CommandModule
 	it = 0;
     }
 	
+    /**
+     *
+     * @return
+     */
     public boolean hasTime()
     {
 	if (it<num_it) return true;
@@ -53,9 +116,17 @@ public class TimeModule extends CommandModule
 	
     /**advances time to next time step*/
     protected double momentum_old=0;
+
+    /**
+     *
+     */
     protected int ss_countdown=5;
 
     private boolean first = true;
+
+    /**
+     *
+     */
     public void advance()
     {
 	/*check if we have reached steady state*/
@@ -141,6 +212,10 @@ public class TimeModule extends CommandModule
 	/*todo: implement*/
     }
 
+    /**
+     *
+     * @return
+     */
     public double getSteadyStateTime() 
     {
 	return time-this.ss_time;

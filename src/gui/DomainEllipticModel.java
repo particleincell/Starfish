@@ -5,30 +5,56 @@ import java.util.Vector;
 import javax.swing.table.DefaultTableModel;
 
 import starfish.core.common.Starfish;
-import starfish.core.domain.DomainModule;
-import starfish.core.domain.UniformMesh;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 @SuppressWarnings("serial")
 public class DomainEllipticModel extends DefaultTableModel {
 
-
-	public DomainEllipticModel(int rowCount, int columnCount) {
+    /**
+     *
+     * @param rowCount
+     * @param columnCount
+     */
+    public DomainEllipticModel(int rowCount, int columnCount) {
 		super(rowCount, columnCount);
 	}
 
-	public DomainEllipticModel(Vector columnNames, int rowCount) {
+    /**
+     *
+     * @param columnNames
+     * @param rowCount
+     */
+    public DomainEllipticModel(Vector columnNames, int rowCount) {
 		super(columnNames, rowCount);
 	}
 
-	public DomainEllipticModel(Object[] columnNames, int rowCount) {
+    /**
+     *
+     * @param columnNames
+     * @param rowCount
+     */
+    public DomainEllipticModel(Object[] columnNames, int rowCount) {
 		super(columnNames, rowCount);
 	}
 
-	public DomainEllipticModel(Vector data, Vector columnNames) {
+    /**
+     *
+     * @param data
+     * @param columnNames
+     */
+    public DomainEllipticModel(Vector data, Vector columnNames) {
 		super(data, columnNames);
 	}
 
-	public DomainEllipticModel(Object[][] data, Object[] columnNames) {
+    /**
+     *
+     * @param data
+     * @param columnNames
+     */
+    public DomainEllipticModel(Object[][] data, Object[] columnNames) {
 		super(data, columnNames);
 	}
 
@@ -38,7 +64,11 @@ public class DomainEllipticModel extends DefaultTableModel {
        return false;
     }
 	
-	public void addRowChangeStarfish(Object[] rowData) {
+    /**
+     *
+     * @param rowData
+     */
+    public void addRowChangeStarfish(Object[] rowData) {
 		//TODO: Change to Specs to add elliptic Mesh
 
 		super.addRow(rowData);
@@ -50,7 +80,10 @@ public class DomainEllipticModel extends DefaultTableModel {
 		super.removeRow(rowNumber);
 	}
 	
-	public void removeAllRows() {
+    /**
+     *
+     */
+    public void removeAllRows() {
 		int num = super.getRowCount();
 		for(int i = num-1; i >= 0; i--) {
 			removeRow(i);

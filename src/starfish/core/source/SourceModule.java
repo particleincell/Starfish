@@ -23,7 +23,6 @@ import java.util.NoSuchElementException;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.CommandModule;
-import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
@@ -33,12 +32,20 @@ import starfish.core.materials.Material;
 import starfish.sources.CosineSource;
 import starfish.sources.UniformSource;
 
-/** Handles \<source\> command */
+/** Handles &lt; source\ &gt; command */
 public class SourceModule extends CommandModule
 {
+
+    /**
+     *
+     */
     protected ArrayList<VolumeSource> volume_source_list = new ArrayList<VolumeSource>();
 
     //hack
+
+    /**
+     *
+     */
     public double boundary_charge = 0;
     
     @Override
@@ -82,29 +89,64 @@ public class SourceModule extends CommandModule
 
     enum SurfaceSourceType {BOUNDARY_SOURCE, MATERIAL_SOURCE};
     
+    /**
+     *
+     * @param name
+     * @param fac
+     */
     static public void registerSurfaceSource(String name, SurfaceSourceFactory fac)
     {
 	surface_source_factories.put(name.toUpperCase(),fac);
 	Log.log("Added surface source "+name.toUpperCase());
     }
    
+    /**
+     *
+     * @param name
+     * @param fac
+     */
     static public void registerVolumeSource(String name, VolumeSourceFactory fac)
     {
 	volume_source_factories.put(name.toUpperCase(),fac);
 	Log.log("Added volume source "+name.toUpperCase());
     }
    
+    /**
+     *
+     */
     static public HashMap<String,SurfaceSourceFactory> surface_source_factories = new HashMap<String,SurfaceSourceFactory>();
+
+    /**
+     *
+     */
     static public HashMap<String,VolumeSourceFactory> volume_source_factories = new HashMap<String,VolumeSourceFactory>();
     
     /**interfaces for source factories*/
     public interface SurfaceSourceFactory 
     {
+
+	/**
+	 *
+	 * @param element
+	 * @param name
+	 * @param boundary
+	 * @param material
+	 */
 	public void makeSource(Element element, String name, Boundary boundary, Material material);
     }
 
+    /**
+     *
+     */
     public interface VolumeSourceFactory
     {
+
+	/**
+	 *
+	 * @param element
+	 * @param name
+	 * @param material
+	 */
 	public void makeSource(Element element, String name, Material material);
     }
     
@@ -243,6 +285,7 @@ public class SourceModule extends CommandModule
 
     /**
      * adds new volume source
+     * @param vol_source
      */
     public void addVolumeSource(VolumeSource vol_source)
     {

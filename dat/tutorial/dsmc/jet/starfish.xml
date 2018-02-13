@@ -1,5 +1,5 @@
 <simulation>    
-<note>expansion from a tube</note>
+<note>Supersonic expansion from a tube</note>
 <log level="Log" />
 
 <!-- load input files -->
@@ -32,11 +32,12 @@
         
 <!-- save results -->
 <output type="2D" file_name="field.vts" format="vtk">
-<variables>nodevol, p, nd-ave.n2, t.n2, t1.n2, t2.n2, t3.n2, u-ave.n2, v-ave.n2, w-ave.n2, nu, mpc.n2, dsmc-count</variables>
+<scalars>nodevol, p, nd-ave.n2, t.n2, t1.n2, t2.n2, t3.n2,  nu, mpc.n2, dsmc-count</scalars>
+<vectors>u-ave.n2, v-ave.n2, w-ave.n2</vectors>
 </output>
 
 <output type="boundaries" file_name="boundaries.vtp" format="vtk">
-<variables>flux.n2, flux_normal.n2</variables>
+<scalars>flux.n2, flux_normal.n2</scalars>
 </output>
 
 </simulation>

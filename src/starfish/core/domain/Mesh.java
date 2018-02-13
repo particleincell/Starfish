@@ -11,70 +11,182 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import starfish.core.boundaries.Boundary;
+import starfish.core.boundaries.Field1D;
 import starfish.core.boundaries.Segment;
 import starfish.core.boundaries.Spline;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
-import starfish.core.materials.KineticMaterial.Particle;
 
 /**abstract implementation of a mesh with a structured topology*/
 public abstract class Mesh 
 {
     /*mesh index corresponds to the DomainModule list, meshes not in the main mesh_list
     * will have duplicate index*/
+
+    /**
+     *
+     */
+
     protected int index;
+
+    /**
+     *
+     * @return
+     */
     public int getIndex() {return index;}
 
     /*data definitions*/
-    public enum Face {RIGHT (0), TOP(1), LEFT(2), BOTTOM(3);
+
+    /**
+     *
+     */
+
+    public enum Face {
+
+	/**
+	 *
+	 */
+	RIGHT (0),
+
+	/**
+	 *
+	 */
+	TOP(1),
+
+	/**
+	 *
+	 */
+	LEFT(2),
+
+	/**
+	 *
+	 */
+	BOTTOM(3);
     private int val;
     Face(int value) {val=value;}
-    public int value() {return val;}
+
+	/**
+	 *
+	 * @return
+	 */
+	public int value() {return val;}
     }
 	
     /*Internal data structures*/
+
+    /**
+     *
+     */
+
     public static class Node
     {
+
+	/**
+	 *
+	 */
 	public NodeType type;
+
+	/**
+	 *
+	 */
 	public double bc_value;
 		
 	/*list of splines in this control volume*/
+
+	/**
+	 *
+	 */
+
 	public ArrayList<Segment>segments = new ArrayList<Segment>();
     }
     
     Field2D node_vol;
     Field2D getNodeVol() {return node_vol;}
 
+    /**
+     *
+     */
     public static class BoundaryData
     {
+
+	/**
+	 *
+	 */
 	public Mesh neighbor[] = null;
+
+	/**
+	 *
+	 */
 	public int num_neighbors = 0;
+
+	/**
+	 *
+	 */
 	public double buffer;
     }
 	
     BoundaryData boundary_data[][] = new BoundaryData[4][];	/*[face][node_index]*/
 	
+    /**
+     *
+     */
     static public enum NodeType {
-	BAD(-99), UNKNOWN(-2), OPEN(-1), DIRICHLET(0), NEUMANN(1), PERIODIC(2), 
-	SYMMETRY(3), MESH(4), VIRTUAL(5), SINK(6), CIRCUIT(7); 
+
+	BAD(-99), 
+	UNKNOWN(-2), 
+	OPEN(-1), 
+	DIRICHLET(0), 
+	NEUMANN(1), 
+	PERIODIC(2), 
+	SYMMETRY(3), 
+	MESH(4), 
+	VIRTUAL(5), 
+	SINK(6), 
+	CIRCUIT(7); 
 	
 	protected int val;
 	NodeType(int val) {this.val=val;}
+
+	/**
+	 *
+	 * @return
+	 */
 	public int value() {return val;}
 	};
     
+    /**
+     *
+     */
     public class MeshBC
     {
+
+	/**
+	 *
+	 */
 	public NodeType type = NodeType.OPEN;
+
+	/**
+	 *
+	 */
 	public double value = 0;
     }
+
+    /**
+     *
+     */
     public MeshBC mesh_bc[] = new MeshBC[4];
     
+    /**
+     *
+     * @param face
+     * @param type
+     * @param value
+     */
     public void setMeshBCType(Face face, NodeType type, double value)
     {
 	mesh_bc[face.value()].type=type;
@@ -82,6 +194,7 @@ public abstract class Mesh
     }
     
     /** Returns mesh boundary type at the corresponding face
+     * @param face
      * @return boundary type
      */
     public NodeType boundaryType(Face face)
@@ -90,25 +203,72 @@ public abstract class Mesh
     }
     	
     /*mesh definition*/
-    public final int ni, nj;       /*number of nodes*/
-    public final int n_nodes, n_cells;
+    public final int ni,
+
+    /**
+     *
+     */
+    nj;       /*number of nodes*/
+    public final int n_nodes,
+
+    /**
+     *
+     */
+    n_cells;
+
+    /**
+     *
+     */
     public final Node node[][];    
 
     /*geometry*/
     private DomainType domain_type;
 
     boolean virtual = false;
+
+    /**
+     *
+     */
     public void makeVirtual() {virtual=true;}
     
     /*name*/
     String name;
+
+    /**
+     *
+     * @param name
+     */
     public void setName(String name) {this.name = name;}
+
+    /**
+     *
+     * @return
+     */
     public String getName() {return name;}
 	
+    /**
+     *
+     * @return
+     */
     public Node[][] getNodeArray() {return node;}
 
     /*accessors*/
+
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
+
     public Node getNode(int i, int j) {return node[i][j];}
+
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
     public NodeType nodeType(int i, int j) {return node[i][j].type;}
     
     /** Returns mesh boundary normal vector at corresponding face and position
@@ -118,7 +278,20 @@ public abstract class Mesh
      */
     abstract public double[] boundaryNormal(Face face, double pos[]);
 	
+    /**
+     *
+     * @param face
+     * @param index
+     * @return
+     */
     public BoundaryData boundaryData(Face face, int index) {return boundary_data[face.ordinal()][index];}
+
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
     public boolean isFarFromSurfNode(int i, int j) 
     { 
 	if (node[i][j].segments==null ||
@@ -128,9 +301,23 @@ public abstract class Mesh
 	    return false;
     }
     
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
     public boolean isDirichletNode(int i, int j) {return nodeType(i, j)==NodeType.DIRICHLET;}
   
     /*constructor*/
+
+    /**
+     *
+     * @param ni
+     * @param nj
+     * @param domain_type
+     */
+
     public Mesh (int ni, int nj, DomainType domain_type)
     {
 	this.ni=ni;
@@ -278,6 +465,12 @@ public abstract class Mesh
 	}		
     }
 	
+    /**
+     *
+     * @param face
+     * @param index
+     * @param mesh
+     */
     protected void addMeshToBoundary(Face face, int  index, Mesh mesh)
     {
 	int i,j;
@@ -300,15 +493,27 @@ public abstract class Mesh
 	bc.num_neighbors++;
     }
 
-    /**evaluates position at topological coordinate i,j*/
+    /**evaluates position at topological coordinate i,
+     * @param ij
+     * @param j
+     * @return */
     abstract public double[] pos(double i, double j);
 	
+    /**
+     *
+     * @param lc
+     * @return
+     */
     public double[] pos(double lc[] ) 
     {
 	return pos(lc[0], lc[1]);
     }
 
-    /** @returns distance between two points*/
+    /**
+     * @param i1
+     * @param j1 *  @return distance between two points
+     * @param i2
+     * @param j2*/
     public double dist(double i1,double j1,double i2,double j2)
     {
 	double x1[] = pos(i1, j1);
@@ -318,7 +523,9 @@ public abstract class Mesh
 	return Math.sqrt(dx*dx+dy*dy);	
     }
 	
-    /**@return random position in cell i,j
+    /**
+     * @param i * @return random position in cell i,j
+     * @param j
      */
     public double[] randomPosInCell(int i, int j) 
     {
@@ -334,10 +541,20 @@ public abstract class Mesh
 	return pos(lc);
     }
 
-    /**returns true if mesh contains the point*/
+    /**returns true if mesh contains the poin
+     * @param x
+     * @return t*/
     abstract public boolean containsPosStrict(double x[]);
 	
     /*returns first component of position*/
+
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
+
     public double pos1(double i, double j)
     {
 	double x[] = pos(i,j);
@@ -345,13 +562,24 @@ public abstract class Mesh
     }
  
     /*return second component of position*/
+
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
+
     public double pos2(double i, double j)
     {
 	double x[] = pos(i,j);
 	return x[1];
     }
  
-    /**returns radius, taking into account domain type, will be 1 for XY*/
+    /**returns radius, taking into account domain type, will be 1 for X
+     * @param i
+     * @param j
+     * @return Y*/
     public double R(double i, double j)
     {
 	if (domain_type==DomainType.RZ)
@@ -363,15 +591,38 @@ public abstract class Mesh
     }
 
     /*evaluates logical coordinates at spatial d1,d2*/
+
+    /**
+     *
+     * @param d1
+     * @param d2
+     * @return
+     */
+
     abstract public double[] XtoL(double d1, double d2);
     
     /*evaluates logical coordinates at spatial d[]*/
+
+    /**
+     *
+     * @param d
+     * @return
+     */
+
     public double[] XtoL(double d[]) 
     {
 	return XtoL(d[0],d[1]);
     }
     
     /*returns integral logical coordinate at spatial location d1,d2*/
+
+    /**
+     *
+     * @param d1
+     * @param d2
+     * @return
+     */
+
     public int[] XtoI(double d1, double d2)
     {
 	int i[] = new int[2];
@@ -382,12 +633,27 @@ public abstract class Mesh
     }
     
     /*returns integral logical coordinate at spatial location d[]*/
+
+    /**
+     *
+     * @param d
+     * @return
+     */
+
     public int[] XtoI(double d[])
     {
 	return XtoI(d[0],d[1]);
     }
     
     /*converts i,j to node index*/
+
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
+
     public int IJtoN(int i, int j) 
     {
 	if (i>=0 && i<ni && j>=0 && j<nj)
@@ -395,11 +661,23 @@ public abstract class Mesh
 	return -1;
     }
 	
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
     public int IJtoN(double i, double j) 
     {
 	return IJtoN((int)i,(int)j);
     }
     
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
     public int IJtoC(int i, int j) 
     {
 	if (i>=0 && i<ni-1 && j>=0 && j<nj-1)
@@ -407,19 +685,31 @@ public abstract class Mesh
 	return -1;
     }
 
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
     public int IJtoC(double i, double j) 
     {
 	return IJtoC((int)i,(int)j);
     }
 	
-    /**returns area for node/cell centered at i,j*/
+    /**returns area for node/cell centered at i,
+     * @param i0
+     * @param j0
+     * @return j*/
     public double area(double i0,double j0)
     {
 	return area(i0,j0,0.5);
     }
     
     /**returns area around a node/cell centered at i,j
-    *@param delta indicates the width in each direction, 0.5 will give a node volume*/
+     * @param i0
+     * @param j0
+    *@param delta indicates the width in each direction, 0.5 will give a node volume
+     * @return */
     public double area(double i0,double j0, double delta)
     {
 	int e;
@@ -459,7 +749,9 @@ public abstract class Mesh
 	return A;
     }
 
-    /** @return volume for node i,j*/
+    /**
+     * @param i0 *  @return volume for node i,j
+     * @param j0*/
     public double nodeVol(double i0,double j0)
     {
 	if (domain_type==DomainType.XY)
@@ -487,7 +779,9 @@ public abstract class Mesh
 	return 2*Math.PI*area(i0,j0)*r;
     }
 	
-    /**@return volume for cell i,j*/
+    /**
+     * @param i * @return volume for cell i,j
+     * @param j*/
     public double cellVol(int i, int j)
     {
 	double lc[] = {i+0.5,j+0.5};
@@ -495,6 +789,13 @@ public abstract class Mesh
     }
 
     /*uses monte carlo approach to compute node volumes in interface node control volumes*/
+
+    /**
+     *
+     * @param i
+     * @param j
+     */
+
     public void computeInterfaceNodeVol(int i, int j)
     {
 	//only process nodes with surface elements
@@ -526,6 +827,16 @@ public abstract class Mesh
     
     /*returns the two nodes making up edge number e,
      *ordering is counter clockwise from "Right" (R->T->L->B)*/
+
+    /**
+     *
+     * @param i
+     * @param j
+     * @param face
+     * @param first
+     * @return
+     */
+
     public double[] edge(double i, double j, Face face, boolean first) 
     {
 	double fi=0,fj=0;	/*first node*/
@@ -557,7 +868,12 @@ public abstract class Mesh
 	return pos(ri,rj);
     }
 
-    /**returns index of node offset by di,dj from im,jm*/
+    /**returns index of node offset by di,dj from im,j
+     * @param im
+     * @param jm
+     * @param dim
+     * @param dj
+     * @return */
     public int[] NodeIndexOffset(double im, double jm, double di, double dj) 
     {
 	double i,j;
@@ -589,6 +905,12 @@ public abstract class Mesh
     }
 
     /*computes node cuts and performs flood fill*/
+
+    /**
+     *
+     * @param boundary_list
+     */
+
     public void setBoundaries(ArrayList<Boundary>boundary_list)
     {
 	if (!boundary_list.isEmpty())
@@ -619,6 +941,12 @@ for (Mesh mesh:Starfish.getMeshList())
     }
 	
     /*marks boundaries located in a volume centered about each node*/
+
+    /**
+     *
+     * @param boundary_list
+     */
+
     protected void setNodeControlVolumes(ArrayList<Boundary>boundary_list)
     {
 	int i,j;
@@ -698,6 +1026,13 @@ for (Mesh mesh:Starfish.getMeshList())
 	}
 	
     /*return if point is located inside or outside a surface in interface cell*/
+
+    /**
+     *
+     * @param lc
+     * @return
+     */
+
     public boolean isInternalPoint(double lc[])
     {
 	/*don't remember anymore how segments are set so check all four cell vertices*/
@@ -727,6 +1062,11 @@ for (Mesh mesh:Starfish.getMeshList())
     }
     
 	/*uses boundaries located in a node control volume to set node locations*/
+
+    /**
+     *
+     */
+
 	protected void setInterfaceNodeLocation()
 	{
 	    int i,j;
@@ -758,7 +1098,10 @@ for (Mesh mesh:Starfish.getMeshList())
 		}
 	}
 	
-	protected void performFloodFill()
+    /**
+     *
+     */
+    protected void performFloodFill()
 	{
 	    int i,j;
 		
@@ -809,7 +1152,12 @@ for (Mesh mesh:Starfish.getMeshList())
 		    throw (new RuntimeException("Failed to set all nodes"));
 	}
 	
-	public boolean containsPos(double x[]) 
+    /**
+     *
+     * @param x
+     * @return
+     */
+    public boolean containsPos(double x[]) 
 	{
 	    double lc[] = XtoL(x);
 	    if (lc[0]<-Constants.FLT_EPS || lc[1]<-Constants.FLT_EPS ||
@@ -819,7 +1167,13 @@ for (Mesh mesh:Starfish.getMeshList())
 	    return true;
 	}
 	
-	protected boolean okToCopy(int i, int j)
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
+    protected boolean okToCopy(int i, int j)
 	{
 	    if (node[i][j].type==NodeType.OPEN ||
 		node[i][j].type==NodeType.DIRICHLET) return true;
@@ -827,7 +1181,8 @@ for (Mesh mesh:Starfish.getMeshList())
 	    return false;
 	}
 	
-	/**saves the mesh, useful for debugging*/
+	/**saves the mesh, useful for debuggin
+     * @param file_nameg*/
 	public void save(String file_name)
 	{
 	    /*create an empty map*/
@@ -835,7 +1190,12 @@ for (Mesh mesh:Starfish.getMeshList())
 	    save(file_name,fields);
 	}
 	
-	public void save(String file_name, LinkedHashMap<String,Field2D> fields) 
+    /**
+     * Saves the mesh along with the specified 2D data
+     * @param file_name
+     * @param fields
+     */
+    public void save(String file_name, LinkedHashMap<String,Field2D> fields) 
 	{
 	    /*open file*/
 	    PrintWriter out = null;
@@ -881,4 +1241,87 @@ for (Mesh mesh:Starfish.getMeshList())
 	    /*close output file*/
 	    out.close();
   	}
+    
+    /**
+     * Saves the mesh along with the specified 2D data and 1D (constant along j index) data
+     * This function saves in Paraview format
+     * @param file_name file name
+     * @param fields2d list of 2D fields to save
+     * @param fields1d list of 1D fields to save
+     */
+    public void save(String file_name, LinkedHashMap<String,Field2D> fields2d, 
+	    LinkedHashMap<String,Field1D> fields1d) 
+	{
+	    /*open file*/
+	    PrintWriter pw = null;
+	    try 
+	    {
+		pw = new PrintWriter(new FileWriter(file_name));
+	    } 
+	    catch (IOException ex) 
+	    {
+		Log.error("Failed to open input file "+file_name);
+	    }
+	    
+	    pw.println("<?xml version=\"1.0\"?>");
+	    pw.println("<VTKFile type=\"StructuredGrid\">");
+	    pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", ni-1,nj-1);
+	    pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n",ni-1,nj-1);
+	   
+	    pw.println("<Points>");
+	    pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
+	    for (int j=0;j<nj;j++)
+		for	(int i=0;i<ni;i++)
+		{
+		    double x[] = pos(i,j);			
+		    pw.printf("%g %g 0 ", x[0], x[1]);
+		}
+	    pw.println("\n</DataArray>");
+	    pw.println("</Points>");
+	
+	    pw.println("<PointData>");
+	    pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
+	    for (int j=0;j<nj;j++)
+		for	(int i=0;i<ni;i++)
+		    pw.printf("%d ",getNode(i,j).type.ordinal());
+	    pw.println("\n</DataArray>");
+	
+	    /*2d data*/
+	    for (Map.Entry<String, Field2D> pair : fields2d.entrySet()) 
+	    {
+		String var = pair.getKey();
+		Field2D field = pair.getValue();	    
+		double data[][] = field.getData();
+	    
+		pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+		for (int j=0;j<nj;j++)
+		    for (int i=0;i<ni;i++)
+			pw.printf("%g ",(data[i][j]));
+		pw.println("\n</DataArray>");
+	    }
+	    
+	    /*1d data*/
+	    for (Map.Entry<String, Field1D> pair : fields1d.entrySet()) 
+	    {
+		String var = pair.getKey();
+		Field1D field = pair.getValue();	    
+		double data[]= field.getData();
+	    
+		pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+		for (int j=0;j<nj;j++)
+		    for (int i=0;i<ni;i++)
+			pw.printf("%g ",(data[i]));
+		pw.println("\n</DataArray>");
+	    }
+		
+	pw.println("</PointData>");		 
+	pw.println("</Piece>");
+	pw.println("</StructuredGrid>");
+	pw.println("</VTKFile>");
+	/*save output file*/
+        pw.close();
+   
+    }
+
+
 }

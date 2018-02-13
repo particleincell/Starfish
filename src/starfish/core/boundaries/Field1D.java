@@ -10,7 +10,8 @@ package starfish.core.boundaries;
 /** 1D field holding a single scalar*/
 public class Field1D 
 {
-    /**constructor*/
+    /**constructor
+     * @param boundary*/
     public Field1D (Boundary boundary) 
     {
 	this.boundary = boundary;
@@ -21,6 +22,11 @@ public class Field1D
 	data = new double[ni]; 
     }
 
+    /**
+     *
+     * @param boundary
+     * @param values
+     */
     public Field1D(Boundary boundary, double values[]) 
     {
 	this(boundary);
@@ -29,27 +35,56 @@ public class Field1D
 	System.arraycopy(values, 0, data, 0, ni);
     }
     
+    /**constructor for an arbitrary non-attached field*/
+    public Field1D(int ni)
+    {
+	this.boundary = null;
+	this.ni = ni;
+	data = new double[ni];	
+    }
+    
     /*variables*/
     final int ni;
     
-    double data[]; /*public for easy access*/
+    public double data[]; /*public for easy access*/
     final Boundary boundary;
 
+    /**
+     *
+     * @return
+     */
     public int getNi() {return ni;}
+
+    /**
+     *
+     * @return
+     */
     public Boundary getBoundary() {return boundary;}
+
+    /**
+     *
+     * @param t
+     * @return
+     */
     public double[] pos(double t) {return boundary.pos(t);}
     /*methods*/
     
-    /**at: returns value at [i]*/
+    /**at: returns value at [i
+     * @param i]
+     * @return */
     public double at(int i) {return data[i];}
 
-    /**set: sets value at i,j*/
+    /**set: sets value at i,
+     * @param i
+     * @param vj*/
     public void set(int i, double v) {data[i]=v;}
     
-    /**returns pointer to data*/
+    /**returns pointer to dat
+     * @return a*/
     public double[] getData() {return data;}
 	    
-    /**replaces field data, shallow replace (reference only)*/
+    /**replaces field data, shallow replace (reference only
+     * @param data)*/
     public void setDataShallow(double data[]) 
     {
 	if (data.length!=ni)
@@ -58,7 +93,8 @@ public class Field1D
 	this.data = data;  
     }
 	
-    /**copies data from one field to another, deep copy*/
+    /**copies data from one field to another, deep copy
+     * @param NI*/
     public void copy(Field1D NI) 
     {
 	if (data.length!=ni)
@@ -73,40 +109,53 @@ public class Field1D
 	setValue(0);
     }
 
-    /**sets all data to the same value*/
+    /**sets all data to the same valu
+     * @param valuee*/
     public void setValue(double value) 
     {
 	for (int i=0;i<ni;i++)
 	    data[i]=value;
     }
 
-    /**adds a scalar to all values*/
+    /**adds a scalar to all value
+     * @param vals*/
     public void add(double val) 
     {
 	for (int i=0;i<ni;i++)
 	    data[i]+=val;
     }
     
-    /**adds field to this one*/
+    /**adds field to this on
+     * @param fielde*/
     public void add(Field1D field) 
     {
 	for (int i=0;i<ni;i++)
 	    data[i]+=field.data[i];
     }
     
-    
+    /**
+     *
+     * @param i
+     * @param val
+     */
     public void add(int i, double val) 
 	{
 		data[i]+=val;
     }
     
-    /**fills the entire array the value*/
+    /**fills the entire array the valu
+     * @param vale*/
     public void fill(double val)
     {
 	for (int i=0;i<ni;i++)
 	    data[i]=val;
     }
 
+    /**
+     *
+     * @param fi
+     * @param val
+     */
     public void scatter(double fi[], double val)
     {
 	scatter(fi[0], val);
@@ -114,6 +163,8 @@ public class Field1D
     
     /** Scatter
      * Distributes val to surroudning nodes
+     * @param fi
+     * @param val
      */
     public void scatter(double fi, double val)
     {
@@ -133,6 +184,11 @@ public class Field1D
 	}
     }
     
+    /**
+     *
+     * @param fi
+     * @return
+     */
     public double gather(double fi)
     {
 	int i = (int)fi;
@@ -146,6 +202,13 @@ public class Field1D
     }
 	
     /*like gather but allows evaluation of position along mesh edges*/
+
+    /**
+     *
+     * @param fi
+     * @return
+     */
+
     public double gather_safe(double fi)
     {
 	if (fi==(ni-1))
@@ -153,6 +216,12 @@ public class Field1D
 	else return gather(fi);
     }
 	
+    /**
+     *
+     * @param fi
+     * @param fj
+     * @return
+     */
     public double gather_safe(double fi, double fj)
     {
 	int i = (int)fi;
@@ -167,7 +236,8 @@ public class Field1D
         return v;	
     }
 
-    /**divides every node value by a corresponding value in another topologically identical field*/
+    /**divides every node value by a corresponding value in another topologically identical fiel
+     * @param fieldd*/
     public void divideByField(Field1D field) 
     {
 	if (ni!=field.ni)
@@ -180,7 +250,10 @@ public class Field1D
 		data[i] = 0;
     }
 
-    /**allocates a 2D ni*nj array*/
+    /**allocates a 2D ni*nj arra
+     * @param niy
+     * @param nj
+     * @return */
     public static double[][] Alloc2D(int ni, int nj)
     {
 	double data[][] = new double[ni][];
@@ -189,12 +262,18 @@ public class Field1D
 	return data;
     }
 	
+    /**
+     *
+     * @param src
+     * @param dest
+     */
     public static void DataCopy(double[] src, double[] dest) 
     {
 	System.arraycopy(src,0,dest,0,dest.length);
     }
 
-    /**returns min/max range of values*/
+    /**returns min/max range of value
+     * @return s*/
     public double[] getRange() 
     {
 	double range[] = new double[2];
@@ -209,7 +288,8 @@ public class Field1D
 	return range;
     }
 
-    /**multiplies data by f*/
+    /**multiplies data by
+     * @param ff*/
     public void mult(double f) 
     {
 	for (int i=0;i<ni;i++) data[i]*=f;
@@ -226,4 +306,23 @@ public class Field1D
 	    else data[i]=0;
 	}
     }
+    
+    /**obtains logical coordinate assuming increasing data
+     * @param x value to get index of
+     * @return the logical coordinate or -1 if not found
+     */
+    public double getLC(double x)
+    {
+	for (int i=0;i<ni-1;i++)
+	{
+	    if (x>=data[i] && x<=data[i+1])
+	    {
+		double f = (x-data[i])/(data[i+1]-data[i]);
+		return i+f;
+	    }
+	}
+	
+	return -1;
+    }
+    
 }

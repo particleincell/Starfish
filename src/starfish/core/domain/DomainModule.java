@@ -13,7 +13,6 @@ import java.util.NoSuchElementException;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Spline;
 import starfish.core.common.CommandModule;
-import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.FieldCollection2D.MeshEvalFun;
@@ -24,23 +23,44 @@ import starfish.core.materials.Material;
 /** Module for generating 2D field meshes*/
 public class DomainModule extends CommandModule
 {
+
+    /**
+     *
+     * @return
+     */
     public DomainType getDomainType() 	{return domain_type;}
 
-    static public enum DomainType {XY, RZ, ZR};
+    /**
+     *
+     */
+    static public enum DomainType { 
+	XY, 
+	RZ, 
+	ZR};
     DomainType domain_type;
     
+    /**
+     *
+     */
     protected ArrayList<Mesh> mesh_list = new ArrayList<Mesh>();
     
+    /**
+     *
+     */
     protected FieldManager2D field_manager;
 	
-    /** returns mesh list and also performs intersection on first call*/
+    /** returns mesh list and also performs intersection on first cal
+     * @return l*/
     public ArrayList<Mesh> getMeshList() {return mesh_list;}
 	
-    /** returns field manager*/
+    /** returns field manage
+     * @return r*/
     public FieldManager2D getFieldManager() {return field_manager;}
 	
     /*TODO: clean up this mess, maybe a separate field manager module to check across materials*/
-    /**returns appropriate field, smart check for species and average values*/
+    /**returns appropriate field, smart check for species and average value
+     * @param var_name
+     * @return s*/
     public FieldCollection2D getFieldCollection(String var_name) 
     {
 	/*first see if we have a species variable*/
@@ -63,15 +83,24 @@ public class DomainModule extends CommandModule
 	return field_manager.getFieldCollection(var_name);
     }
 	
-    /**returns appropriate field, smart check for species and average values*/
+    /**returns appropriate field, smart check for species and average value
+     * @param mesh
+     * @param var_name
+     * @return */
     public Field2D getField(Mesh mesh, String var_name) 
     {
 	return getFieldCollection(var_name).getField(mesh);
     }
 	
+    /**
+     *
+     * @param mesh
+     */
     public void addMesh(Mesh mesh) {mesh_list.add(mesh);}
 	
-    /**returns the mesh containing the point x or null*/
+    /**returns the mesh containing the point x or nul
+     * @param xl
+     * @return */
     public Mesh getMesh(double x[])
     {
 	for (Mesh mesh:mesh_list)
@@ -86,7 +115,9 @@ public class DomainModule extends CommandModule
 	return null;
     }
 			
-   /**returns the first mesh with the given name*/
+   /**returns the first mesh with the given nam
+     * @param name
+     * @return e*/
     public Mesh getMesh(String name)
     {
 	for (Mesh mesh:mesh_list)
@@ -138,7 +169,8 @@ public class DomainModule extends CommandModule
 	field_manager.add("p","Pa",EvalPressure);   //pressure
     }
 	
-    /**processes <mesh> node*/
+    /**processes &lt; mesh %gt; nod
+     * @param elemente*/
     protected void AddMesh(Element element)
     {
 	
@@ -306,20 +338,97 @@ public class DomainModule extends CommandModule
     }
     
     /*accessors*/
+
+    /**
+     *
+     * @param mesh
+     * @return
+     */
+
     public Field2D getPhi(Mesh mesh) {return getPhi().getField(mesh);}
+
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getRho(Mesh mesh) {return getRho().getField(mesh);}
+
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getEfi(Mesh mesh) {return getEfi().getField(mesh);}
+
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getEfj(Mesh mesh) {return getEfj().getField(mesh);}
+
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getBfi(Mesh mesh) {return getBfi().getField(mesh);}
+
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getBfj(Mesh mesh) {return getBfj().getField(mesh);}
+
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getP(Mesh mesh) {return getPressure().getField(mesh);}
 
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getPhi() {return field_manager.getFieldCollection("phi");}
+
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getRho() {return field_manager.getFieldCollection("rho");}
+
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getEfi() {return field_manager.getFieldCollection("efi");}
+
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getEfj() {return field_manager.getFieldCollection("efj");}
+
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getBfi() {return field_manager.getFieldCollection("bfi");}
+
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getBfj() {return field_manager.getFieldCollection("bfj");}
+
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getPressure() {return field_manager.getFieldCollection("p");}
 
     

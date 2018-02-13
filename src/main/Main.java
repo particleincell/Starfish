@@ -1,8 +1,6 @@
-/** \mainpage Main Page
- * Starfish is a general 2D plasma/fluid hybrid Cartesian/axi-symmetric code
- * Copyright (c) 2012-2014, Particle In Cell Consulting LLC
+/** Starfish is a general 2D plasma/fluid hybrid Cartesian/axi-symmetric code
  * 
- * Version 0.1 LE (academic or research light version), Development Version
+ * Starfish-LE, Academic or research light version
  * Contact Info: info@particleincell.com
  * 
  * The most recent version can be downloaded from:
@@ -26,7 +24,6 @@
  *    or personal benefit, and not for any commercial purpose or for monetary gain. 
  *    This version, or any derivation based upon it, may not be sold without a 
  *    prior approval of the copyright holder.
- * \internal
  */
 
 package main;
@@ -39,7 +36,12 @@ import starfish.core.common.Starfish;
 /**wrapper to launch starfish with no plugin*/
 public class Main
 {
-     public static void main(String args[]) 
+ 
+    /** Execution entry point. Creates a new instance of Starfish class and calls
+     * its start function with a list of optional plugins.
+     * @param args Command line arguments
+     */
+    public static void main(String args[]) 
     {
 	/*demo of starting Starfish with plugins*/
 	ArrayList<Plugin> plugins = new ArrayList<Plugin>();

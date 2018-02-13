@@ -15,10 +15,21 @@ import starfish.core.solver.Solver;
 import starfish.core.solver.SolverModule;
 
 /*Solver that does nothing*/
+
+/**
+ *
+ * @author Lubos Brieda
+ */
+
 public class ConstantEF extends Solver
 {
     double ei0,ej0;
 	
+    /**
+     *
+     * @param ei
+     * @param ej
+     */
     public ConstantEF(double ei, double ej)
     {
 	    super();
@@ -34,6 +45,9 @@ public class ConstantEF extends Solver
 	    Starfish.domain_module.getPhi(mesh).clear();	
     }
 	
+    /**
+     *
+     */
     @Override
     public void updateGradientField()
     {
@@ -52,6 +66,9 @@ public class ConstantEF extends Solver
 	}
     }
     
+    /**
+     *
+     */
     public static SolverModule.SolverFactory constantEFSolverFactory = new SolverModule.SolverFactory()
     {
 	@Override

@@ -5,32 +5,63 @@ import java.util.Vector;
 import javax.swing.table.DefaultTableModel;
 
 import starfish.core.common.Starfish;
-import starfish.core.domain.DomainModule;
 import starfish.core.domain.UniformMesh;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 @SuppressWarnings("serial")
 public class DomainUniformModel extends DefaultTableModel {
 
-	public DomainUniformModel() {
+    /**
+     *
+     */
+    public DomainUniformModel() {
 	}
 
-	public DomainUniformModel(int rowCount, int columnCount) {
+    /**
+     *
+     * @param rowCount
+     * @param columnCount
+     */
+    public DomainUniformModel(int rowCount, int columnCount) {
 		super(rowCount, columnCount);
 	}
 
-	public DomainUniformModel(Vector columnNames, int rowCount) {
+    /**
+     *
+     * @param columnNames
+     * @param rowCount
+     */
+    public DomainUniformModel(Vector columnNames, int rowCount) {
 		super(columnNames, rowCount);
 	}
 
-	public DomainUniformModel(Object[] columnNames, int rowCount) {
+    /**
+     *
+     * @param columnNames
+     * @param rowCount
+     */
+    public DomainUniformModel(Object[] columnNames, int rowCount) {
 		super(columnNames, rowCount);
 	}
 
-	public DomainUniformModel(Vector data, Vector columnNames) {
+    /**
+     *
+     * @param data
+     * @param columnNames
+     */
+    public DomainUniformModel(Vector data, Vector columnNames) {
 		super(data, columnNames);
 	}
 
-	public DomainUniformModel(Object[][] data, Object[] columnNames) {
+    /**
+     *
+     * @param data
+     * @param columnNames
+     */
+    public DomainUniformModel(Object[][] data, Object[] columnNames) {
 		super(data, columnNames);
 	}
 
@@ -40,7 +71,11 @@ public class DomainUniformModel extends DefaultTableModel {
        return false;
     }
 	
-	public void addRowChangeStarfish(Object[] rowData) {
+    /**
+     *
+     * @param rowData
+     */
+    public void addRowChangeStarfish(Object[] rowData) {
 		//Name origin spacing nodes
 		UniformMesh newMesh = new UniformMesh(Integer.valueOf(rowData[5].toString()), 
 				Integer.valueOf(rowData[6].toString()), 
@@ -55,12 +90,19 @@ public class DomainUniformModel extends DefaultTableModel {
 		super.addRow(rowData);
 	}
 	
-	public void removeRowChangeStarfish(int rowNumber) {
+    /**
+     *
+     * @param rowNumber
+     */
+    public void removeRowChangeStarfish(int rowNumber) {
 		Starfish.domain_module.getMeshList().remove(Starfish.domain_module.getMesh(super.getValueAt(rowNumber, 0).toString()));
 		super.removeRow(rowNumber);
 	}
 	
-	public void removeAllRows() {
+    /**
+     *
+     */
+    public void removeAllRows() {
 		int num = super.getRowCount();
 		for(int i = num-1; i >= 0; i--) {
 			removeRow(i);

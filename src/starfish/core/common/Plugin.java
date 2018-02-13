@@ -7,7 +7,15 @@
 
 package starfish.core.common;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 abstract public interface Plugin
 {
+
+    /**
+     *
+     */
     public void register();
 }

@@ -5,6 +5,10 @@ import java.awt.*;
 // did you know that you could import inner classes?
 import java.lang.Thread.*;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class DefaultExceptionHandler implements UncaughtExceptionHandler {
   public void uncaughtException(Thread t, Throwable e) {
     // Here you should have a more robust, permanent record of problems

@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.NoSuchElementException;
 import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
-import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.Mesh;
@@ -21,16 +20,28 @@ import starfish.pic.FluidElectronsMaterial;
 import starfish.pic.PoissonSolver;
 import starfish.pic.QNSolver;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class SolverModule extends CommandModule
 {
     /*set default solver to no-field*/
     Solver solver=new ConstantEF(0, 0);
 
+    /**
+     *
+     * @param solver
+     */
     public void addSolver(Solver solver)
     {
 	this.solver=solver;
     }
 
+    /**
+     *
+     * @return
+     */
     public Solver getSolver()
     {
 	return solver;
@@ -83,12 +94,27 @@ public class SolverModule extends CommandModule
 	solver.initial_only = initial_only;
     }
 
+    /**
+     *
+     */
     public interface SolverFactory 
     {
+
+	/**
+	 *
+	 * @param element
+	 * @return
+	 */
 	public Solver makeSolver(Element element);
     }
     
     static HashMap<String,SolverFactory> solver_factories = new HashMap<String,SolverFactory>();
+
+    /**
+     *
+     * @param name
+     * @param fac
+     */
     public static void registerSolver(String name, SolverFactory fac)
     {
 	solver_factories.put(name.toUpperCase(),fac);
@@ -101,6 +127,9 @@ public class SolverModule extends CommandModule
 	solver.exit();
     }
 
+    /**
+     *
+     */
     public void updateFields()
     {
 	if (solver.initial_only && !solver.first) return;

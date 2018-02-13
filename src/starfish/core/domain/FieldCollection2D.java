@@ -26,6 +26,12 @@ import starfish.core.domain.Mesh.NodeType;
 /**inner class holding fields for a particular mesh*/
 public class FieldCollection2D
 {
+
+    /**
+     *
+     * @param mesh_list
+     * @param eval_fun
+     */
     public FieldCollection2D(Iterable<Mesh> mesh_list, MeshEvalFun eval_fun)
     {
 	/*add fields for each mesh*/
@@ -38,35 +44,62 @@ public class FieldCollection2D
     }
 
     /*adds field collection to just a single mesh*/
+
+    /**
+     *
+     * @param mesh
+     * @param eval_fun
+     */
+
     public FieldCollection2D(Mesh mesh, MeshEvalFun eval_fun)
     {
 	fields.put(mesh, new Field2D(mesh));
 	this.eval_fun = eval_fun;
     }
 
+    /**
+     *
+     * @param field
+     * @param eval_fun
+     */
     public FieldCollection2D(Field2D field, MeshEvalFun eval_fun)
     {
 	fields.put(field.getMesh(), field);
 	this.eval_fun = eval_fun;
     }
 
+    /**
+     *
+     * @param fc
+     */
     public FieldCollection2D(FieldCollection2D fc) 
     {
 	this(fc.getMeshes(),fc.getEvalFun());
     }
 
+    /**
+     *
+     * @param fc
+     */
     public void copy(FieldCollection2D fc)
     {
 	for (Mesh mesh: Starfish.getMeshList())
 	    getField(mesh).copy(fc.getField(mesh));
     }
 
+    /**
+     *
+     * @param val
+     */
     public void mult(double val)
     {
 	for (Mesh mesh: Starfish.getMeshList())
 	    getField(mesh).mult(val);
     }
 
+    /**
+     *
+     */
     public int it_last_eval = -1;
     
     /**uses this field's evalFun to update field values*/
@@ -79,15 +112,30 @@ public class FieldCollection2D
 	}
     }
     
+    /**
+     *
+     */
     final protected MeshEvalFun eval_fun;
     
     /**eval fun interface*/
     public interface MeshEvalFun {
+
+	/**
+	 *
+	 * @param fc2
+	 */
 	public void eval(FieldCollection2D fc2);
     }
+
+    /**
+     *
+     * @return
+     */
     public MeshEvalFun getEvalFun() {return eval_fun;}
     
-    /**returns field for the mesh, creates a new field if not yet in the collection*/
+    /**returns field for the mesh, creates a new field if not yet in the collectio
+     * @param meshn
+     * @return */
     public Field2D getField(Mesh mesh) 
     {
 	/*do we already have this mesh in the list?*/
@@ -100,7 +148,16 @@ public class FieldCollection2D
 	return field;
     }
 	
+    /**
+     *
+     * @return
+     */
     public Field2D[] getFields() {return fields.values().toArray(new Field2D[fields.values().size()]);}
+
+    /**
+     *
+     * @return
+     */
     public Set<Mesh> getMeshes() {return fields.keySet();}
 	
     HashMap<Mesh,Field2D> fields = new HashMap<Mesh,Field2D>();
@@ -217,14 +274,16 @@ public class FieldCollection2D
 	}	/*for mesh loop*/	
     }
 
-    /**sets the entire collection to a constant value*/
+    /**sets the entire collection to a constant valu
+     * @param valuee*/
     public void setValue(double value) 
     {
 	for (Field2D field:this.fields.values())
 	    field.setValue(value);
     }
 
-    /**adds values from another field collection to this one*/
+    /**adds values from another field collection to this on
+     * @param othere*/
     public void addData(FieldCollection2D other)
     {
 	for (Mesh mesh:getMeshes())
@@ -233,6 +292,10 @@ public class FieldCollection2D
 	}
     }
     
+    /**
+     *
+     * @return
+     */
     public double[] getRange() 
     {
 	double range[] = new double[2];
@@ -250,7 +313,9 @@ public class FieldCollection2D
     }
 
     /**returns value at position x, or throws an exception if
-     * the position is not contained within any of the meshes*/
+     * the position is not contained within any of the meshe
+     * @param xs
+     * @return */
     public double eval(double[] x) 
     {
 	for (Mesh mesh:fields.keySet())
@@ -269,6 +334,15 @@ public class FieldCollection2D
     }
     
     /*multiplies two field collections by each other and a scalar, and return the product*/
+
+    /**
+     *
+     * @param fc1
+     * @param fc2
+     * @param scalar
+     * @return
+     */
+
     public static FieldCollection2D mult(FieldCollection2D fc1, FieldCollection2D fc2, double scalar)
     {
 	FieldCollection2D res = new FieldCollection2D(fc1.getMeshes(),null);

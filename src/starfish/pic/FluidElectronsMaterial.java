@@ -16,6 +16,12 @@ import starfish.core.materials.Material;
 /** electrons from ne=n0*exp((phi-phi0)/kTe)*/
 public class FluidElectronsMaterial extends Material
 {
+
+    /**
+     *
+     * @param index
+     * @param name
+     */
     public FluidElectronsMaterial(int index, String name) 
     {
 	super(name, Constants.ME/Constants.AMU, -1, false);
@@ -31,12 +37,30 @@ public class FluidElectronsMaterial extends Material
 	this.getTempCollection().setValue(Starfish.solver_module.getSolver().kTe0/Constants.KtoEV);
     }
 	
+    /**
+     *
+     */
     public interface ElectronModel {
+
+	/**
+	 *
+	 * @param material
+	 */
 	public void update(Material material);
     }
     
     /*TODO: specify model from input file*/
+
+    /**
+     *
+     */
+
     protected ElectronModel model = electronModelNone;
+
+    /**
+     *
+     * @param model
+     */
     public void setElectronModel (ElectronModel model) {this.model=model;}
     
     @Override
@@ -45,7 +69,9 @@ public class FluidElectronsMaterial extends Material
 	model.update(this);	
     }
     
-    
+    /**
+     *
+     */
     public static ElectronModel electronModelNone = new ElectronModel()	    
     {
 	@Override
@@ -56,6 +82,11 @@ public class FluidElectronsMaterial extends Material
     };
     
     /*sets electron density equal to ion density*/
+
+    /**
+     *
+     */
+
     public static ElectronModel electronModelQN = new ElectronModel()	    
     {
 	@Override
@@ -67,6 +98,9 @@ public class FluidElectronsMaterial extends Material
 	}
     };
     
+    /**
+     *
+     */
     public static ElectronModel electronModelBoltzmann = new ElectronModel()	    
     {
 	@Override

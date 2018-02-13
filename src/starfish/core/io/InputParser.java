@@ -25,7 +25,8 @@ public class InputParser implements Iterable
 {
     Node root_element;
 	
-    /** constructor*/
+    /** constructo
+     * @param file_name*/
     public InputParser(String file_name)
     {
 	/*recursively load the entire file*/
@@ -34,8 +35,9 @@ public class InputParser implements Iterable
 	
     /**
     * Recursively loads an input file, 
-    * replaces <load>name</load> elements with the content from the specified file
-    * @param file_name 
+    * replaces {@code <load>} XML elements with the content from the specified file
+    * @param file_name file to load
+    * @return root node of the loaded element
     */
     protected final Node Load(String file_name)
     {	
@@ -77,13 +79,18 @@ public class InputParser implements Iterable
 	return root;
     }
 
-    /**@return first child, i.e. the text in <tag>text</tag>*/
+    /** 
+     * @param element parent element 
+     * @return first child, i.e. the text in {@code <tag>text</tag>}*/
     public static String getFirstChild(Element element) 
     {
 	return element.getFirstChild().getNodeValue();
     }
 
-    /**@return first element named key that is a child of element*/
+    /**
+     * @param key key name* 
+     * @param element source element
+     * @return first element named key that is a child of element */
     public static Element getChild(String key, Element element) 
     {
 	Iterator<Element> iterator = InputParser.iterator(element);
@@ -97,7 +104,9 @@ public class InputParser implements Iterable
 	return null;		
     }
 
-    /**@return all children with the named key*/
+    /**@return all children with the named key
+     @param key key name
+     @param element source element*/
     public static Element[] getChildren(String key, Element element)
     {
 	ArrayList<Element> list = new ArrayList<Element>();
@@ -112,12 +121,10 @@ public class InputParser implements Iterable
 	return list.toArray(new Element [0]);
     }
 
-    /**returns value associated with the given key, can be stored as
-     * an attribute or a node value
-     * 
-     * @param key
-     * @param element
-     * @return 
+    /**Searches source element for the specified key which can be given as an attribute or a node and returns the value
+     * @param key key name
+     * @param element source element
+     * @return key value
      */
     private static String getValueInternal(String key, Element element) throws NoSuchElementException
     {
@@ -153,7 +160,11 @@ public class InputParser implements Iterable
 	throw new NoSuchElementException("Could not find <"+key+"> in <"+element.getNodeName()+">");
     }
 
-    /**returns value associated with the given key or the default if not found*/
+    /**returns string value associated with the given key or the default if not found
+     * @param key key to search for
+     * @param element source element
+     * @param default_value default value to return if key not found
+     * @return key value*/
     public static String getValue(String key, Element element, String default_value)
     {
 	try
@@ -166,6 +177,13 @@ public class InputParser implements Iterable
 	}	
     }
 
+    /**
+     * Returns string value associated with a certain key within a parent element. 
+     * Function will error out if key not found
+     * @param key key to search for
+     * @param element source element
+     * @return string value of the key if found
+     */
     public static String getValue(String key, Element element) 
     {
 	try{ return getValueInternal(key,element);}
@@ -173,15 +191,21 @@ public class InputParser implements Iterable
 	return null;	/*this will never happen*/
     }
 	
-    /**convenience method to parse an int*/
-    public static boolean getBoolean(String key, Element element) throws NumberFormatException
+    /**convenience method to parse "true" or "yes" as boolean, any other value results in false
+     * @param key key to search for
+     * @param element source element
+     * @return boolean if found or throws an exception if not found*/
+    public static boolean getBoolean(String key, Element element) throws NoSuchElementException
     {
 	String val = getValueInternal(key,element);
-	if (val.equalsIgnoreCase("true") || val.equalsIgnoreCase("yes")) return true;
-	else return false;
+	return val.equalsIgnoreCase("true") || val.equalsIgnoreCase("yes");
     }	
 
-    /**convenience method to parse an int*/
+    /**convenience method to parse a boolean. Returns default value if key not found.
+     * @param key key to search for
+     * @param element source element
+     * @param default_value default value if key not found
+     * @return boolean value or default if key not found*/
     public static boolean getBoolean(String key, Element element, boolean default_value) 
     {
 	try {
@@ -193,12 +217,15 @@ public class InputParser implements Iterable
 	}
     }
 
-    /**convenience method to parse an int*/
+    /**convenience method to parse an integer.
+     * @param key key to search for
+     * @param element source element
+     * @return key value, or an exception if data cannot be converted to an integer*/
     public static int getInt(String key, Element element) throws NumberFormatException
     {
 	String str = getValueInternal(key,element);
 
-	/*first conver to double to allow for "e" syntax of large numbers*/
+	/*first convert to double to allow for "e" syntax of large numbers*/
 	int i=0;
 
 	try 
@@ -214,7 +241,11 @@ public class InputParser implements Iterable
 	return i;
     }	
 
-    /**convenience method to parse an int*/
+    /**convenience method to parse an integer. Returns a default value if key not found.
+     * @param key key to search for
+     * @param default_value default value
+     * @param element source element
+     * @return key value, or default if key not found*/
     public static int getInt(String key, Element element, int default_value) 
     {
 	try {
@@ -228,7 +259,13 @@ public class InputParser implements Iterable
 	return getInt(key,element);
     }
     
-        public static int[] getIntList(String name, Element element) 
+    /**
+     *
+     * @param name
+     * @param element
+     * @return
+     */
+    public static int[] getIntList(String name, Element element) 
     {
 	String list[] = getList(name,element);
 	int c[] = new int[list.length];
@@ -240,7 +277,15 @@ public class InputParser implements Iterable
 
 	return c;
     }
-      public static int[] getIntegerList(String key, Element element, int[] default_value)
+
+    /**
+     *
+     * @param key
+     * @param element
+     * @param default_value
+     * @return
+     */
+    public static int[] getIntegerList(String key, Element element, int[] default_value)
     {
 	try {
 	    return getIntList(key,element);
@@ -252,7 +297,10 @@ public class InputParser implements Iterable
     }
 
 
-    /**convenience method to parse doubles*/
+    /**convenience method to parse double
+     * @param key
+     * @param element
+     * @return s*/
     public static double getDouble(String key, Element element) 
     {
 	try {
@@ -265,7 +313,11 @@ public class InputParser implements Iterable
 	}
     }
 
-    /**convenience method for parsing doubles*/
+    /**convenience method for parsing double
+     * @param key
+     * @param element
+     * @param default_value
+     * @return */
     public static double getDouble(String key, Element element, double default_value)
     {
 	try {
@@ -277,8 +329,11 @@ public class InputParser implements Iterable
 	}		
     }
 
-    /** returns values from a field such as <node_name>aa, bb, cc</node_name> as string list
+    /** returns values from a field such as &lt;node_name&gt;aa, bb, cc&lt;/node_name&gt; as string list
      * strings separator is "," and leading/trailing whitespace is removed
+     * @param node_name
+     * @param element
+     * @return 
      */
     public static String[] getList(String node_name, Element element)
     {
@@ -292,7 +347,10 @@ public class InputParser implements Iterable
 	return list.toArray(new String[0]);
     }
 
-     /** @return values from a field such as <node_name>[aa, bb], [cc, dd]</node_name> as string list     
+     /**
+     * @param node_name
+     * @param element *  @return values from a field such as {@code <node_name>[aa, bb], [cc, dd]</node_name>} as string list     
+     * @return      
      */
     public static ArrayList<String[]> getListOfPairs(String node_name, Element element)
     {
@@ -326,6 +384,12 @@ public class InputParser implements Iterable
 	return list;
     }
 
+    /**
+     *
+     * @param name
+     * @param element
+     * @return
+     */
     public static double[] getDoubleList(String name, Element element) 
     {
 	String list[] = getList(name,element);
@@ -338,7 +402,15 @@ public class InputParser implements Iterable
 
 	return c;
     }
-      public static double[] getDoubleList(String key, Element element, double[] default_value)
+
+    /**
+     *
+     * @param key
+     * @param element
+     * @param default_value
+     * @return
+     */
+    public static double[] getDoubleList(String key, Element element, double[] default_value)
     {
 	
 	double list[] = getDoubleList(key,element);
@@ -355,6 +427,11 @@ public class InputParser implements Iterable
 	return iterator (root_element);
     }
 
+    /**
+     *
+     * @param node
+     * @return
+     */
     static public Iterator<Element> iterator(Node node) 
     {
 	return new ElementIterator (node);

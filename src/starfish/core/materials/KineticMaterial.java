@@ -35,6 +35,15 @@ import starfish.core.common.Vector;
 /** definition of particle-based material*/
 public class KineticMaterial extends Material
 {
+
+    /**
+     *
+     * @param name
+     * @param mass
+     * @param charge
+     * @param spwt0
+     * @param frozen
+     */
     public KineticMaterial(String name, double mass, double charge, double spwt0, boolean frozen)
     {
 	super(name, mass, charge, frozen);
@@ -42,13 +51,26 @@ public class KineticMaterial extends Material
 	this.spwt0 = spwt0;	
     }
     /*specific weight*/
+
+    /**
+     *
+     */
+
     protected double spwt0;
     int sampling_start_it = 0;
 
+    /**
+     *
+     * @return
+     */
     public double getSpwt0()
     {
 	return spwt0;
     }
+
+    /**
+     *
+     */
     protected long part_id_counter = 0;
 
     @Override
@@ -176,6 +198,13 @@ public class KineticMaterial extends Material
     }
 
     /*returns a particle iterator that iterates over all blocks*/
+
+    /**
+     *
+     * @param mesh
+     * @return
+     */
+
     public Iterator<Particle> getIterator(Mesh mesh)
     {
 	return getMeshData(mesh).getIterator();
@@ -354,8 +383,8 @@ public class KineticMaterial extends Material
 	    part.pos[2] += Math.asin(sin);	
 
 	    /*rotate velocity through theta*/
-	    double v1 = part.vel[1];
-	    double v2 = part.vel[2];
+	    double v1 = -part.vel[1];
+	    double v2 = -part.vel[2];
 	    part.pos[1] = R;
 	    part.vel[1] = cos*v1 + sin*v2;
 	    part.vel[2] = -sin*v1 + cos*v2;	    
@@ -619,6 +648,9 @@ public class KineticMaterial extends Material
 
     /**
      * ads a new particle
+     * @param md
+     * @param part
+     * @return 
      */
     public boolean addParticle(MeshData md, Particle part)
     {
@@ -666,6 +698,8 @@ public class KineticMaterial extends Material
 
     /**
      * ads a new particle at the specified position and velocity
+     * @param part
+     * @return 
      */
     public boolean addParticle(Particle part)
     {
@@ -680,6 +714,9 @@ public class KineticMaterial extends Material
 
     /**
      * ads a new particle at the specified position and velocity
+     * @param pos
+     * @param vel
+     * @return 
      */
     public boolean addParticle(double[] pos, double[] vel)
     {
@@ -705,7 +742,7 @@ public class KineticMaterial extends Material
 	double t_mag2;
 
 	int dim;
-
+	
 	/*t vector*/
 	for (dim = 0; dim < 3; dim++)
 	{
@@ -746,9 +783,18 @@ public class KineticMaterial extends Material
 	{
 	    part.vel[dim] = v_plus[dim] + q_over_m * E[dim] * 0.5 * part.dt;
 	}
+
+
     }
     
     /*saves restart data*/
+
+    /**
+     *
+     * @param out
+     * @throws IOException
+     */
+
     @Override
     public void saveRestartData(DataOutputStream out) throws IOException
     {
@@ -793,6 +839,13 @@ public class KineticMaterial extends Material
     }
     
         /*saves restart data*/
+
+    /**
+     *
+     * @param in
+     * @throws IOException
+     */
+
     @Override
     public void loadRestartData(DataInputStream in) throws IOException
     {
@@ -840,7 +893,9 @@ public class KineticMaterial extends Material
 	}		
     }
 
-    /**returns particle with id*/
+    /**returns particle with i
+     * @param id
+     * @return d*/
     public Particle getParticle(long id)
     {
 	for (MeshData md:mesh_data)
@@ -858,24 +913,61 @@ public class KineticMaterial extends Material
     }
 
     /*particle definition*/
+
+    /**
+     *
+     */
+
     static public class Particle
     {
 
+	/**
+	 *
+	 */
 	public double pos[];
+
+	/**
+	 *
+	 */
 	public double vel[];
+
+	/**
+	 *
+	 */
 	public double spwt;
+
+	/**
+	 *
+	 */
 	public double mass;		/*mass of the physical particle*/
 
+	/**
+	 *
+	 */
 	public double lc[];		/*logical coordinate of current position*/
 
+	/**
+	 *
+	 */
 	public double dt;		/*remaining dt to move through*/
 
+	/**
+	 *
+	 */
 	public long id;			/*particle id*/
+
+	/**
+	 *
+	 */
 	public int born_it;
 	
+	/**
+	 *
+	 */
 	public int trace_id = -1;		/*set to >=0 if particle is being traced*/
 
-	/** copy constructor*/
+	/** copy constructo
+	 * @param partr*/
 	public Particle (Particle part) 
 	{   
 	    pos = new double[3];
@@ -891,6 +983,11 @@ public class KineticMaterial extends Material
 	}
 	
 	//	KineticMaterial mat;	/*parent mat*/
+
+	/**
+	 *
+	 * @param mat
+	 */
 	public Particle(KineticMaterial mat)
 	{
 	    pos = new double[3];
@@ -902,12 +999,24 @@ public class KineticMaterial extends Material
 	    born_it = Starfish.getIt();
 	}
 
+	/**
+	 *
+	 * @param spwt
+	 * @param mat
+	 */
 	public Particle(double spwt, KineticMaterial mat)
 	{
 	    this(mat);
 	    this.spwt = spwt;
 	}
 
+	/**
+	 *
+	 * @param pos
+	 * @param vel
+	 * @param spwt
+	 * @param mat
+	 */
 	public Particle(double pos[], double vel[], double spwt, KineticMaterial mat)
 	{
 	    this(spwt, mat);
@@ -923,6 +1032,12 @@ public class KineticMaterial extends Material
 	}
     }
 
+    /**
+     *
+     * @param mesh
+     * @param block
+     * @return
+     */
     public Iterator<Particle> getIterator(Mesh mesh, int block)
     {
 	return getMeshData(mesh).getIterator(block);
@@ -970,6 +1085,9 @@ public class KineticMaterial extends Material
 	    }    
 	}
 	
+	/**
+	 *
+	 */
 	public int num_blocks;
 	Mesh mesh;
 	Field2D Efi, Efj;
@@ -978,7 +1096,8 @@ public class KineticMaterial extends Material
 	ParticleBlock particle_block[];
 	ParticleBlock transfer_block[];	/*particles transferred into this mesh from a neighboring one during the transfer*/
 
-	/**add particle to the list, attempting to keep block sizes equal*/
+	/**add particle to the list, attempting to keep block sizes equa
+	 * @param partl*/
 	public void addParticle(Particle part)
 	{
 	    /*find particle block with fewest particles*/
@@ -1004,7 +1123,8 @@ public class KineticMaterial extends Material
 	    transfer_block[block].particle_list.add(part);
 	}
 	
-	/** returns number of particles*/
+	/** returns number of particle
+	 * @return s*/
 	public long getNp()
 	{
 	    long count=0;
@@ -1012,28 +1132,51 @@ public class KineticMaterial extends Material
 	    return count;
 	}
 	
-	/** returns particle iterator for the given block*/
+	/** returns particle iterator for the given bloc
+	 * @param blockk
+	 * @return */
 	public Iterator<Particle> getIterator(int block) {return particle_block[block].particle_list.iterator();}
 	
-	/** returns iterator that iterates over all particles in all blocks*/
+	/** returns iterator that iterates over all particles in all block
+	 * @return s*/
 	public Iterator<Particle> getIterator() {return new BlockIterator(particle_block);}
 	
-	/** returns transfer particle iterators for the given block*/
+	/** returns transfer particle iterators for the given bloc
+	 * @param block
+	 * @return k*/
 	public Iterator<Particle> getTransferIterator(int block) {return transfer_block[block].particle_list.iterator();}	
     }
+
+    /**
+     *
+     */
     public MeshData mesh_data[];
     
+    /**
+     *
+     */
     public class ParticleBlock
     {
+
+	/**
+	 *
+	 */
 	public LinkedList<Particle> particle_list = new LinkedList<Particle>();
     }
 
+    /**
+     *
+     */
     public class BlockIterator implements Iterator<Particle>
     {
 
 	ParticleBlock blocks[];
 	int b = 0;
 	final int num_blocks;
+
+	/**
+	 *
+	 */
 	protected Iterator<Particle> iterator;
 	
 	BlockIterator (ParticleBlock blocks[])
@@ -1072,7 +1215,11 @@ public class KineticMaterial extends Material
 	
     }
   
-    
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public MeshData getMeshData(Mesh mesh)
     {
 	for (int m = 0; m < mesh_data.length; m++)
@@ -1102,7 +1249,8 @@ public class KineticMaterial extends Material
 	Log.log("Cleared samples in Material "+name);
     }
     
-    /** updates velocity samples and also computes temperature*/
+    /** updates velocity samples and also computes temperatur
+     * @param mde*/
     public void updateSamples(MeshData md)
     {
 	Field2D count_sum = this.field_manager2d.get(md.mesh, "count-sum");

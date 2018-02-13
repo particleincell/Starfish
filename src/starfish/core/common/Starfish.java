@@ -2,9 +2,9 @@ package starfish.core.common;
 
 /**
  * Starfish is a general 2D plasma/fluid hybrid Cartesian/axi-symmetric code
- * Copyright (c) 2012-2017, Particle In Cell Consulting LLC
+ * Copyright (c) 2012-2018, Particle In Cell Consulting LLC
  * 
- * Version 0.17 LE (academic or research light version), Development Version
+ * Version 0.18 LE (academic or research light version), Development Version
  * Contact Info: info@particleincell.com
  * 
  * The most recent version can be downloaded from:
@@ -55,6 +55,10 @@ import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
 import starfish.core.source.SourceModule;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public final class Starfish extends CommandModule implements UncaughtExceptionHandler
 {    	
     /**simulation main loop*/
@@ -105,6 +109,11 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	    Log.warning("The simulation failed to reach steady state!");	
     }
 
+    /**
+     *
+     * @param args
+     * @param plugins
+     */
     public void start(final String[] args, List<Plugin> plugins)
     {
 	/*initialize logger*/
@@ -139,7 +148,8 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	Log.message("Done!");
     }
 		
-    /** sequentially calls commands from the input file*/
+    /** sequentially calls commands from the input fil
+     * @param file_namee*/
     protected void ProcessInputFile(String file_name)
     {
 	InputParser parser = new InputParser(file_name);
@@ -163,72 +173,268 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     }
 
     /*module instances*/
+
+    /**
+     *
+     */
+
     public static NoteModule note;
+
+    /**
+     *
+     */
     public static DomainModule domain_module;
+
+    /**
+     *
+     */
     public static BoundaryModule boundary_module;
+
+    /**
+     *
+     */
     public static SourceModule source_module;
+
+    /**
+     *
+     */
     public static SolverModule solver_module;
+
+    /**
+     *
+     */
     public static OutputModule output_module;
+
+    /**
+     *
+     */
     public static TimeModule time_module;
+
+    /**
+     *
+     */
     public static MaterialsModule materials_module;
+
+    /**
+     *
+     */
     public static InteractionsModule interactions_module;
+
+    /**
+     *
+     */
     public static RestartModule restart_module;
+
+    /**
+     *
+     */
     public static LoggerModule logger_module;
+
+    /**
+     *
+     */
     public static AnimationModule animation_module;
+
+    /**
+     *
+     */
     public static AveragingModule averaging_module;
+
+    /**
+     *
+     */
     public static ParticleTraceModule particle_trace_module;
+
+    /**
+     *
+     */
     public static StatsModule stats_module;
 
     /*iterable list of registered modules, using LinkedHashMap to get predictable ordering*/
     static LinkedHashMap<String,CommandModule> modules = new LinkedHashMap<String,CommandModule>();
     static HashMap<String,CommandModule> getModulesList() {return modules;}
+
+    /**
+     *
+     * @param name
+     * @param module
+     */
     public static void register(String name, CommandModule module) {modules.put(name, module);}
 	
     /*random number generator*/
     static Random random = new Random(0);
+
+    /**
+     *
+     * @return
+     */
     static public double rnd() {return random.nextDouble();} //[0,1)
+
+    /**
+     *
+     * @return
+     */
     static public double rndEx0() {double r; do {r=rnd();} while (r==0.0); return r;} //(0,1)
+
+    /**
+     *
+     * @return
+     */
     static public double rnd2() {return -1.0+2*random.nextDouble();}  //[-1,1)
 	
     /*code version*/
     static String VERSION = "v0.18 LE  (Development)";
+
+    /**
+     *
+     */
     static public String HEADER_MESSAGE = "General 2D Plasma / Gas Kinetic Code\n ";
     	
     /*accessors*/
+
+    /**
+     *
+     * @param name
+     * @return
+     */
+
     public static FieldCollection2D getFieldCollection(String name) {return domain_module.getFieldCollection(name);}
 	
+    /**
+     *
+     * @param name
+     * @return
+     */
     public static Boundary getBoundary(String name) {return boundary_module.getBoundary(name);}
 			
+    /**
+     *
+     * @return
+     */
     public static DomainModule.DomainType getDomainType() {return domain_module.getDomainType();}
     
+    /**
+     *
+     * @return
+     */
     public static ArrayList<Boundary> getBoundaryList() {return boundary_module.getBoundaryList();}
+
+    /**
+     *
+     * @return
+     */
     public static ArrayList<Mesh> getMeshList() {return domain_module.getMeshList();}
 	
+    /**
+     *
+     * @param name
+     * @return
+     */
     public static Material getMaterial(String name) {return materials_module.getMaterial(name);}
+
+    /**
+     *
+     * @param mat_index
+     * @return
+     */
     public static Material getMaterial(int mat_index) {return materials_module.getMaterial(mat_index);}
 
+    /**
+     *
+     * @return
+     */
     public static ArrayList<Material> getMaterialsList() {return materials_module.getMaterialsList();}
+
+    /**
+     *
+     * @return
+     */
     public static ArrayList<VolumeInteraction> getInteractionsList() {return interactions_module.getInteractionsList();}
 
+    /**
+     *
+     * @return
+     */
     public static double getDt() {return time_module.getDt();}
+
+    /**
+     *
+     * @return
+     */
     public static int getIt() {return time_module.getIt();}
+
+    /**
+     *
+     * @return
+     */
     public static boolean steady_state() {return time_module.steady_state;}
 
     /**returns number of available processors*/
     protected static int num_processors = 1;
+
+    /**
+     *
+     * @return
+     */
     public static int getNumProcessors() {return num_processors;}
     
     /**convenience functions for logging*/
     public static class Log
     {
+
+	/**
+	 *
+	 * @param level
+	 * @param message
+	 */
 	static public void log (Level level, String message) {logger_module.log(level, message);}
+
+	/**
+	 *
+	 * @param message
+	 */
 	static public void log (String message) {logger_module.log(Level.LOG, message);}
+
+	/**
+	 *
+	 * @param message
+	 */
 	static public void log_low (String message) {logger_module.log(Level.LOG_LOW, message);}
+
+	/**
+	 *
+	 * @param message
+	 */
 	static public void message (String message) {logger_module.log(Level.MESSAGE, message);}
+
+	/**
+	 *
+	 * @param message
+	 */
 	static public void warning (String message) {logger_module.log(Level.WARNING, message);}
+
+	/**
+	 *
+	 * @param message
+	 */
 	static public void error (String message) {logger_module.log(Level.ERROR, message);}
+
+	/**
+	 *
+	 * @param message
+	 */
 	static public void debug (String message) {logger_module.log(Level.DEBUG, message);}
+
+	/**
+	 *
+	 * @param message
+	 */
 	static public void forced (String message) {logger_module.log(Level.FORCED, message);}
+
+	/**
+	 *
+	 * @param message
+	 */
 	static public void exception (String message) {logger_module.log(Level.EXCEPTION, message);}
     }
 
@@ -360,7 +566,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	/*do nothing*/
     }
 
-    /**Process for <starfish> command*/
+    /**Process the &lt; starfish &gt; command*/
     @Override
     public void process(Element element) 
     {
@@ -388,7 +594,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	Log.forced("================================================================");
 	Log.forced("> Starfish "+VERSION);
 	Log.forced("> "+HEADER_MESSAGE);
-	Log.forced("> (c) 2012-2017, Particle In Cell Consulting LLC");
+	Log.forced("> (c) 2012-2018, Particle In Cell Consulting LLC");
 	Log.forced("> info@particleincell.com, www.particleincell.com");
 	Log.forced("");
 	Log.forced("!! This is a development version. The software is provided as-is, \n"
@@ -421,5 +627,11 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     {
     }
 	
+    /**
+     *
+     * @param mesh
+     * @param var_name
+     * @return
+     */
     public static Field2D getField(Mesh mesh, String var_name) {return domain_module.getField(mesh, var_name);}
 }

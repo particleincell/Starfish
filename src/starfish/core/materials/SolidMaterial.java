@@ -17,6 +17,12 @@ import starfish.core.materials.MaterialsModule.MaterialParser;
 /** solid material, does not change in density*/
 public class SolidMaterial extends Material
 {
+
+    /**
+     *
+     * @param name
+     * @param mass
+     */
     public SolidMaterial(String name, double mass)
     {
 	super(name,mass,0, true);
@@ -28,6 +34,9 @@ public class SolidMaterial extends Material
 	/*do nothing*/
     }
     
+    /**
+     *
+     */
     public static MaterialParser SolidMaterialParser = new MaterialParser() {
     @Override
     public  Material addMaterial(String name, Element element)
@@ -43,6 +52,11 @@ public class SolidMaterial extends Material
     }
     }; 
     
+    /**
+     *
+     * @param in
+     * @throws IOException
+     */
     @Override 
     public void loadRestartData(DataInputStream in)throws IOException {}
 

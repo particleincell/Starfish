@@ -24,17 +24,28 @@ import starfish.core.io.InputParser;
 /** definition of materials*/
 public class MaterialsModule extends CommandModule
 {
+
+    /**
+     *
+     */
     protected ArrayList<Material> materials_list = new ArrayList<Material>();
 
+    /**
+     *
+     * @return
+     */
     public ArrayList<Material> getMaterialsList() {return materials_list;}
 	
-    /**adds a material to the list*/
+    /**adds a material to the lis
+     * @param materialt*/
     protected void AddMaterial(Material material) 
     {
 	materials_list.add(material);
     }
 
-    /**returns material of the given name*/
+    /**returns material of the given nam
+     * @param name
+     * @return e*/
     public Material getMaterial(String name) throws NoSuchElementException
     {
 	for (Material mat:materials_list)
@@ -44,9 +55,15 @@ public class MaterialsModule extends CommandModule
 	throw new NoSuchElementException("could not find material "+name);
     }
 	
+    /**
+     *
+     * @param mat_index
+     * @return
+     */
     public Material getMaterial(int mat_index) {return materials_list.get(mat_index);}
 
-    /** @return true if material mat is defined*/
+    /**
+     * @param mat *  @return true if material mat is defined*/
     public boolean hasMaterial(String mat) 
     {
 	try {return getMaterial(mat)!=null;}
@@ -64,7 +81,9 @@ public class MaterialsModule extends CommandModule
 	registerMaterialType("KINETIC",KineticMaterial.KineticMaterialParser);
     }
 
-    /** registers a new material type parser*/
+    /** registers a new material type parse
+     * @param type_namer
+     * @param parser*/
     static public void registerMaterialType(String type_name, MaterialParser parser)
     {
 	parser_list.put(type_name.toUpperCase(), parser);
@@ -74,7 +93,8 @@ public class MaterialsModule extends CommandModule
     static HashMap<String,MaterialParser> parser_list = new HashMap<String,MaterialParser>();
 
     /*TODO: comput on demand but also save so don't have to compute multiple times per time step*/
-    /** return Total neutral density*/
+    /** return Total neutral densit
+     * @return y*/
     public FieldCollection2D getNeutralDensity()
     {
 	FieldCollection2D den = new FieldCollection2D(Starfish.getMeshList(),null);
@@ -88,7 +108,8 @@ public class MaterialsModule extends CommandModule
     }
     
     /*TODO: comput on demand but also save so don't have to compute multiple times per time step*/
-    /** return Total neutral density*/
+    /** return Total neutral densit
+     * @return y*/
     public FieldCollection2D getIonDensity()
     {
 	FieldCollection2D den = new FieldCollection2D(Starfish.getMeshList(),null);
@@ -107,6 +128,12 @@ public class MaterialsModule extends CommandModule
     }
     
     /*gets total ion velocity*/
+
+    /**
+     *
+     * @return
+     */
+
     public FieldCollection2D getIonJi()
     {
 	FieldCollection2D ji = new FieldCollection2D(Starfish.getMeshList(),null);
@@ -120,6 +147,10 @@ public class MaterialsModule extends CommandModule
 	return ji;
     }
 
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getIonJj()
     {
 	FieldCollection2D jj = new FieldCollection2D(Starfish.getMeshList(),null);
@@ -133,7 +164,17 @@ public class MaterialsModule extends CommandModule
 	return jj;
     }
     
+    /**
+     *
+     */
     public static interface MaterialParser {
+
+	/**
+	 *
+	 * @param name
+	 * @param element
+	 * @return
+	 */
 	public Material addMaterial(String name, Element element);
     }
     
@@ -157,6 +198,10 @@ public class MaterialsModule extends CommandModule
 	    mat.initInteractions();	
     }
 	
+    /**
+     *
+     * @param element
+     */
     public void NewMaterial(Element element)
     {
 	/*get name*/

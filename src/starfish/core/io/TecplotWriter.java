@@ -26,6 +26,10 @@ import starfish.core.materials.Material;
 /**saves 2D data in a simple ASCII Tecplot(R) format*/
 public class TecplotWriter extends Writer
 {
+
+    /**
+     *
+     */
     @Override
     public void writeHeader() 
     {
@@ -57,6 +61,10 @@ public class TecplotWriter extends Writer
 	pw.println();
     }
 	
+    /**
+     *
+     * @param animation
+     */
     @Override
     public void writeZone2D(boolean animation)
     {		
@@ -96,10 +104,6 @@ public class TecplotWriter extends Writer
  
 	/**
 	 * Saves field variables along a single mesh coordinate
-	 * @param file_name
-	 * @param variables
-	 * @param mesh
-	 * @param arg 
 	 */
 	@Override
 	public void writeZone1D() 
@@ -160,8 +164,6 @@ public class TecplotWriter extends Writer
 
     /**
     * Saves data along surface boundaries
-    * @param file_name
-    * @param variables 
     */
     @Override
     public void writeZoneBoundaries() 
@@ -186,12 +188,15 @@ public class TecplotWriter extends Writer
 	    pw.flush();
 
 	    /*save fields*/
-	    int nv=scalars.length;
-	    Field1D field[] = new Field1D[nv];
-	    for (int v=0;v<nv;v++)
-	    field[v] = 	Starfish.boundary_module.getField(boundary, scalars[v]);
+	    int nv=0;
+	    Field1D field[] = new Field1D[scalars.length];
+	    for (int v=0;v<scalars.length;v++)
+	    {
+		field[v] = Starfish.boundary_module.getField(boundary, scalars[v]);	
+		if (field[v]!=null) nv++;
+		else Log.warning("Skipping unknown variable "+scalars[v]);
+	    }
 	
-	    
 	    for (int i=0;i<boundary.numSegments();i++)
 	    {
 		Segment seg = boundary.getSegment(i);
@@ -213,7 +218,9 @@ public class TecplotWriter extends Writer
 		    pw.printf("%g %g %d %g %g", x[0], x[1],i,norm[0],norm[1]);
 
 		    for (int v=0;v<nv;v++)
-			pw.printf(" %g",field[v].gather_safe(i+t));
+			if (field[v]!=null)
+			    pw.printf(" %g",field[v].gather_safe(i+t));
+			else pw.printf(" 0");
 
 		    pw.println();
 		}
@@ -222,6 +229,9 @@ public class TecplotWriter extends Writer
 	}
     }	
 
+    /**
+     *
+     */
     @Override
     protected void writeParticles()
     {
@@ -271,6 +281,10 @@ public class TecplotWriter extends Writer
 	pw.flush();	
     }
     
+    /**
+     *
+     * @param data
+     */
     @Override
     public void writeData(double data[])
     {

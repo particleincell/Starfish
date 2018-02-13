@@ -3,75 +3,48 @@ package gui;
 import gui.DomainUniformModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-
-import javax.imageio.ImageIO;
-import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
-import javax.swing.ButtonGroup;
 import javax.swing.JMenuBar;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.KeyStroke;
 import javax.swing.ImageIcon;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.JFrame;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
-import org.omg.CORBA.INITIALIZE;
 
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
 import starfish.core.domain.EllipticMesh;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.UniformMesh;
-import starfish.core.domain.DomainModule.DomainType;
-import starfish.core.gui.DefaultExceptionHandler;
 import starfish.core.gui.DomainEllipticModel;
 import starfish.core.gui.InputTextBox;
 import starfish.core.gui.InteractionsChemicalModel;
@@ -81,7 +54,6 @@ import starfish.core.gui.InteractionsSurfaceModel;
 import starfish.core.gui.MaterialKineticModel;
 import starfish.core.gui.MaterialSolidModel;
 import starfish.core.gui.OutputModel;
-import starfish.core.interactions.ChemicalReaction;
 import starfish.core.interactions.VolumeInteraction;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
@@ -185,7 +157,10 @@ public class GUI {
 		demo.loadDataFromFile("starfish.xml");
 	}
 
-	public void initializeGUIItems() {
+    /**
+     *
+     */
+    public void initializeGUIItems() {
 		if(!testing)
 			redirectSystemStreams();
 		defineSetTypes();
@@ -1166,7 +1141,11 @@ public class GUI {
 		return panel;
 	}
 
-	protected JComponent makeBoundariesPanel() {
+    /**
+     *
+     * @return
+     */
+    protected JComponent makeBoundariesPanel() {
 		/**Initialize Elements **/
 
 		//Initialize Table
@@ -1199,7 +1178,11 @@ public class GUI {
 		return boundarySpreadsheet;
 	}
 
-	protected JComponent makeTimePanel() {
+    /**
+     *
+     * @return
+     */
+    protected JComponent makeTimePanel() {
 		/**Initialize Elements **/
 
 		JPanel panel = new JPanel(false);
@@ -1250,7 +1233,11 @@ public class GUI {
 		return panel;
 	}
 
-	protected JComponent makeInteractionsPanel() {
+    /**
+     *
+     * @return
+     */
+    protected JComponent makeInteractionsPanel() {
 
 		String[] mColumnNames = {"Process", "Sources", "Products", "Rate", "Rate Coeffs"};
 		Object[][] mdata = null;
@@ -1836,7 +1823,11 @@ public class GUI {
 		return panel;
 	}
 
-	protected JComponent makeOutputPanel() {
+    /**
+     *
+     * @return
+     */
+    protected JComponent makeOutputPanel() {
 		/**Initialize Elements **/
 		//Initialize Table
 		String[] columnNames = {"Type", "File Name", "Format", "Mesh", "Index", "Variables"};

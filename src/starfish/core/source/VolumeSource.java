@@ -20,19 +20,62 @@ import starfish.core.materials.Material;
 /** creates particles in the simulation volume*/
 public class VolumeSource extends Source
 {
+
+    /**
+     *
+     */
     protected FieldCollection2D dn;	/*change in density*/
+
+    /**
+     *
+     */
     protected FieldCollection2D temp;	/*temperature*/
-    protected int i_sample,j_sample;	/*current sampling cell index*/
+    protected int i_sample,
+
+    /**
+     *
+     */
+    j_sample;	/*current sampling cell index*/
+
+    /**
+     *
+     */
     protected Mesh sample_mesh;
+
+    /**
+     *
+     */
     protected double num_rem;		/*number of particles to sample in current cell*/
     double spwt0;
 
+    /**
+     *
+     * @return
+     */
     public FieldCollection2D getDn() {return dn;}
+
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getDn(Mesh mesh) {return dn.getField(mesh);}
     
+    /**
+     *
+     * @param mesh
+     * @return
+     */
     public Field2D getTemp(Mesh mesh) {return temp.getField(mesh);}
 
     /*constructor*/
+
+    /**
+     *
+     * @param name
+     * @param source_mat
+     */
+
     public VolumeSource(String name, Material source_mat)
     {
 	super(name, source_mat);
@@ -164,6 +207,9 @@ public class VolumeSource extends Source
 	}
     }
 
+    /**
+     *
+     */
     public void clearDn() 
     {
 	dn.clear();

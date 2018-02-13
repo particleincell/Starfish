@@ -14,24 +14,36 @@ import starfish.core.common.Starfish.Log;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldManager2D;
 import starfish.core.domain.Mesh;
+import starfish.core.io.Reader.ReaderFactory;
 
-/** handles <load_field>*/
+/** handles &lt; load_field &gt;*/
 public class LoadFieldModule extends CommandModule
 {
     @Override
     public void init()
     {
-	/*do nothing*/
+	/*register readers*/
+	registerReader("TECPLOT", TecplotReader.tecplotReaderFactory);
+	registerReader("TABLE", TableReader.tableReaderFactory);	
     }
 
+    /**
+     * registers a new reader file reader type
+     * @param file_type file type
+     * @param fac reader factory
+    */
+    static public void registerReader(String file_type, ReaderFactory fac)
+    {
+	Reader.registerReader(file_type,fac);
+    }
+    
     @Override
     public void process(Element element) 
     {
 	String format = InputParser.getValue("format",element,"TECPLOT");
 	String file_name = InputParser.getValue("file_name", element);
 		
-	Reader reader;
-	reader = Reader.getReader(file_name,format, element);
+	Reader reader = Reader.getReader(file_name,format, element);
 		
 	String coord_vars[] = InputParser.getList("coords", element);
 	String field_vars[] = InputParser.getList("vars", element);

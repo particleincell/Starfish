@@ -17,6 +17,10 @@ import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Mesh;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public abstract class Writer 
 {
     static enum OutputType {FIELD,ONED,BOUNDARIES,PARTICLES};
@@ -35,6 +39,12 @@ public abstract class Writer
     /*for particles*/
     int particle_count;
 	
+    /**
+     *
+     * @param file_name
+     * @param variables
+     * @param element
+     */
     public void open1D(String file_name,String[] variables, Element element)
     {
 	String mesh_name = InputParser.getValue("mesh",element);
@@ -48,7 +58,13 @@ public abstract class Writer
     }
 	
 
-    /** open function for 1D output*/
+    /** open function for 1D output
+     * @param file_name
+     * @param scalars
+     * @param vectors
+     * @param cell_data
+     * @param index
+     * @param mesh_name*/
     protected void open(String file_name, String[] scalars, ArrayList<String[]> vectors, String[] cell_data, String mesh_name, String index)
     {
 	/*grab the mesh*/
@@ -77,7 +93,11 @@ public abstract class Writer
 	open2D(file_name, scalars, vectors, cell_data);	
     }
 	
-    /** open function for 2D field data*/
+    /** open function for 2D field dat
+     * @param file_name
+     * @param scalarsa
+     * @param vectors
+     * @param cell_data*/
     protected void open2D(String file_name, String[] scalars, ArrayList<String[]> vectors, String[] cell_data)
     {
 	output_type=OutputType.FIELD;
@@ -147,7 +167,9 @@ public abstract class Writer
 	writeHeader();
     }
 	
-    /** open function for boundary data*/
+    /** open function for boundary dat
+     * @param file_namea
+     * @param variables*/
     protected void openBoundaries(String file_name, String[] variables)
     {
 	output_type = OutputType.BOUNDARIES;
@@ -183,7 +205,9 @@ public abstract class Writer
 	writeHeader();
     }
 
-    /** open function for particle output*/
+    /** open function for particle outpu
+     * @param file_name
+     * @param elementt*/
     public void openParticles(String file_name,Element element)
     {
 	output_type=OutputType.PARTICLES;
@@ -232,7 +256,15 @@ public abstract class Writer
 	writeHeader();
     }
 
+    /**
+     *
+     */
     public final void writeZone() {writeZone(false);}	   //wrapper for default param
+
+    /**
+     *
+     * @param animation
+     */
     public final void writeZone(boolean animation)
     {
 	/*update average data, this is needed mainly to capture anything if not yet at steady state,
@@ -250,11 +282,36 @@ public abstract class Writer
 	pw.flush();
     }
 	
+    /**
+     *
+     */
     protected abstract void writeHeader();
+
+    /**
+     *
+     * @param animation
+     */
     protected abstract void writeZone2D(boolean animation);
+
+    /**
+     *
+     */
     protected abstract void writeZone1D();
+
+    /**
+     *
+     */
     protected abstract void writeZoneBoundaries();
+
+    /**
+     *
+     */
     protected abstract void writeParticles();
+
+    /**
+     *
+     * @param data
+     */
     public abstract void writeData(double data[]);
     
     /** closes the file*/
@@ -263,7 +320,9 @@ public abstract class Writer
 	pw.close();
     }
 	   	
-    /** convenience method for one stop writing*/
+    /** convenience method for one stop writin
+     * @param file_name
+     * @param variablesg*/
     public final void saveBoundaries(String file_name, String[] variables)
     {
 	openBoundaries(file_name,variables);

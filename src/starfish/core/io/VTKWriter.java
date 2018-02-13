@@ -19,6 +19,10 @@ import starfish.core.domain.Mesh;
 /** writer for ASCII VTK files*/
 public class VTKWriter extends Writer 
 {
+
+    /**
+     *
+     */
     @Override
     public void writeHeader()
     {
@@ -135,12 +139,18 @@ public class VTKWriter extends Writer
         pw.close();
     }
 
+    /**
+     *
+     */
     @Override
     public void writeZone1D() 
     {
 	throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    /**
+     *
+     */
     @Override
     public void writeZoneBoundaries() 
     {
@@ -251,12 +261,19 @@ public class VTKWriter extends Writer
         pw.flush();
     }	
 
+    /**
+     *
+     */
     @Override
     protected void writeParticles()
     {
-	throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	Log.warning("writeParticles not yet implemented for VTK"); //To change body of generated methods, choose Tools | Templates.
     }
 
+    /**
+     *
+     * @param data
+     */
     @Override
     public void writeData(double[] data)
     {

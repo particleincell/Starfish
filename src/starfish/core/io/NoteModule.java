@@ -11,7 +11,7 @@ import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish.Log;
 
-/** handles <note>*/
+/** handles &lt;note &gt;*/
 public class NoteModule extends CommandModule 
 {
     @Override

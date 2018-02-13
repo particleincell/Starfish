@@ -42,6 +42,9 @@ public class AnimationModule extends CommandModule
 	 anim_data.add(data);
     }
 
+    /**
+     *
+     */
     public void save() 
     {
 	int it = Starfish.getIt();

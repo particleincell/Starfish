@@ -9,13 +9,13 @@ package starfish.core.common;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.NoSuchElementException;
 import starfish.core.common.Starfish.Log;
 
 /** Common utilities */
 public class Utils 
 {
-    /**@return Samples 1D Maxwellian DF using Birdsall's method, needs be multiplied by v_th to get velocity
+    /**
+     * @param v_th * @return Samples 1D Maxwellian DF using Birdsall's method, needs be multiplied by v_th to get velocity
     *
     * fM = (R_1+R_2+...+R_M - M/2)*(M/12)^(-1/2)
     * 
@@ -37,6 +37,13 @@ public class Utils
 
     /*samples 3 1d maxwellians
     * TODO: this works, but perhaps sampling from 1D speed and rotation works better */
+
+    /**
+     *
+     * @param v_th
+     * @return
+     */
+
     public static double[] SampleMaxw3D(double v_th) 
     {
 	double vel[] = new double[3];
@@ -49,6 +56,13 @@ public class Utils
     /*samples speed from Maxwellian
     f(v) = 4/(sqrt(pi)*v_th^3)*v^2*exp(-v^2/v_th^2)
     */
+
+    /**
+     *
+     * @param v_th
+     * @return
+     */
+
     public static double SampleMaxwSpeed(double v_th)
     {
 	double bin_max = 6*v_th;
@@ -70,6 +84,15 @@ public class Utils
     }
 
     /*returns velocity corresponding to a diffuse reflection from surface per Bird's alg*/
+
+    /**
+     *
+     * @param mag
+     * @param norm
+     * @param tang1
+     * @return
+     */
+
     public static double[] diffuseReflVel(double mag, double norm[], double tang1[])
     {
 	/*Bird uses RF(0) to generate (0,1), can't take log(0)*/
@@ -89,7 +112,11 @@ public class Utils
 	return vel;
     }
     
-    
+    /**
+     *
+     * @param mag
+     * @return
+     */
     public static double[] isotropicVel(double mag)
     {
 	/*pick a random angle*/
@@ -107,13 +134,18 @@ public class Utils
 	return v;
     }
     
-    /** computes thermal velocity*/
+    /** computes thermal velocit
+     * @param tempy
+     * @param mass
+     * @return */
     public static double computeVth(double temp, double mass)
     {
 	return Math.sqrt(2*Constants.K*temp/mass);
     }
 
-    /** parses integer with exception catching*/
+    /** parses integer with exception catchin
+     * @param string
+     * @return g*/
     public static int parseInt(String string) 
     {
 	try {
@@ -128,7 +160,9 @@ public class Utils
 	return 0;
     }
 	
-    /** parses double with exception catching*/
+    /** parses double with exception catchin
+     * @param string
+     * @return g*/
     public static double parseDouble(String string) 
     {
 	try {
@@ -145,10 +179,24 @@ public class Utils
     
     
     /*class for storing 1D list and interpolating*/
+
+    /**
+     *
+     */
+
     public static class LinearList
     {
+
+	/**
+	 *
+	 */
 	public ArrayList<XYData> data = new ArrayList<XYData>();
 	
+	/**
+	 *
+	 * @param x
+	 * @param y
+	 */
 	public void insert(double x, double y)
 	{
 	    data.add(new XYData(x,y));
@@ -156,6 +204,12 @@ public class Utils
 	}
 	
 	private boolean dirty = true;
+
+	/**
+	 *
+	 * @param x
+	 * @return
+	 */
 	public double eval(double x)
 	{
 		if (data.isEmpty()) return 0;
@@ -186,9 +240,20 @@ public class Utils
 		}
 	}
 
+	/**
+	 *
+	 */
 	public class XYData implements Comparable
 	{
+
+	    /**
+	     *
+	     */
 	    public double x;
+
+	    /**
+	     *
+	     */
 	    public double y;
 	    XYData(double x, double y) {this.x = x; this.y=y;}
 
@@ -205,5 +270,45 @@ public class Utils
 
     }
 
+    
+    //calculates the Gamma function of X per Bird's algorithm
+    static public double gamma(double X)
+    {
+	double A=1.;
+	double Y=X;
+	if (Y<1.0)
+	    A=A/Y;
+	else
+	{
+	    do {
+		Y=Y-1;
+		if (Y>=1.)
+		    A=A*Y;	
+	    } while (Y>=1.);
+	}
+
+	double GAM=A*(1.-0.5748646*Y+0.9512363*Y*Y-0.6998588*Y*Y*Y+
+			0.4245549*Y*Y*Y*Y-0.1010678*Y*Y*Y*Y*Y);
+	return GAM;
+    }
+    
+    /*Gamma function from http://rosettacode.org/wiki/Gamma_function*/
+    static double gamma_alt(double x)
+    {
+	double[] p = {0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+		    771.32342877765313, -176.61502916214059, 12.507343278686905,
+		    -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7};
+	int g = 7;
+	if(x < 0.5) return Math.PI / (Math.sin(Math.PI * x)*gamma(1-x));
+
+	x -= 1;
+	double a = p[0];
+	double t = x+g+0.5;
+	for(int i = 1; i < p.length; i++){
+		a += p[i]/(x+i);
+	}
+
+	return Math.sqrt(2*Math.PI)*Math.pow(t, x+0.5)*Math.exp(-t)*a;
+    }
     
 }

@@ -20,24 +20,57 @@ import starfish.core.domain.FieldCollection2D.MeshEvalFun;
 public class FieldManager2D 
 {
     /*variable names*/ 
+
+    /**
+     *
+     */
+ 
     protected ArrayList<String> names;
+
+    /**
+     *
+     * @return
+     */
     public ArrayList<String> getNames() {return names;}
 	
     /*units*/
+
+    /**
+     *
+     */
+
     protected HashMap<String,String> units;
 	
     /*list of meshes*/
+
+    /**
+     *
+     */
+
     protected ArrayList<Mesh> mesh_list;
+
+    /**
+     *
+     * @return
+     */
     public ArrayList<Mesh> getMeshList() {return mesh_list;}
 
     /*collection of the named field on all meshes*/
     HashMap<String,FieldCollection2D> field_collection2d;
+
+    /**
+     *
+     * @return
+     */
     public Collection<FieldCollection2D> getFieldCollections() {return field_collection2d.values();}
 	
-    /**returns true if the field exists*/
+    /**returns true if the field exist
+     * @param names
+     * @return */
     public boolean hasField(String name) { return names.contains(name);}
 
-    /**constructor for a single mesh*/
+    /**constructor for a single mesh
+     * @param mesh*/
     public FieldManager2D(Mesh mesh) 
     {
 	ArrayList<Mesh> list = new ArrayList<Mesh>();
@@ -46,13 +79,15 @@ public class FieldManager2D
 	construct(list);
     }
 				
-    /**constructor for a collection of meshes*/
+    /**constructor for a collection of meshes
+     * @param mesh_list*/
     public FieldManager2D(ArrayList<Mesh> mesh_list) 
     {
 	construct(mesh_list);
     }
 	
-    /**initialization function*/
+    /**initialization function
+     * @param mesh_list*/
     protected final void construct(ArrayList<Mesh> mesh_list) 
     {
 	this.mesh_list = mesh_list;		/*save parent*/
@@ -63,18 +98,32 @@ public class FieldManager2D
 	field_collection2d = new HashMap<String,FieldCollection2D>();
     }
 	
-    /**returns field "name" from "mesh"*/
+    /**returns field "name" from "mesh
+     * @param mesh"
+     * @param name
+     * @return */
     public Field2D get(Mesh mesh, String name) 
     {
 	return field_collection2d.get(name).getField(mesh);	
     }
 	
+    /**
+     *
+     * @param name
+     * @return
+     */
     public FieldCollection2D getFieldCollection(String name) {return field_collection2d.get(name.toLowerCase());}
 	
-    /**returns units*/
+    /**returns units
+     * @param name
+     * @return */
     public String getUnits(String name) {return units.get(name);}
 
-    /**add a new named field or returns the existing one if we already have this*/
+    /**add a new named field or returns the existing one if we already have this
+     * @param name
+     * @param unit
+     * @param eval_fun
+     * @return */
     public FieldCollection2D add(String name, String unit, MeshEvalFun eval_fun) 
     {
 	/*set to lowercase*/
@@ -99,7 +148,11 @@ public class FieldManager2D
 	return collection;
     }
 	
-    /**add a new named field and initializes it according to data from Field*/
+    /**add a new named field and initializes it according to data from Fiel
+     * @param named
+     * @param unit
+     * @param values
+     * @param eval_fun*/
     public void add(String name, String unit, Field2D values, MeshEvalFun eval_fun) 
     {
 	FieldCollection2D collection = add(name,unit,eval_fun);
@@ -108,7 +161,11 @@ public class FieldManager2D
 	Field2D.DataCopy(values.data,field.data);	
     }
 	
-    /**add a new named field and initializes it to a constant value*/
+    /**add a new named field and initializes it to a constant valu
+     * @param name
+     * @param unit
+     * @param valuee
+     * @param eval_fun*/
     public void add(String name, String unit, double value, MeshEvalFun eval_fun) 
     {
 	FieldCollection2D collection = add(name,unit,eval_fun);

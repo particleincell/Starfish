@@ -7,6 +7,7 @@
 
 package starfish.core.io;
 
+import java.util.HashMap;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.FieldManager2D;
@@ -15,24 +16,54 @@ import org.w3c.dom.Element;
 /** file reader base class*/
 public abstract class Reader 
 {	
+
+    /**
+     *
+     */
     protected Reader()
     {
     }
 
-    /*returns reader for a particular file type*/
+    public interface ReaderFactory
+    {
+	/** creates a file loader
+	 *
+	 * @param file_name file to load
+	 * @param element XML parent element
+	 * @return new file loader
+	 */
+	   public Reader makeReader(String file_name, Element element);
+    }
+     
+    static HashMap<String,ReaderFactory> file_readers = new HashMap();
+    
+    /** Returns an instance of a reader for the specified file_type
+     * 
+     * @param file_name file to read
+     * @param file_type file type
+     * @param element XML element
+     * @return 
+     */
     static public Reader getReader(String file_name, String file_type, Element element) 
     {
-	if (file_type.equalsIgnoreCase("TECPLOT"))
-	    return new TecplotReader(file_name, element);
-	else if (file_type.equalsIgnoreCase("TABLE"))
-	    return new TableReader(file_name, element);
-	else
-	    throw new UnsupportedOperationException("unknown file type "+file_type);		
+	ReaderFactory fac = file_readers.get(file_type.toUpperCase());
+	if (fac!= null) return fac.makeReader(file_name, element);
+	
+	throw new UnsupportedOperationException("Unknown file reader type  "+file_type);
     }
 
+    static public void registerReader(String file_type, ReaderFactory fac)
+    {
+	file_readers.put(file_type.toUpperCase(), fac);
+	Log.log("Registered file reader type "+file_type.toUpperCase());
+    }
+    /**
+     *
+     */
     public FieldManager2D field_manager = null;
 
-    /**@returns field corresponding to the specified variable*/
+    /**
+     * @param name * @return field corresponding to the specified variable*/
     public FieldCollection2D getFieldCollection(String name) 
     {
 	if (field_manager == null)
@@ -41,6 +72,8 @@ public abstract class Reader
 	return field_manager.getFieldCollection(name);
     }
 	
-    /**reads the input file, loads variables in field_vars, with mesh coords from coord_vars*/
+    /**reads the input file, loads variables in field_vars, with mesh coords from coord_var
+     * @param coord_varss
+     * @param field_vars*/
     public abstract void parse(String coord_vars[], String field_vars[]);
 }

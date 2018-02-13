@@ -31,7 +31,8 @@ public class Spline
 	/*do nothing*/
     }
     
-    /**constructs a spline made of other splines*/
+    /**constructs a spline made of other spline
+     * @param spliness*/
     public Spline (ArrayList<Spline>splines)
     {
 	for (Spline spline:splines)
@@ -45,7 +46,9 @@ public class Spline
 	computeLength();
     }
 
-    /**constructs a spline composed of a single linear segment*/
+    /**constructs a spline composed of a single linear segmen
+     * @param x1
+     * @param x2t*/
     public Spline (double x1[], double x2[])
     {
 	segments.add(Segment.newLinearSegment(x1, x2));
@@ -55,9 +58,17 @@ public class Spline
 	computeLength();
     }
 
+    /**
+     *
+     */
     protected ArrayList<Segment>segments = new ArrayList<Segment>();
 
     /*bounding box*/
+
+    /**
+     *
+     */
+
     protected double box[][];
     double length;
 
@@ -67,7 +78,35 @@ public class Spline
 	return box;
     }
 
-    public enum SetPathMode {NONE,MOVE, LINEAR, CUBIC, SMOOTH};
+    /**
+     *
+     */
+    public enum SetPathMode { 
+
+	/**
+	 *
+	 */
+	NONE, 
+
+	/**
+	 *
+	 */
+	MOVE, 
+
+	/**
+	 *
+	 */
+	LINEAR, 
+
+	/**
+	 *
+	 */
+	CUBIC, 
+
+	/**
+	 *
+	 */
+	SMOOTH};
 
     /**Sets the spline using a SVG-like path syntax:
      M x y : moves the current position to x y
@@ -244,6 +283,9 @@ public class Spline
 	computeLength();
     }
 
+    /**
+     *
+     */
     protected void reverseSegmentOrdering()
     {
 	ArrayList<Segment> list = new ArrayList<Segment>();
@@ -255,6 +297,12 @@ public class Spline
 	segments = list;
     }
     
+    /**
+     *
+     * @param x1
+     * @param x2
+     * @param reverse
+     */
     protected void addLinearSegment(double x1[], double x2[],boolean reverse)
     {
 	if (!reverse)
@@ -263,6 +311,14 @@ public class Spline
 	    segments.add(Segment.newLinearSegment(x2, x1));
     }
 
+    /**
+     *
+     * @param x1
+     * @param p1
+     * @param p2
+     * @param x2
+     * @param reverse
+     */
     protected void addCubicSegment(double x1[], double p1[], double p2[], double x2[],boolean reverse)
     {
 	/*don't add degenerate cubics, these get exported by Gimp*/
@@ -281,6 +337,11 @@ public class Spline
 	    segments.add(CubicSegment.newCubicSegment(x2, p2, p1, x1));
     }
 
+    /**
+     *
+     * @param points
+     * @param reverse
+     */
     protected void addSmoothSegments(ArrayList<double[]> points, boolean reverse)
     {
 	int np = points.size();
@@ -371,6 +432,9 @@ public class Spline
 	return p;
     }
 
+    /**
+     *
+     */
     public final void computeBoundingBox()
     {
 	box = new double[2][];
@@ -404,7 +468,8 @@ public class Spline
 	return segments.get(segments.size()-1).x2.clone();
     }
 
-    /** @return i-th point*/
+    /**
+     * @param i *  @return i-th point*/
     public double [] getPoint(int i)
     {
 	if (i<segments.size())
@@ -412,8 +477,14 @@ public class Spline
 	else 
 	    return segments.get(segments.size()-1).x2.clone();
 }
-    /** @returns i-th segment*/
+    /**
+     * @param i *  @return i-th segment*/
     public Segment getSegment(int i) {return segments.get(i);}
+
+    /**
+     *
+     * @return
+     */
     public ArrayList<Segment> getSegments() {return segments;}
 
 
@@ -429,6 +500,9 @@ public class Spline
 	return numSegments()+1;
     }
 
+    /**
+     *
+     */
     public final void computeLength()
     {
 	length=0;
@@ -436,7 +510,8 @@ public class Spline
 	    length+=segments.get(i).length();
     }
 
-    /** @return node area, area centered around the node
+    /**
+     * @param i *  @return node area, area centered around the node
      */
     public double nodeArea(int i)
     {
@@ -472,13 +547,16 @@ public class Spline
 	}
     }
     
-    /** @return area of the segment, analogous to cell area in mesh*/
+    /**
+     * @param i *  @return area of the segment, analogous to cell area in mesh*/
     public double segmentArea(int i)
     {
 	return nodeArea(i)+nodeArea(i+1);
     }
     
-    /** @return area of a strip between two endpoints, assumes linear strip    */
+    /**
+     * @param t1
+     * @param t2 *  @return area of a strip between two endpoints, assumes linear strip    */
     public double stripArea(double t1, double t2)
     {
 	double pos1[] = pos(t1);
@@ -603,6 +681,9 @@ public class Spline
 
     /**Intersects the spline with another and returns intersection parametric t
      * only considers segments between start_p and end_p, inclusive
+     * @param s2
+     * @param start_p
+     * @param end_p
      @return parametric position for the "source" spline*/
     public double[] intersect(Spline s2, int start_p, int end_p)
     {
@@ -636,20 +717,31 @@ public class Spline
     }
 
     /**Intersects two splines and returns intersection parametric t
-     * Considers entire spline range*/
+     * Considers entire spline rang
+     * @param s2e
+     * @return */
     public double[] intersect(Spline s2)
     {
 	return intersect(s2,0,numSegments());
     }
 
     /**Intersects two splines and returns intersection parametric t for this spline
-     * Considers entire spline range*/
+     * Considers entire spline rang
+     * @param s2e
+     * @return */
     public double intersect0(Spline s2)
     {
 	return intersect(s2)[0];
     }    
 
     /*returns true if the node is the positive halfspace of the spline*/
+
+    /**
+     *
+     * @param xp
+     * @return
+     */
+
     public boolean isInternal(double xp[])
     {
 	/*find the first visible segment*/
@@ -661,6 +753,14 @@ public class Spline
     }
 
     /*returns true if the node is the positive halfspace of the spline*/
+
+    /**
+     *
+     * @param xp
+     * @param segment
+     * @return
+     */
+
     static public boolean isInternal(double xp[], Segment segment)
     {
 	/*internal if we are on a line*/
@@ -721,12 +821,21 @@ public class Spline
     }
 
     /*returns index to first segment that can see the point*/
+
+    /**
+     *
+     * @param xp
+     * @return
+     */
+
     public Segment visibleSegment(double xp[])
     {
 	return visibleSegment(xp,this.segments);
     }
 
-    /**@returns first Boundary segment from the list visible from a point or null*/
+    /**
+     * @param xp * @return first Boundary segment from the list visible from a point or null
+     * @param segments*/
     public static Segment visibleSegment(double xp[], ArrayList<Segment>segments)
     {
 	for (int pass=0;pass<2;pass++)
@@ -782,13 +891,15 @@ public class Spline
 	return null;
     }
 
-    /**@return centroid of a line segment*/
+    /**
+     * @param segment * @return centroid of a line segment*/
     public double[] centroid(int segment)
     {
 	return segments.get(segment).centroid().clone();
     }
 
-    /**@return normal vector*/
+    /**
+     * @param t * @return normal vector*/
     public double[] normal(double t)
     {
 	int si = (int)t;
@@ -798,7 +909,8 @@ public class Spline
 	return segments.get(si).normal(t-si).clone();
     }
     
-    /**@return tangent vector*/
+    /**
+     * @param t * @return tangent vector*/
     public double[] tangent(double t)
     {
 	int si = (int)t;
@@ -811,8 +923,11 @@ public class Spline
 
     /**this function returns an array of parametric position [0,1] that split
     a multisegment spline into nn-1 segments. The function enforces segments
-    starting at each control point (assuming nn > num_points). Node spacing will
-    be only approximately uniform, since segments must pass through the control points.*/
+    starting at each control point (assuming  nn %gt; num_points). Node spacing will
+    be only approximately uniform, since segments must pass through the control points
+     * @param nn
+     * @param reverse.
+     * @return */
     public double[] splitSpline(int nn, boolean reverse)
     {
 	double t[] = new double[nn];

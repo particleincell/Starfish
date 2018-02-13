@@ -19,6 +19,10 @@ import starfish.core.common.Vector;
 import starfish.core.domain.Mesh.NodeType;
 import starfish.core.domain.UniformMesh;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class PoissonSolver extends PotentialSolver
 {
     boolean linear_mode;
@@ -26,6 +30,10 @@ public class PoissonSolver extends PotentialSolver
     enum Method {DIRECT, GS, PCG, MULTIGRID};
     Method method;
 	
+    /**
+     *
+     * @param element
+     */
     public PoissonSolver (Element element)
     {
 	super();
@@ -109,6 +117,10 @@ public class PoissonSolver extends PotentialSolver
 	    Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
     }
         
+    /**
+     *
+     * @return
+     */
     protected int solvePotentialLin() 
     {
 	int it = 0;
@@ -226,6 +238,12 @@ public class PoissonSolver extends PotentialSolver
     
 
     /* solves potential using Gauss-Seidel method */
+
+    /**
+     *
+     * @return
+     */
+
     protected int solvePotentialNL() 
     {
 	final double C=Constants.QE/eps;
@@ -260,6 +278,11 @@ public class PoissonSolver extends PotentialSolver
     }
     
     /*SOLVER FACTORY*/
+
+    /**
+     *
+     */
+
     public static SolverModule.SolverFactory poissonSolverFactory = new SolverModule.SolverFactory()
     {
 	@Override

@@ -12,6 +12,10 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class RateParser 
 {
     String dep_var_mat;
@@ -24,6 +28,10 @@ public class RateParser
     double c[];
     double mult;
     
+    /**
+     *
+     * @param el
+     */
     public RateParser (Element el)
     {
 	String type = InputParser.getValue("type", el);
@@ -40,6 +48,11 @@ public class RateParser
 	wrapper = WrapperType.valueOf(dep_var_type.toUpperCase());
     }    
 
+    /**
+     *
+     * @param var
+     * @return
+     */
     public double eval(double var)
     {
 	double v=var;
@@ -54,17 +67,39 @@ public class RateParser
 	return (rate>0)?rate:0;
     }
     
+    /**
+     *
+     */
     static protected HashMap<String,MathParser> parsers_list = new HashMap<String,MathParser>();
+
+    /**
+     *
+     * @param name
+     * @param parser
+     */
     static public void registerMathParser(String name, MathParser parser)
     {
 	parsers_list.put(name.toUpperCase(), parser);
     }
     
+    /**
+     *
+     */
     public interface MathParser {
+
+	/**
+	 *
+	 * @param v
+	 * @param c
+	 * @param multiplier
+	 * @return
+	 */
 	public double eval(double v, double c[], double multiplier);
     }
     
-    
+    /**
+     *
+     */
     static public MathParser MathParserPolynomial = new MathParser()
     {
 	public double eval (double var, double c[], double mult)

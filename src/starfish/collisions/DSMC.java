@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import org.w3c.dom.Element;
-import starfish.collisions.SigmaPlus.SigmaBird463;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
@@ -28,6 +27,10 @@ import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
 import starfish.core.common.Vector;
 
+/**
+ * Simple implementation of Bird's NTC scheme. Currently uses the same mesh as the rest of the simulation.
+ * @author Lubos Brieda
+ */
 public class DSMC extends VolumeInteraction
 {
     Sigma sigma;
@@ -88,10 +91,12 @@ public class DSMC extends VolumeInteraction
     {
 	    if (type.equalsIgnoreCase("Elastic"))
 		    return new ModelElastic();
-	    throw new UnsupportedOperationException("Collision cross-section "+type+" undefined");
+	    throw new UnsupportedOperationException("Collision model "+type+" undefined");
     }
 
-
+    /**
+     *
+     */
     @Override
     public void init() 
     {
@@ -134,6 +139,9 @@ public class DSMC extends VolumeInteraction
     int num_samples = 0;
     boolean steady_state = false;
     
+    /**
+     *
+     */
     @Override
     public void perform() 
     {

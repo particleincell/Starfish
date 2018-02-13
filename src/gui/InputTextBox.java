@@ -5,6 +5,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class InputTextBox extends JComponent {
 	private static final long serialVersionUID = 1L;
 
@@ -13,7 +17,12 @@ public class InputTextBox extends JComponent {
 	JTextField field;
 	JTextField field2;
 	
-	public InputTextBox(String newName, int textFieldLength) {
+    /**
+     *
+     * @param newName
+     * @param textFieldLength
+     */
+    public InputTextBox(String newName, int textFieldLength) {
 		name = new JLabel(newName);
 		field = new JTextField(textFieldLength);
 		
@@ -22,7 +31,13 @@ public class InputTextBox extends JComponent {
 		jpanel.add(field);
 	}
 	
-	public InputTextBox(String newName, int textFieldLength, int textFieldLength2) {
+    /**
+     *
+     * @param newName
+     * @param textFieldLength
+     * @param textFieldLength2
+     */
+    public InputTextBox(String newName, int textFieldLength, int textFieldLength2) {
 		name = new JLabel(newName);
 		field = new JTextField(textFieldLength);
 		field2 = new JTextField(textFieldLength2);
@@ -33,11 +48,19 @@ public class InputTextBox extends JComponent {
 		jpanel.add(field2);
 	}
 
-	public JPanel getJpanel() {
+    /**
+     *
+     * @return
+     */
+    public JPanel getJpanel() {
 		return jpanel;
 	}
 
-	public void setJpanel(JPanel jpanel) {
+    /**
+     *
+     * @param jpanel
+     */
+    public void setJpanel(JPanel jpanel) {
 		this.jpanel = jpanel;
 	}
 
@@ -49,11 +72,19 @@ public class InputTextBox extends JComponent {
 		name.setText(newName);
 	}
 
-	public String getField() {
+    /**
+     *
+     * @return
+     */
+    public String getField() {
 		return field.getText();
 	}
 
-	public String getField2() {
+    /**
+     *
+     * @return
+     */
+    public String getField2() {
 		return field2.getText();
 	}
 

@@ -32,7 +32,6 @@
 <mdot>5.313e-11</mdot>
 <v_drift>10000</v_drift>
 </boundary_source>
-
 </sources>
 
 <!-- set time parameters -->
@@ -43,7 +42,9 @@
 
 <!-- save animation -->
 <animation start_it="1" frequency="20">
-<output type="2D" file_name="field_ani.dat" format="tecplot" variables="phi,rho, nd.O+,u.O+,v.O+" />
+<output type="2D" file_name="field_ani.dat" format="tecplot"> 
+<scalars>phi,rho, nd.O+,u.O+,v.O+</scalars>
+</output>
 </animation>
 
 <!-- run simulation -->
@@ -51,13 +52,13 @@
         
 <!-- save results -->
 <output type="2D" file_name="field.dat" format="tecplot">
-<variables>phi, efi, efj, rho, nd.O+, u.o+, v.o+</variables>
+<scalars>phi, efi, efj, rho, nd.O+, u.o+, v.o+</scalars>
 </output>
 
 <output type="1D" file_name="profile.dat" format="tecplot">
 <mesh>mesh1</mesh>
 <index>J=0</index>
-<variables>phi, rho, nd.o+, u.o+, v.o+</variables>
+<scalars>phi, rho, nd.o+, u.o+, v.o+</scalars>
 </output>
 
 <output type="boundaries" file_name="boundaries.dat" format="tecplot" />

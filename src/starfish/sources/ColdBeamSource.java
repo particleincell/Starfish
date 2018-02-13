@@ -25,6 +25,14 @@ public class ColdBeamSource extends Source
     final double den0;
     final double v_drift;
 	
+    /**
+     *
+     * @param name
+     * @param source_mat
+     * @param spline
+     * @param mdot
+     * @param v_drift
+     */
     public ColdBeamSource (String name, Material source_mat, Spline spline, 
 		    double mdot, double v_drift)
     {
@@ -78,6 +86,9 @@ public class ColdBeamSource extends Source
 	}
     }
     
+    /**
+     *
+     */
     static public SourceModule.SurfaceSourceFactory coldBeamSourceFactory = new SourceModule.SurfaceSourceFactory()
     {
 	@Override

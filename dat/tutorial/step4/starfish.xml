@@ -52,25 +52,25 @@
 
 <!-- save animation -->
 <animation start_it="50" frequency="10">
-<output type="2D" file_name="field_ani.dat" format="tecplot" variables="phi,nd.O+,u.O+,v.O+" />
+<output type="2D" file_name="field_ani.dat" format="tecplot" scalars="phi,nd.O+,u.O+,v.O+" />
 </animation>
 
 <!-- run simulation -->
-<starfish diag_file="true"/>
+<starfish/>
         
 <!-- save results -->
 <output type="2D" file_name="field.dat" format="tecplot">
-<variables>phi, phi-ave, rho, nd.o+, nd-ave.o+, u.o+, v.o+, nd.o, nd-ave.o, u.o, v.o</variables>
+<scalars>phi, phi-ave, rho, nd.o+, nd-ave.o+, u.o+, v.o+, nd.o, nd-ave.o, u.o, v.o</scalars>
 </output>
 
 <output type="1D" file_name="profile.dat" format="tecplot">
 <mesh>mesh1</mesh>
 <index>J=0</index>
-<variables>phi, rho, nd.o+, u.o+, v.o+</variables>
+<scalars>phi, rho, nd.o+, u.o+, v.o+</scalars>
 </output>
 
 <output type="boundaries" file_name="boundaries.dat" format="tecplot">
-<variables>flux.o+, flux_normal.o+, depflux.o+,flux,deprate, depflux</variables>
+<scalars>flux.o+, flux-normal.o+, depflux.o+,flux,deprate, depflux</scalars>
 </output>
 
 </simulation>

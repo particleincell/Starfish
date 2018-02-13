@@ -4,33 +4,62 @@ import java.util.Vector;
 
 import javax.swing.table.DefaultTableModel;
 
-import starfish.core.common.Starfish;
-import starfish.core.domain.DomainModule;
-import starfish.core.domain.UniformMesh;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 @SuppressWarnings("serial")
 public class InteractionsDSMCModel extends DefaultTableModel {
 
-	public InteractionsDSMCModel() {
+    /**
+     *
+     */
+    public InteractionsDSMCModel() {
 	}
 
-	public InteractionsDSMCModel(int rowCount, int columnCount) {
+    /**
+     *
+     * @param rowCount
+     * @param columnCount
+     */
+    public InteractionsDSMCModel(int rowCount, int columnCount) {
 		super(rowCount, columnCount);
 	}
 
-	public InteractionsDSMCModel(Vector columnNames, int rowCount) {
+    /**
+     *
+     * @param columnNames
+     * @param rowCount
+     */
+    public InteractionsDSMCModel(Vector columnNames, int rowCount) {
 		super(columnNames, rowCount);
 	}
 
-	public InteractionsDSMCModel(Object[] columnNames, int rowCount) {
+    /**
+     *
+     * @param columnNames
+     * @param rowCount
+     */
+    public InteractionsDSMCModel(Object[] columnNames, int rowCount) {
 		super(columnNames, rowCount);
 	}
 
-	public InteractionsDSMCModel(Vector data, Vector columnNames) {
+    /**
+     *
+     * @param data
+     * @param columnNames
+     */
+    public InteractionsDSMCModel(Vector data, Vector columnNames) {
 		super(data, columnNames);
 	}
 
-	public InteractionsDSMCModel(Object[][] data, Object[] columnNames) {
+    /**
+     *
+     * @param data
+     * @param columnNames
+     */
+    public InteractionsDSMCModel(Object[][] data, Object[] columnNames) {
 		super(data, columnNames);
 	}
 
@@ -40,19 +69,30 @@ public class InteractionsDSMCModel extends DefaultTableModel {
        return false;
     }
 	
-	public void addRowChangeStarfish(Object[] rowData) {
+    /**
+     *
+     * @param rowData
+     */
+    public void addRowChangeStarfish(Object[] rowData) {
 		//Name origin spacing nodes
 		//TODO
 		
 		super.addRow(rowData);
 	}
 	
-	public void removeRowChangeStarfish(int rowNumber) {
+    /**
+     *
+     * @param rowNumber
+     */
+    public void removeRowChangeStarfish(int rowNumber) {
 		//TODO
 		super.removeRow(rowNumber);
 	}
 	
-	public void removeAllRows() {
+    /**
+     *
+     */
+    public void removeAllRows() {
 		int num = super.getRowCount();
 		for(int i = num-1; i >= 0; i--) {
 			removeRow(i);

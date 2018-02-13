@@ -20,21 +20,39 @@ import starfish.core.common.Starfish;
 public class FieldManager1D 
 {
     /*variable names*/ 
+
+    /**
+     *
+     */
+ 
     protected ArrayList<String> names;
 	
     /*units*/
+
+    /**
+     *
+     */
+
     protected HashMap<String,String> units;
 	
     /*list of boundaryes*/
+
+    /**
+     *
+     */
+
     protected ArrayList<Boundary> boundary_list;
 
     /*collection of the named field on all boundaryes*/
     HashMap<String,FieldCollection1D> field_collection;
 	
-    /**returns true if the field exists*/
+    /**returns true if the field exist
+     * @param names
+     * @return */
     public boolean hasField(String name) { return names.contains(name);}
 
-    /**constructor for a single boundary*/
+    /**constructor for a single boundar
+     * @param boundaryy*/
     public FieldManager1D(Boundary boundary) 
     {
 	ArrayList<Boundary> list = new ArrayList<Boundary>();
@@ -43,13 +61,15 @@ public class FieldManager1D
 	construct(list);
     }
 				
-    /**constructor for a collection of boundaries*/
+    /**constructor for a collection of boundarie
+     * @param boundary_lists*/
     public FieldManager1D(ArrayList<Boundary> boundary_list) 
     {
 	construct(boundary_list);
     }
 	
-    /**initialization function*/
+    /**initialization functio
+     * @param boundary_listn*/
     protected final void construct(ArrayList<Boundary> boundary_list) 
     {
 	this.boundary_list = boundary_list;		/*save parent*/
@@ -60,14 +80,34 @@ public class FieldManager1D
 	field_collection = new HashMap<String,FieldCollection1D>();
     }
 
+    /**
+     *
+     * @return
+     */
     public HashMap<String,FieldCollection1D> getFieldCollections() {return field_collection;}
+
+    /**
+     *
+     * @param name
+     * @return
+     */
     public FieldCollection1D getFieldCollection(String name) {return field_collection.get(name.toLowerCase());}
+
+    /**
+     *
+     * @return
+     */
     public ArrayList<String> getNames() {return names;}
     
-    /**returns units*/
+    /**returns unit
+     * @param names
+     * @return */
     public String getUnits(String name) {return units.get(name);}
 
-    /**add a new named field*/
+    /**add a new named fiel
+     * @param name
+     * @param unit
+     * @return d*/
     public FieldCollection1D add(String name, String unit) 
     {
 	/*set to lowercase*/
@@ -92,7 +132,10 @@ public class FieldManager1D
 	return collection;
     }
 	
-    /**add a new named field and initializes it according to data from Field*/
+    /**add a new named field and initializes it according to data from Fiel
+     * @param named
+     * @param unit
+     * @param values*/
     public void add(String name, String unit, Field1D values) 
     {
 	FieldCollection1D collection = add(name,unit);
@@ -101,14 +144,20 @@ public class FieldManager1D
 	Field1D.DataCopy(values.data,field.data);	
     }
 	
-    /**add a new named field and initializes it to a constant value*/
+    /**add a new named field and initializes it to a constant valu
+     * @param namee
+     * @param unit
+     * @param value*/
     public void add(String name, String unit, double value) 
     {
 	FieldCollection1D collection = add(name,unit);
 	collection.setValue(value);
     }
 	
-    /** returns field for a given variable name, doesn't do any error checking*/
+    /** returns field for a given variable name, doesn't do any error checking
+     * @param boundary
+     * @param var_name
+     * @return */
     public Field1D getField(Boundary boundary, String var_name)
     {
 	String pieces[] = var_name.split("\\.");
@@ -116,7 +165,9 @@ public class FieldManager1D
 	/*if doesn't contain species name*/
 	if (pieces.length==1)	/*species var*/
 	{	
-	    return field_collection.get(var_name).getField(boundary);
+	    FieldCollection1D fc1 = field_collection.get(var_name);
+	    if (fc1!=null) return fc1.getField(boundary);
+	    else return null;
 	}
 	else
 	{

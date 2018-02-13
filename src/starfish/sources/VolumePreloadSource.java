@@ -17,12 +17,33 @@ import starfish.core.materials.Material;
 import starfish.core.source.SourceModule;
 import starfish.core.source.VolumeSource;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class VolumePreloadSource extends VolumeSource
 {
-   protected double den0;
-   protected double temp0;
+
+    /**
+     *
+     */
+    protected double den0;
+
+    /**
+     *
+     */
+    protected double temp0;
     
     /*constructor*/
+
+    /**
+     *
+     * @param name
+     * @param source_mat
+     * @param temp
+     * @param den
+     */
+
     public VolumePreloadSource(String name, Material source_mat, double temp, double den)
     {
 	super(name, source_mat);
@@ -31,6 +52,9 @@ public class VolumePreloadSource extends VolumeSource
 	this.temp0 = temp;			
     }
 
+    /**
+     *
+     */
     protected boolean first_time = true;
       
     @Override
@@ -72,7 +96,10 @@ public class VolumePreloadSource extends VolumeSource
 	}
     }
 
-        static public SourceModule.VolumeSourceFactory preloadSourceFactory = new SourceModule.VolumeSourceFactory()
+    /**
+     *
+     */
+    static public SourceModule.VolumeSourceFactory preloadSourceFactory = new SourceModule.VolumeSourceFactory()
     {
 	@Override
 	public void makeSource(Element element, String name, Material material)

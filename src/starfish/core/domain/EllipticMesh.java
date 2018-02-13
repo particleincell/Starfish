@@ -14,13 +14,21 @@ import starfish.core.domain.DomainModule.DomainType;
 /** Constructs a quadrilateral mesh bounded by four prescribed splines */
 public class EllipticMesh extends QuadrilateralMesh
 {
+
+    /**
+     *
+     */
     protected Spline splines[]; 
     
     /**boundaries are given by 4 splines: 
     * splines[RIGHT]: left right
     * splines[TOP]: bottom top
     * splines[LEFT]: right left
-    * splines[BOTTOM]: top bottom*/
+    * splines[BOTTOM]: top botto
+     * @param nim
+     * @param nj
+     * @param splines
+     * @param domain_type*/
     public EllipticMesh (int ni, int nj, Spline splines[], DomainType domain_type)
     {
 	super(ni,nj,domain_type);
@@ -131,7 +139,8 @@ public class EllipticMesh extends QuadrilateralMesh
 	    }	
 	}
 
-    /**Returns boundary normal by considering boundary splines*/
+    /**Returns boundary normal by considering boundary spline
+     * @return s*/
     @Override
     public double[] boundaryNormal(Face face, double[] pos)
     {

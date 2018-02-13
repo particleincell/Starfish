@@ -10,15 +10,25 @@ package starfish.pic;
 import org.w3c.dom.Element;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
-import starfish.core.common.Vector;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.NodeType;
 import starfish.core.io.InputParser;
 import starfish.core.solver.Solver;
 import starfish.core.solver.SolverModule;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class QNSolver extends PotentialSolver
 {
+
+    /**
+     *
+     * @param den0
+     * @param phi0
+     * @param Te0
+     */
     public QNSolver (double den0, double phi0,double Te0)
     {
 	/*reference values*/
@@ -52,6 +62,9 @@ public class QNSolver extends PotentialSolver
 	    }
     }
     
+    /**
+     *
+     */
     public static SolverModule.SolverFactory boltzmannSolverFactory = new SolverModule.SolverFactory()
     {
 	@Override

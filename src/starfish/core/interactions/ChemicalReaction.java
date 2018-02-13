@@ -17,7 +17,6 @@ import starfish.core.domain.Mesh;
 import starfish.core.interactions.InteractionsModule.InteractionFactory;
 import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
-import starfish.core.materials.KineticMaterial.MeshData;
 import starfish.core.materials.KineticMaterial.Particle;
 import starfish.core.materials.Material;
 import starfish.core.source.VolumeSource;
@@ -25,9 +24,25 @@ import starfish.core.source.VolumeSource;
 /** base for chemical reactions*/
 public class ChemicalReaction extends VolumeInteraction
 {
+
+    /**
+     *
+     */
     public Material source_mat[];
+
+    /**
+     *
+     */
     public Material prod_mat[];
+
+    /**
+     *
+     */
     public double source_coeff[];
+
+    /**
+     *
+     */
     public double prod_coeff[];
 
     final int num_sources,num_products;
@@ -35,9 +50,18 @@ public class ChemicalReaction extends VolumeInteraction
     String product_names[];
     boolean initialized=false;
 
+    /**
+     *
+     */
     public VolumeSource prod_source[];
     RateParser rate_parser;
     
+    /**
+     *
+     * @param source_names
+     * @param product_names
+     * @param rate_parser
+     */
     public ChemicalReaction(String source_names[], String product_names[], RateParser rate_parser)
     {
 	this.source_names = source_names;
@@ -48,6 +72,9 @@ public class ChemicalReaction extends VolumeInteraction
 	num_products = product_names.length;
     }
 	
+    /**
+     *
+     */
     @Override
     public void init()
     {
@@ -137,6 +164,9 @@ public class ChemicalReaction extends VolumeInteraction
 	initialized=true;
     }
 			
+    /**
+     *
+     */
     @Override
     public void perform() 
     {
@@ -160,8 +190,8 @@ public class ChemicalReaction extends VolumeInteraction
 
 	    for (int i=0;i<ni;i++)
 		for (int j=0;j<nj;j++)
-		{
-		    k[i][j] = rate_parser.eval(T[i][j]); /*TODO: getting low ion densities for CHT*/
+		{	    
+		    k[i][j] = rate_parser.eval(T[i][j]); 
 		}
 	}		
     }
@@ -210,6 +240,12 @@ public class ChemicalReaction extends VolumeInteraction
 			prod_temp+=temp[s][i][j]*source_mat[s].mass;
 		    }
 	
+		    //clear tiny round off values
+		    if (dn<1) dn=0;
+		    
+		    if (dn>1e4)
+			dn=dn;
+		    
 		    /*set temperature*/
 		    /*TODO: take into account energy equation,etc..., just setting to target temp for now*/
 		    for (int p=0;p<num_products;p++)

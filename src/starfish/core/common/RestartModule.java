@@ -12,17 +12,15 @@ import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import org.w3c.dom.Element;
 import starfish.core.common.Starfish.Log;
-import static starfish.core.common.Starfish.solver_module;
-import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
-import starfish.core.materials.KineticMaterial;
-import starfish.core.materials.KineticMaterial.MeshData;
-import starfish.core.materials.KineticMaterial.Particle;
 import starfish.core.materials.Material;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public  class RestartModule extends CommandModule
 {
     int it_save;
@@ -61,12 +59,18 @@ public  class RestartModule extends CommandModule
 	    save(true);
     }
 	
-	
+    /**
+     *
+     */
     public void save()
     {
 	save(false);
     }
 	
+    /**
+     *
+     * @param ignore_it
+     */
     public void save(boolean ignore_it)
     {
 	if (!save_restart || it_last_save==Starfish.getIt())
@@ -85,6 +89,9 @@ public  class RestartModule extends CommandModule
 	}
     }
 	
+    /**
+     *
+     */
     public void load()
     {
 	if (!load_restart) return;

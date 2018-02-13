@@ -10,11 +10,9 @@ package starfish.collisions;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.w3c.dom.Element;
-import starfish.collisions.DSMC.ModelElastic;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.common.Utils;
 import starfish.core.common.Vector;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
@@ -28,6 +26,10 @@ import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
 import starfish.core.materials.Material;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 public class MCC extends VolumeInteraction
 {
     Sigma sigma;
@@ -90,6 +92,9 @@ public class MCC extends VolumeInteraction
     int num_samples = 0;
     boolean steady_state = false;
     
+    /**
+     *
+     */
     @Override
     public void perform() 
     {
@@ -169,6 +174,9 @@ public class MCC extends VolumeInteraction
 	}	
     }
     
+    /**
+     *
+     */
     @Override
     public void init() 
     {

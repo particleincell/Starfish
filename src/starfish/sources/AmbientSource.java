@@ -38,6 +38,17 @@ public class AmbientSource extends Source
     final double p_fraction;
     final double temperature;
     
+    /**
+     *
+     * @param name
+     * @param source_mat
+     * @param spline
+     * @param enforce
+     * @param temp
+     * @param density
+     * @param v_drift
+     * @param p_fraction
+     */
     public AmbientSource(String name, Material source_mat, Spline spline, 
 	    EnforceType enforce, double temp, double density,
 	    double v_drift[], double p_fraction)
@@ -57,6 +68,9 @@ public class AmbientSource extends Source
 	v_th = Utils.computeVth(temp, source_mat.getMass());
     }
 
+    /**
+     *
+     */
     @Override
     public void start()
     {
@@ -112,6 +126,10 @@ public class AmbientSource extends Source
 
     /*list of cells where we load particles*/
     ArrayList<Cell> cells = new ArrayList<Cell>();
+
+    /**
+     *
+     */
     protected int curr_cell;
     
     class Cell
@@ -265,7 +283,9 @@ public class AmbientSource extends Source
 	return part;
     }
 
-    /** @return random parametric position taking into account radial weighing*/
+    /**
+     * @param t1
+     * @param t2 *  @return random parametric position taking into account radial weighing*/
     //TODO: need to test if this works and syncs up properly with stripArea
     public double randomT(double t1, double t2) 
     {
@@ -344,6 +364,9 @@ public class AmbientSource extends Source
 	}
     }
     
+    /**
+     *
+     */
     static public SourceModule.SurfaceSourceFactory ambientSourceFactory = new SourceModule.SurfaceSourceFactory()
     {
 	@Override

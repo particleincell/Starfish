@@ -34,18 +34,40 @@ public class SurfaceInteraction
 	registerSurfaceModel("COSINE",SurfaceEmissionCosine);
     }
     
+    /**
+     *
+     */
     static public HashMap<String,SurfaceImpactHandler> surface_model_factories = new HashMap<String,SurfaceImpactHandler>();
+
+    /**
+     *
+     * @param name
+     * @param fac
+     */
     static public void registerSurfaceModel(String name, SurfaceImpactHandler fac)
     {
 	surface_model_factories.put(name.toUpperCase(),fac);
 	Log.log("Added surface impact model "+name.toUpperCase());
     }
   
+    /**
+     *
+     */
     public interface SurfaceModelFactory 
     {
+
+	/**
+	 *
+	 * @return
+	 */
 	public SurfaceImpactHandler makeModel();
     }
    
+    /**
+     *
+     * @param handler_name
+     * @return
+     */
     public static SurfaceImpactHandler getSurfaceImpactModel(String handler_name)
     {
 	try {

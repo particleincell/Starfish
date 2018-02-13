@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.Face;
 import starfish.core.domain.Mesh.Node;
@@ -27,14 +26,41 @@ import starfish.core.domain.Mesh.NodeType;
  */
 public abstract class Solver
 {
+
+    /**
+     *
+     */
     protected int lin_max_it;
+
+    /**
+     *
+     */
     protected double lin_tol;
+
+    /**
+     *
+     */
     protected int nl_max_it;
+
+    /**
+     *
+     */
     protected double nl_tol;
     boolean qn; /* quasi-neutral solver? */
 
+    /**
+     *
+     */
     public double kTe0 = 1; /* reference temperature values for boltzman relationship */
+
+    /**
+     *
+     */
     public double den0 = 1e15;  /* reference values of ion density along bottom edge */
+
+    /**
+     *
+     */
     public double phi0 = 0; /* reference values of potential along bottom edge */
 
     boolean first = true;
@@ -54,18 +80,61 @@ public abstract class Solver
 	int n[] = {-1, -1, -1, -1, -1, -1}; /*unknown index for matrix assembly*/
     }
 
+    /**
+     *
+     */
     public class MeshData
     {
+
+	/**
+	 *
+	 */
 	public Mesh mesh;			/*associated mesh*/
+
+	/**
+	 *
+	 */
 	public Matrix Gi;	/*gradient matrix in i direction*/
+
+	/**
+	 *
+	 */
 	public Matrix Gj;	/*gradient matrix in j direction*/
+
+	/**
+	 *
+	 */
 	public Matrix A;
+
+	/**
+	 *
+	 */
 	public Matrix L;	//LU decomposition of matrix A, if available
+
+	/**
+	 *
+	 */
 	public Matrix U;
+
+	/**
+	 *
+	 */
 	public boolean fixed_node[];
+
+	/**
+	 *
+	 */
 	public double b[];
+
+	/**
+	 *
+	 */
 	public double x[];	    /*solution vector*/
     }
+
+    /**
+     *
+     */
     public MeshData mesh_data[];
 
     /**
@@ -86,6 +155,11 @@ public abstract class Solver
     }
 
     /*init*/
+
+    /**
+     *
+     */
+
     public void init()
     {
 	ArrayList<Mesh> mesh_list = Starfish.getMeshList();
@@ -120,6 +194,9 @@ public abstract class Solver
 	}
     }
 
+    /**
+     *
+     */
     public void exit()
     {
     }
@@ -165,11 +242,26 @@ public abstract class Solver
     /**updates potential and calculates new electric field*/
     abstract public void update();
 
+    /**
+     *
+     */
     public interface NL_Eval
     {
 
+	/**
+	 *
+	 * @param x
+	 * @param fixed
+	 * @return
+	 */
 	public double[] eval_b(double x[], boolean fixed[]);
 
+	/**
+	 *
+	 * @param x
+	 * @param fixed
+	 * @return
+	 */
 	public double[] eval_prime(double x[], boolean fixed[]);
     }
 
@@ -181,6 +273,9 @@ public abstract class Solver
      * solve Jy=F
      * update x=x-y
      * also b=b0+b(x) where b0 is constant
+     * @param md
+     * @param nl_eval
+     * @return 
      */
     public int solveNonLinearNR(MeshData md[], NL_Eval nl_eval)
     {
@@ -265,6 +360,8 @@ public abstract class Solver
 
     /**
      * solves Ax=b for x using the GS method
+     * @param mesh_data
+     * @return 
      */
     public int solveLinearGS(MeshData mesh_data[])
     {
@@ -387,6 +484,10 @@ public abstract class Solver
     
     /**
      * solves Ax=b for x using the Multigrid method
+     * @param A
+     * @param x
+     * @param b
+     * @return 
      */
     protected int solveLinearMultigrid(Matrix A, double x[], double b[])
     {
@@ -394,6 +495,11 @@ public abstract class Solver
 	throw new UnsupportedOperationException("Not yet implemented");	
     }
     
+    /**
+     *
+     * @param mesh_data
+     * @return
+     */
     protected int solveLU(MeshData mesh_data[])
     {
 	for (MeshData md:mesh_data)
@@ -442,7 +548,9 @@ public abstract class Solver
     }
 
     /**
-     * solves Ax=b for x using the PCG method*/
+     * solves Ax=b for x using the PCG metho
+     * @param md
+     * @return d*/
     protected int solveLinearPCG(MeshData md[])
     {
 	double norm = lin_tol;
@@ -537,6 +645,10 @@ public abstract class Solver
 
     /**
      * returns L2 norm of R=|Ax-b|
+     * @param A
+     * @param x
+     * @param b
+     * @return 
      */
     protected double calculateResidue(Matrix A, double x[], double b[])
     {
@@ -772,9 +884,24 @@ public abstract class Solver
     }
     
     /*function used to compute, for instance, the electric field*/
+
+    /**
+     *
+     */
+
     public abstract void updateGradientField();
 
     /*evaluate gradient of data "x" times scale and stores it into fi and fj*/
+
+    /**
+     *
+     * @param x
+     * @param gi
+     * @param gj
+     * @param md
+     * @param scale
+     */
+
     protected void computeGradient(double x[], double gi[], double gj[], MeshData md, double scale)
     {
 	int i, j, l;

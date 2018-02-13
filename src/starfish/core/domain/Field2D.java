@@ -15,14 +15,26 @@ import starfish.core.common.Starfish;
 import starfish.core.domain.DomainModule.DomainType;
 
 /* 2D field holding a single scalar*/
+
+/**
+ *
+ * @author Lubos Brieda
+ */
+
 public class Field2D 
 {
-    /**constructor*/
+    /**constructo
+     * @param meshr*/
     public Field2D (Mesh mesh) 
     {
 	this(mesh, false);
     }
     
+    /**
+     *
+     * @param mesh
+     * @param cell_centered
+     */
     public Field2D (Mesh mesh, boolean cell_centered) 
     {
 	this.mesh = mesh;
@@ -35,6 +47,8 @@ public class Field2D
 
     /** constructor for field not associated with a particular mesh, should
     * probably be a superclass of the mesh-associated field...
+     * @param ni
+     * @param nj
     */
     public Field2D(int ni, int nj)
     {
@@ -44,6 +58,11 @@ public class Field2D
 	data = new double[ni][nj]; 
     }
 	
+    /**
+     *
+     * @param mesh
+     * @param values
+     */
     public Field2D(Mesh mesh, double values[][]) 
     {
 	this(mesh);
@@ -54,30 +73,69 @@ public class Field2D
     }
     
     /*variables*/
-    public final int ni,nj;
+    public final int ni,
+
+    /**
+     *
+     */
+    nj;
     
+    /**
+     *
+     */
     public double data[][]; 
     final Mesh mesh;
 	
+    /**
+     *
+     * @return
+     */
     public int getNi() {return ni;}
+
+    /**
+     *
+     * @return
+     */
     public int getNj() {return nj;}
+
+    /**
+     *
+     * @return
+     */
     public Mesh getMesh() {return mesh;}
+
+    /**
+     *
+     * @param fi
+     * @param fj
+     * @return
+     */
     public double[] pos(double fi, double fj) {return mesh.pos(fi,fj);}
     /*methods*/
     
-    /**at: returns value at [i,j]*/
+    /**at: returns value at [i,j
+     * @param i
+     * @param j]
+     * @return */
     public double at(int i, int j) {return data[i][j];}
 
-    /**set: sets value at i,j*/
+    /**set: sets value at i,
+     * @param ij
+     * @param j
+     * @param v*/
     public void set(int i, int j, double v) {data[i][j]=v;}
     
-    /**returns pointer to data*/
+    /**returns pointer to dat
+     * @return a*/
     public double[][] getData() {return data;}
 	
-    /**returns data[i]*/
+    /**returns data[i
+     * @param i]
+     * @return */
     public double[] getData(int i) {return data[i];}
 
-    /**replaces field data, shallow replace (reference only)*/
+    /**replaces field data, shallow replace (reference only
+     * @param data)*/
     public void setDataShallow(double data[][]) 
     {
 	if (data.length!=ni ||
@@ -87,7 +145,8 @@ public class Field2D
 	this.data = data;  
     }
 	
-    /**copies data from one field to another, deep copy*/
+    /**copies data from one field to another, deep cop
+     * @param srcy*/
     public void copy(Field2D src) 
     {
 	if (src.data.length!=ni ||
@@ -104,7 +163,8 @@ public class Field2D
 	setValue(0);
     }
 
-    /**sets all data to the same value*/
+    /**sets all data to the same valu
+     * @param valuee*/
     public void setValue(double value) 
     {
 	for (int i=0;i<ni;i++)
@@ -112,7 +172,8 @@ public class Field2D
 		data[i][j]=value;
     }
 
-    /**adds a scalar to all values*/
+    /**adds a scalar to all values
+     * @param val*/
     public void mult(double val) 
     {
 	for (int i=0;i<ni;i++)
@@ -120,7 +181,8 @@ public class Field2D
 		data[i][j]*=val;
     }
 
-    /**adds a scalar to all values*/
+    /**adds a scalar to all values
+     * @param val*/
     public void add(double val) 
     {
 	for (int i=0;i<ni;i++)
@@ -128,6 +190,12 @@ public class Field2D
 		data[i][j]+=val;
     }
     
+    /**
+     *
+     * @param i
+     * @param j
+     * @param val
+     */
     public void add(int i, int j, double val) 
     {
 	data[i][j]+=val;
@@ -143,7 +211,8 @@ public class Field2D
 		data[i][j] += field.data[i][j];
     }
     
-    /**fills the entire array the value*/
+    /**fills the entire array the valu
+     * @param vale*/
     public void fill(double val)
     {
 	for (int i=0;i<ni;i++)
@@ -151,19 +220,30 @@ public class Field2D
 		data[i][j]=val;
     }
 
+    /**
+     *
+     * @param fi
+     * @param val
+     */
     public void scatter(double fi[], double val)
     {
 	scatter(fi[0], fi[1], val);
     }
     
     /** Scatter
-     * Distributes val to surrounding nodes*/
+     * Distributes val to surrounding node
+     * @param fis
+     * @param fj
+     * @param val*/
     public void scatter(double fi, double fj, double val)
     {
 	int i = (int)fi;
         int j = (int)fj;
         double di = fi-i;
         double dj = fj-j;
+	
+	/*make sure we are not out of bounds*/
+	if (i<0 || j<0 || i>=ni-1 || j>=nj-1) return;
 
 	if (Starfish.domain_module.domain_type==DomainType.RZ)
 	{   /*equation 4.2 in Ruyten (93)*/
@@ -191,7 +271,9 @@ public class Field2D
 	
     }
     
-    /**Interpolates data from the four corner nodes surroudning fi/fj*/
+    /**Interpolates data from the four corner nodes surroudning fi/f
+     * @param fij
+     * @return */
     public double gather(double fi[])
     {
 	try
@@ -204,6 +286,12 @@ public class Field2D
 	}
     }
     
+    /**
+     *
+     * @param fi
+     * @param fj
+     * @return
+     */
     public double gather(double fi, double fj)
     {
 	int i = (int)fi;
@@ -221,11 +309,24 @@ public class Field2D
     }
 	
     /*like gather but allows evaluation of position along mesh edges*/
+
+    /**
+     *
+     * @param fi
+     * @return
+     */
+
     public double gather_safe(double fi[])
     {
 	return gather_safe(fi[0],fi[1]);
     }
 	
+    /**
+     *
+     * @param fi
+     * @param fj
+     * @return
+     */
     public double gather_safe(double fi, double fj)
     {
 	int i = (int)fi;
@@ -247,14 +348,17 @@ public class Field2D
         return v;	
     }
 
-    /**like gather but with physical coordinate input*/
+    /**like gather but with physical coordinate inpu
+     * @param x
+     * @return t*/
     public double eval(double[] x) 
     {
 	double lc[] = mesh.XtoL(x);
 	return gather(lc);
     }
 
-    /**divides every node value by a corresponding value in another topologically identical field*/
+    /**divides every node value by a corresponding value in another topologically identical fiel
+     * @param fieldd*/
     public void divideByField(Field2D field) 
     {
 	if (ni!=field.ni || nj!=field.nj)
@@ -285,7 +389,10 @@ public class Field2D
 	    }
     }
 
-    /**computes d/dx (x derivative)*/
+    /**computes d/dx (x derivative
+     * @param i
+     * @param j)
+     * @return */
     public double ddx(int i, int j) 
     {
 	if (i>0 && i<mesh.ni-1)
@@ -305,7 +412,10 @@ public class Field2D
 	}
     }
 
-    /**computes d/dy (y derivative)*/
+    /**computes d/dy (y derivative
+     * @param i)
+     * @param j
+     * @return */
     public double ddy(int i, int j) 
     {
 	if (j>0 && j<mesh.nj-1)
@@ -325,13 +435,19 @@ public class Field2D
 	}
     }
 
-    /**returns value at center of cell i,j*/
+    /**returns value at center of cell i,
+     * @param ij
+     * @param j
+     * @return */
     public double cellAt(int i, int j) 
     {
 	return gather(i+0.5,j+0.5);
     }
 	
-    /**allocates a 2D ni*nj array*/
+    /**allocates a 2D ni*nj arra
+     * @param ni
+     * @param nj
+     * @return y*/
     public static double[][] Alloc2D(int ni, int nj)
     {
 	double data[][] = new double[ni][];
@@ -340,7 +456,10 @@ public class Field2D
 	return data;
     }
 	
-    /**creates a new field on the mesh and interpolates data from the collection to it*/
+    /**creates a new field on the mesh and interpolates data from the collection to it
+     * @param mesh
+     * @param field_collection
+     * @return */
     public static Field2D FromExisting(Mesh mesh, FieldCollection2D field_collection) 
     {
 	Field2D out = new Field2D(mesh);
@@ -368,6 +487,11 @@ public class Field2D
 	return out;		
     }
 
+    /**
+     *
+     * @param src
+     * @param dest
+     */
     public static void DataCopy(double[][] src, double[][] dest) 
     {
 	int ni = dest.length;
@@ -377,7 +501,8 @@ public class Field2D
 	    System.arraycopy(src[i],0,dest[i],0,nj);
     }
 
-    /**returns min/max range of values*/
+    /**returns min/max range of value
+     * @return s*/
     public double[] getRange() 
     {
 	double range[] = new double[2];
@@ -393,7 +518,8 @@ public class Field2D
 	return range;
     }
 
-    /**interpolates data from fc, adding to existing values*/
+    /**interpolates data from fc, adding to existing value
+     * @param fcs*/
     public void interp(FieldCollection2D fc) 
     {
 	for (int i=0;i<ni;i++)
@@ -407,7 +533,8 @@ public class Field2D
 		}
     }
     
-        /**interpolates data from field, adding to existing values*/
+        /**interpolates data from field, adding to existing value
+     * @param fs*/
     public void interpWithOverwrite(Field2D f) 
     {
 	for (int i=0;i<ni;i++)
@@ -421,7 +548,8 @@ public class Field2D
 	    }
     }
 
-    /**replaces data instead of adding as with regular interp*/
+    /**replaces data instead of adding as with regular inter
+     * @param fcp*/
     public void interpWithOverwrite(FieldCollection2D fc) 
     {
 	for (int i=0;i<ni;i++)
@@ -434,6 +562,11 @@ public class Field2D
 		    }
     }
 
+    /**
+     *
+     * @param fc
+     * @param scalar
+     */
     public void interpScaled(FieldCollection2D fc, double scalar) 
     {
 	for (int i=0;i<ni;i++)
@@ -441,6 +574,11 @@ public class Field2D
 		data[i][j] += scalar*fc.eval(mesh.pos(i,j));
     }
 
+    /**
+     *
+     * @param fi
+     * @param fj
+     */
     public void interpMagnitude(FieldCollection2D fi, FieldCollection2D fj) 
     {
 	for (int i=0;i<ni;i++)
@@ -453,6 +591,11 @@ public class Field2D
 	    }
     }
 
+    /**
+     *
+     * @param fi
+     * @param fj
+     */
     public void interpNormal(FieldCollection2D fi, FieldCollection2D fj) 
     {
 	/*returns component normal to the contour*/
@@ -479,6 +622,14 @@ public class Field2D
     }
 
     /*return tangent vector at location i*/
+
+    /**
+     *
+     * @param i
+     * @param j
+     * @return
+     */
+
     public double[] tangent(int i, int j) 
     {
 	double t[] = new double[2];
@@ -517,6 +668,13 @@ public class Field2D
     }
 
     /*saves data to a binary file*/
+
+    /**
+     *
+     * @param out
+     * @throws IOException
+     */
+
     public void binaryWrite(DataOutputStream out) throws IOException
     {
 	for (int i=0;i<ni;i++)
@@ -525,6 +683,13 @@ public class Field2D
     }
     
     /*reads data from a binary file*/
+
+    /**
+     *
+     * @param in
+     * @throws IOException
+     */
+
     public void binaryRead(DataInputStream in) throws IOException
     {
 	for (int i=0;i<ni;i++)

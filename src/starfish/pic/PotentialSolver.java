@@ -8,9 +8,17 @@ import starfish.core.common.Starfish;
 import starfish.core.common.Vector;
 import starfish.core.solver.Solver;
 
+/**
+ *
+ * @author Lubos Brieda
+ */
 abstract public class PotentialSolver extends Solver
 {
-     @Override
+
+    /**
+     *
+     */
+    @Override
     public void updateGradientField()
     {
 	/*inflate and update electric field*/
