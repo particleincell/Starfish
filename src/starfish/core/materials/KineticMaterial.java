@@ -383,7 +383,7 @@ public class KineticMaterial extends Material
 	    part.pos[2] += Math.asin(sin);	
 
 	    /*rotate velocity through theta*/
-	    double v1 = -part.vel[1];
+	    double v1 = part.vel[1];
 	    double v2 = -part.vel[2];
 	    part.pos[1] = R;
 	    part.vel[1] = cos*v1 + sin*v2;
