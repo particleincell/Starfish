@@ -190,13 +190,6 @@ public class ChemicalReaction extends VolumeInteraction
 	    
 	    for (int i=0;i<ni;i++)
 		for (int j=0;j<nj;j++)
-		{
-		    if (i>=10 && i<=20) T[i][j]=11604*25;
-		    else T[i][j] = 116.04;
-		}
-	    
-	    for (int i=0;i<ni;i++)
-		for (int j=0;j<nj;j++)
 		{	    
 		    k[i][j] = rate_parser.eval(T[i][j]); 		   
 		}
