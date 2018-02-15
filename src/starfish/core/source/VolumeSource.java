@@ -124,8 +124,11 @@ public class VolumeSource extends Source
 	if (num_rem<=spwt0)
 	{
 	    /*set remaining dn/dt*/
-	    double v = dn_f.gather(i_sample+0.5, j_sample+0.5);
-	    dn_f.scatter(i_sample+0.5, j_sample+0.5,num_rem/sample_mesh.cellVol(i_sample,j_sample) - v); 	
+	    double initial = dn_f.gather(i_sample+0.5, j_sample+0.5);
+	    double remaining = num_rem/sample_mesh.cellVol(i_sample,j_sample);
+	    double generated = initial-remaining;
+	    
+	    dn_f.scatter(i_sample+0.5, j_sample+0.5,-generated); 
 	    findNextCell(i_sample,j_sample+1);
 	}
 
@@ -175,9 +178,6 @@ public class VolumeSource extends Source
 	    }
 
 	    num_rem = dn_f.gather(i_sample+0.5, j_sample+0.5)*sample_mesh.cellVol(i_sample,j_sample);//
-	    
-	    /*add random fraction*/
-	    num_rem += Starfish.rnd()*spwt0;
 	    
 	    if (num_rem>=spwt0)
 		return;
