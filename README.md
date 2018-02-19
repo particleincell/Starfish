@@ -21,6 +21,9 @@ Input files for the tutorials are included in the dat directory. On the PIC-C we
 a [PowerPoint presentation](dat/tutorial/starfish-code-overview.pdf) with some introductory remarks about the source code. The associated video is [available here](https://www.youtube.com/watch?v=IDFeT_X-IsU).
 
 # Examples
+![ion velocity](ion-vel.png)
+Axial velocity of ions streaming past a charged sphere
+
 ![temperature profile](dsmc-t.png)
 DSMC computation of temperature in an atmospheric jet expanding to a low pressure tank
 
