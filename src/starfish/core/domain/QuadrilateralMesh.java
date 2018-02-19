@@ -257,6 +257,8 @@ public class QuadrilateralMesh extends Mesh
 	double bb = a[3]*b[0] -a[0]*b[3] + a[1]*b[2] - a[2]*b[1] + xi*b[3] - xj*a[3];
 	double cc = a[1]*b[0] -a[0]*b[1] + xi*b[1] - xj*a[1];
 
+	if (Math.abs(aa)<1e-16) aa=0;	//take care of numerical errors
+	
 	/*compute m = (-b+sqrt(b^2-4ac))/(2a)*/
 	double det = bb*bb - 4*aa*cc;
 	if (det<0 && det>-1e-7) det=0;
@@ -273,9 +275,17 @@ public class QuadrilateralMesh extends Mesh
 	    m = -cc/bb;
 
 	/*is m in range?*/
-	if (m<0 && j>0 && !visited[i][j-1]) {if (XtoLrecursive(xi,xj,i,j-1,lc)) return true;}
-	else if (m>1.0 && j<nj-2 && !visited[i][j+1]) {if (XtoLrecursive(xi,xj,i,j+1,lc)) return true;}
+	if (m<0 && j>0 && !visited[i][j-1]) {
+	    if (XtoLrecursive(xi,xj,i,j-1,lc)) 
+		return true;
+	}
+	else if (m>1.0 && j<nj-2 && !visited[i][j+1]) {
+	    if (XtoLrecursive(xi,xj,i,j+1,lc)) 
+		return true;
+	}
 
+	//we now have the correct m so next check if l is in rage
+	
 	/*compute l*/
 	double ln = xi-a[0]-a[2]*Math.abs(m);
 	double ld = a[1]+a[3]*Math.abs(m); 
@@ -309,12 +319,24 @@ public class QuadrilateralMesh extends Mesh
 	    m=ln/ld;
 			
 	    /*is m in range?*/
-	    if (m<0 && j>0 && !visited[i][j-1]) {if (XtoLrecursive(xi,xj,i,j-1,lc)) return true;}
-	    else if (m>1.0 && j<nj-2 && !visited[i][j+1]) {if (XtoLrecursive(xi,xj,i,j+1,lc)) return true;}
+	    if (m<0 && j>0 && !visited[i][j-1]) {
+		if (XtoLrecursive(xi,xj,i,j-1,lc)) 
+		    return true;
+	    }
+	    else if (m>1.0 && j<nj-2 && !visited[i][j+1]) {
+		if (XtoLrecursive(xi,xj,i,j+1,lc)) 
+		    return true;
+	    }
 	}
 			
-	if (l<0 && i>0 && !visited[i-1][j]) {if (XtoLrecursive(xi,xj,i-1,j,lc)) return true;}
-	else if (l>1.0 && i<ni-2 && !visited[i+1][j]) {if (XtoLrecursive(xi,xj,i+1,j,lc)) return true;}
+	if (l<0 && i>0 && !visited[i-1][j]) {
+	    if (XtoLrecursive(xi,xj,i-1,j,lc)) 
+		return true;
+	}
+	else if (l>1.0 && i<ni-2 && !visited[i+1][j]) {
+	    if (XtoLrecursive(xi,xj,i+1,j,lc)) 
+		return true;
+	}
 	
 	if (l>=0 && m>=0 && l<=1.0000001 && m<=1.0000001)
 	{

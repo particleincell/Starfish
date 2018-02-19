@@ -522,44 +522,21 @@ public class Field2D
      * @param fcs*/
     public void interp(FieldCollection2D fc) 
     {
-	for (int i=0;i<ni;i++)
-	    for (int j=0;j<nj;j++)
-		try{
-
-		    data[i][j] += fc.eval(mesh.pos(i,j));
-		} catch (NoSuchElementException e)
-		{
-		    /*do nothing*/
-		}
+	interpScaled(fc,1.0);
     }
     
-        /**interpolates data from field, adding to existing value
-     * @param fs*/
-    public void interpWithOverwrite(Field2D f) 
+    /**replaces data instead of adding as with regular inter
+     * @param fcp*/
+    public void interpWithOverwrite(Field2D fc) 
     {
-	for (int i=0;i<ni;i++)
-	    for (int j=0;j<nj;j++)
-	    {
-		double pos[] = mesh.pos(i,j);
-		if (f.mesh.containsPos(pos))
-		{
-		    data[i][j] = f.eval(pos);
-		}
-	    }
+	throw new UnsupportedOperationException("Function needs to be re-implemented");	
     }
-
     /**replaces data instead of adding as with regular inter
      * @param fcp*/
     public void interpWithOverwrite(FieldCollection2D fc) 
     {
-	for (int i=0;i<ni;i++)
-	    for (int j=0;j<nj;j++)
-		try{
-		    data[i][j] = fc.eval(mesh.pos(i,j));
-		    } catch (NoSuchElementException e)
-		    {
-			/*do nothing*/
-		    }
+	clear();
+	interp(fc);	
     }
 
     /**
@@ -569,9 +546,46 @@ public class Field2D
      */
     public void interpScaled(FieldCollection2D fc, double scalar) 
     {
+	Field2D count = new Field2D(mesh);
+	Field2D vals = new Field2D(mesh);
+	
+	/*first interpolate from source to here, this assumes
+	target is finer*/
+	for (Mesh smesh:fc.getMeshes())
+	{
+	    Field2D source = fc.getField(smesh);
+	    for (int i=0;i<source.ni;i++)
+		for (int j=0;j<source.nj;j++)
+		{
+		    //get logical coordinate of source point in our field
+		    double lc[] = mesh.XtoL(source.pos(i,j));
+		    if (lc[0]<0 || lc[1]<0) continue;	//skip if not in our mesh
+		    vals.scatter(lc, source.at(i, j));
+		    count.scatter(lc, 1);		    
+		}
+	}
+	
+	/*divide by count and backfill points with no count*/
 	for (int i=0;i<ni;i++)
 	    for (int j=0;j<nj;j++)
-		data[i][j] += scalar*fc.eval(mesh.pos(i,j));
+	    {
+		if (count.at(i,j)>0)
+		{
+		   vals.data[i][j] /= count.at(i,j);  
+		}
+		else	//our mesh is finer here than source
+		{
+		    
+		    vals.data[i][j] = fc.eval(mesh.pos(i,j),0);
+		}
+	    }
+	
+	/*now finally add to existing data, scale as needed*/
+	for (int i=0;i<ni;i++)
+	    for (int j=0;j<nj;j++)
+	    {
+		data[i][j] += scalar*vals.at(i,j);
+	    }
     }
 
     /**

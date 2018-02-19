@@ -313,8 +313,8 @@ public class FieldCollection2D
     }
 
     /**returns value at position x, or throws an exception if
-     * the position is not contained within any of the meshe
-     * @param xs
+     * the position is not contained within any of the meshes
+     * @param x
      * @return */
     public double eval(double[] x) 
     {
@@ -324,6 +324,21 @@ public class FieldCollection2D
 		return fields.get(mesh).eval(x);
 	}
 	throw new NoSuchElementException(String.format("position (%g, %g) not found",x[0],x[1]));
+    }
+    
+    /**returns value at position x, or default value if 
+     * the position is not contained within any of the meshes
+     * @param x
+     * @param def value to return if point not found
+     * @return */
+    public double eval(double[] x, double def) 
+    {
+	for (Mesh mesh:fields.keySet())
+	{
+	    if (mesh.containsPos(x))
+		return fields.get(mesh).eval(x);
+	}
+	return def;
     }
 
     /** sets all fields to zero*/

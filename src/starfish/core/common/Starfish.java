@@ -72,10 +72,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	solver_module.updateFields();
 	
 	while(time_module.hasTime())
-	{
-	    /*solve potential and recompute electric field*/
-	    solver_module.updateFields();
-	    
+	{	    
 	    /*add new particles*/
 	    source_module.sampleSources();
 	    
@@ -85,6 +82,9 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	    /*perform material interactions (collisions and the like)*/
 	    interactions_module.performInteractions();
 	    
+    	    /*solve potential and recompute electric field*/
+	    solver_module.updateFields();
+
 	    /*save restart data*/
 	    restart_module.save();
 
@@ -362,6 +362,10 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
      * @return
      */
     public static int getIt() {return time_module.getIt();}
+    
+    /** @return Returns simulation time
+     */
+    public static double getTime() {return time_module.getTime();}
 
     /**
      *
