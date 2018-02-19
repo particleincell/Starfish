@@ -21,7 +21,7 @@ Input files for the tutorials are included in the dat directory. On the PIC-C we
 a [PowerPoint presentation](dat/tutorial/starfish-code-overview.pdf) with some introductory remarks about the source code. The associated video is [available here](https://www.youtube.com/watch?v=IDFeT_X-IsU).
 
 # Examples
-![t-750-05](dat/dsmc/jet/plots/t-750-05.png)
+![t-750-05](dat/tutorial/dsmc/jet/plots/t-750-05.png)
 DSMC computation of temperature in an atmospheric jet expanding to a low pressure tank
 
 
