@@ -133,8 +133,8 @@ public class FieldCollection2D
      */
     public MeshEvalFun getEvalFun() {return eval_fun;}
     
-    /**returns field for the mesh, creates a new field if not yet in the collectio
-     * @param meshn
+    /**returns field for the mesh, creates a new field if not yet in the collection
+     * @param mesh
      * @return */
     public Field2D getField(Mesh mesh) 
     {
@@ -292,6 +292,16 @@ public class FieldCollection2D
 	}
     }
     
+    /**adds scaled values from another field collection to this one
+     * @param other
+     * @param scale scaling factor to multiply source data by*/
+    public void addData(FieldCollection2D other, double scale)
+    {
+	for (Mesh mesh:getMeshes())
+	{
+	    this.getField(mesh).add(other.getField(mesh), scale);
+	}
+    }
     /**
      *
      * @return

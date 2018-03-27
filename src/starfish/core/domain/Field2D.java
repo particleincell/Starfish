@@ -23,8 +23,8 @@ import starfish.core.domain.DomainModule.DomainType;
 
 public class Field2D 
 {
-    /**constructo
-     * @param meshr*/
+    /**constructor
+     * @param mesh*/
     public Field2D (Mesh mesh) 
     {
 	this(mesh, false);
@@ -211,6 +211,16 @@ public class Field2D
 		data[i][j] += field.data[i][j];
     }
     
+    /**adds scaled values of another field
+    * @param field field to add
+    * @param scale factor to multiply data by*/
+    public void add(Field2D field, double scale)
+    {
+	for (int i=0;i<ni;i++)
+	    for (int j=0;j<nj;j++)
+		data[i][j] += field.data[i][j]*scale;
+    }
+    
     /**fills the entire array the valu
      * @param vale*/
     public void fill(double val)
@@ -348,17 +358,17 @@ public class Field2D
         return v;	
     }
 
-    /**like gather but with physical coordinate inpu
+    /**like gather but with physical coordinate input
      * @param x
-     * @return t*/
+     * @return*/
     public double eval(double[] x) 
     {
 	double lc[] = mesh.XtoL(x);
 	return gather(lc);
     }
 
-    /**divides every node value by a corresponding value in another topologically identical fiel
-     * @param fieldd*/
+    /**divides every node value by a corresponding value in another topologically identical field
+     * @param field*/
     public void divideByField(Field2D field) 
     {
 	if (ni!=field.ni || nj!=field.nj)
@@ -457,32 +467,54 @@ public class Field2D
     }
 	
     /**creates a new field on the mesh and interpolates data from the collection to it
-     * @param mesh
-     * @param field_collection
+     * @param mesh output field mesh
+     * @param field_collection input fields containing data to interpolate
      * @return */
     public static Field2D FromExisting(Mesh mesh, FieldCollection2D field_collection) 
     {
 	Field2D out = new Field2D(mesh);
-			
+	
+	//generate blank field to hold scatter counts
+	Field2D count = new Field2D(mesh);
+	    			
 	Field2D[] in_fields = field_collection.getFields();
 
+	//loop over all meshes in the input collection
 	for (Field2D in:in_fields)
 	{
+	    final int samples = 10; //number of darts to throw per cell
+	    
 	    Mesh in_mesh = in.getMesh();
 	    for (int i=0;i<mesh.ni;i++)
 		for (int j=0;j<mesh.nj;j++)
-		{	
-		    double pos[] = mesh.pos(i,j);
-		    double lc[] = in_mesh.XtoL(pos);
-					
-		    if (lc[0]<0 || lc[1]<0 ||
-			lc[0]>in_mesh.ni || lc[1]>in_mesh.nj)
-			continue;
-					
-		    out.set(i, j, in.gather(lc));
-					
-		}
+		    for (int s = 0;s<samples;s++)
+		    {			
+			//sample random point in output mesh cell
+			double fi = i + Starfish.rnd();
+			double fj = j + Starfish.rnd();
+			double pos[] = mesh.pos(fi, fj);
+			
+			//get logical coordinate for this point on source mesh
+			double lc[] = in_mesh.XtoL(pos);
+
+			//check if in bounds
+			if (lc[0]<0 || lc[1]<0 ||
+			    lc[0]>in_mesh.ni || lc[1]>in_mesh.nj)
+			    continue;
+			
+			if(i<10 && j>38)
+			{
+			    QuadrilateralMesh q = (QuadrilateralMesh) in_mesh;
+			    q.XtoLrecursive(pos[0], pos[1], (int)lc[0], (int)lc[1], lc);
+			}
+			
+			out.scatter(fi, fj, in.gather(lc));
+			count.scatter(fi, fj, 1);
+		    }		
 	}
+	
+	//divide by count
+	out.divideByField(count);
 		
 	return out;		
     }
@@ -564,7 +596,7 @@ public class Field2D
 		    count.scatter(lc, 1);		    
 		}
 	}
-	
+
 	/*divide by count and backfill points with no count*/
 	for (int i=0;i<ni;i++)
 	    for (int j=0;j<nj;j++)
@@ -584,7 +616,7 @@ public class Field2D
 	for (int i=0;i<ni;i++)
 	    for (int j=0;j<nj;j++)
 	    {
-		data[i][j] += scalar*vals.at(i,j);
+		data[i][j] += scalar*vals.at(i,j);		
 	    }
     }
 
@@ -599,8 +631,8 @@ public class Field2D
 	    for (int j=0;j<nj;j++)
 	    {
 		double x[] = mesh.pos(i,j);
-		double v1 = fi.eval(x);
-		double v2 = fj.eval(x);
+		double v1 = fi.eval(x,0);
+		double v2 = fj.eval(x,0);
 		data[i][j] += Math.sqrt(v1*v1+v2*v2);
 	    }
     }

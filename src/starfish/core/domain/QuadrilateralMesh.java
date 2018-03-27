@@ -233,9 +233,10 @@ public class QuadrilateralMesh extends Mesh
 	return lc;
     }
 	
-    /*recursively searches for cell containinging (xi,xj)*/
 
-    /**
+    /** recursively searches for cell containing (xi,xj)
+     * Note, algorithm still fails for some quads (matches lc for points outside the
+     * quad, added point test to make sure the l/m coordinates give the initial point
      *
      * @param xi
      * @param xj
@@ -269,7 +270,7 @@ public class QuadrilateralMesh extends Mesh
 	    
 	double m;
 	/*zero aa means we have orthogonal mesh and a linear equation to solve*/
-	if (aa!=0)
+	if (Math.abs(aa)>1e-12)
 	    m = (-bb+Math.sqrt(det))/(2*aa);
 	else
 	    m = -cc/bb;
@@ -287,12 +288,12 @@ public class QuadrilateralMesh extends Mesh
 	//we now have the correct m so next check if l is in rage
 	
 	/*compute l*/
-	double ln = xi-a[0]-a[2]*Math.abs(m);
-	double ld = a[1]+a[3]*Math.abs(m); 
+	double ln = xi-a[0]-a[2]*m;
+	double ld = a[1]+a[3]*m; 
 	double l;
 		
 	if (ld!=0) l=ln/ld;
-	else 
+	else
 	{
 	    /*recompute by inverting order (l first, m second)*/
 	    aa = a[3]*b[1]-a[1]*b[3];
@@ -308,14 +309,14 @@ public class QuadrilateralMesh extends Mesh
 		Log.error("QuadrilateralMesh: Det < TOL, "+det);
 
 	    /*check for linear case*/
-	    if (aa!=0)
+	    if (Math.abs(aa)>1e-12)
 		l = (-bb-Math.sqrt(det))/(2*aa);
 	    else
 		l = -cc/bb;
 
 	    /*compute m*/
-	    ln = xi-a[0]-a[1]*Math.abs(l);
-	    ld = a[2]+a[3]*Math.abs(l); 
+	    ln = xi-a[0]-a[1]*l;
+	    ld = a[2]+a[3]*l; 
 	    m=ln/ld;
 			
 	    /*is m in range?*/
@@ -340,6 +341,12 @@ public class QuadrilateralMesh extends Mesh
 	
 	if (l>=0 && m>=0 && l<=1.0000001 && m<=1.0000001)
 	{
+	    double xi1 = a[0]+a[1]*l+a[2]*m+a[3]*l*m;
+	    double xj1 = b[0]+b[1]*l+b[2]*m+b[3]*l*m;
+	    double di = xi1-xi;
+	    double dj = xj1-xj;
+	    if (Math.sqrt(di*di + dj*dj)>1e-7)
+		return false;
 	    /*found*/
 	    lc[0]=i+l;
 	    lc[1]=j+m;

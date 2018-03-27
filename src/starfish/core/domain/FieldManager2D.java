@@ -63,7 +63,23 @@ public class FieldManager2D
      * @return
      */
     public Collection<FieldCollection2D> getFieldCollections() {return field_collection2d.values();}
-	
+
+    /**returns all fields with associated names on the specified mesh
+     * 
+     * @param mesh the associate mesh
+     * @return map of variable names and fields
+     */
+    public HashMap<String, Field2D> getAllFields(Mesh mesh)
+    {
+	HashMap<String, Field2D> map = new HashMap<String, Field2D>();
+	for (String name:names)
+	{
+	    Field2D f = this.getFieldCollection(name).getField(mesh);
+	    map.put(name, f);	    
+	}
+	return map;	
+    }
+    
     /**returns true if the field exist
      * @param names
      * @return */

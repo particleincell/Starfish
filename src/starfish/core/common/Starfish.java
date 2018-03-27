@@ -266,21 +266,27 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
     /**
      *
-     * @return
+     * @return random value in [0,1)
      */
     static public double rnd() {return random.nextDouble();} //[0,1)
 
     /**
      *
-     * @return
+     * @return random value in (0,0)
      */
     static public double rndEx0() {double r; do {r=rnd();} while (r==0.0); return r;} //(0,1)
 
     /**
      *
-     * @return
+     * @return random value in [-1,1)
      */
     static public double rnd2() {return -1.0+2*random.nextDouble();}  //[-1,1)
+    
+    /**
+     *
+     * @return random value in (-1,1)
+     */
+    static public double rnd2Ex() {double r; do {r=rnd2();} while (r==-1.0); return r;}  //(-1,1)
 	
     /*code version*/
     static String VERSION = "v0.18 LE  (Development)";

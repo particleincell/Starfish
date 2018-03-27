@@ -9,6 +9,7 @@ package starfish.core.interactions;
 
 import java.util.Iterator;
 import org.w3c.dom.Element;
+import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.Field2D;
@@ -191,8 +192,12 @@ public class ChemicalReaction extends VolumeInteraction
 	    for (int i=0;i<ni;i++)
 		for (int j=0;j<nj;j++)
 		{	    
-		    k[i][j] = rate_parser.eval(T[i][j]); 		   
+
+		    k[i][j] = rate_parser.eval(T[i][j]); 	
+		    if (i==0 && T[i][j]>0.1*Constants.EVtoK)
+			i=i;
 		}
+		    
 	}		
     }
 	
@@ -242,9 +247,6 @@ public class ChemicalReaction extends VolumeInteraction
 	
 		    //clear tiny round off values
 		    if (dn<1) dn=0;
-		    
-		    if (dn>1e4)
-			dn=dn;
 		    
 		    /*set temperature*/
 		    /*TODO: take into account energy equation,etc..., just setting to target temp for now*/

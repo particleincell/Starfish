@@ -273,7 +273,7 @@ public class KineticMaterial extends Material
 		part.vel[0] += q_over_m * ef[0] * part.dt;
 		part.vel[1] += q_over_m * ef[1] * part.dt;
 	    } else
-	    {
+	    {		
 		UpdateVelocityBoris(part, ef, bf);
 	    }
 	    
@@ -740,7 +740,14 @@ public class KineticMaterial extends Material
 	double t[] = new double[3];
 	double s[] = new double[3];
 	double t_mag2;
-
+	
+	//TODO: hack
+	if (true)
+	{
+	B[0]=0;
+	B[1]=0;
+	B[2]=0;
+	}
 	int dim;
 	
 	/*t vector*/

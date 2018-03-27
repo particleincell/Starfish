@@ -320,13 +320,27 @@ public abstract class Writer
 	pw.close();
     }
 	   	
-    /** convenience method for one stop writin
+    /** convenience method for one stop writing
      * @param file_name
-     * @param variablesg*/
+     * @param variables*/
     public final void saveBoundaries(String file_name, String[] variables)
     {
 	openBoundaries(file_name,variables);
 	writeZone();
 	close();
     }
+    
+    /** convenience method for one stop writing
+    * @param file_name
+     * @param scalars
+     * @param vectors
+     * @param cell_data
+    * */
+    public final void saveMesh(String file_name, String[] scalars, ArrayList<String[]> vectors, String[] cell_data)
+    {
+	open2D(file_name,scalars,vectors,cell_data);
+	writeZone();
+	close();
+    }
+
 }
