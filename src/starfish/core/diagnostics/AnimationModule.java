@@ -61,7 +61,7 @@ public class AnimationModule extends CommandModule
 		}
 		
 		for (Writer writer:data.writer_list)
-		    writer.writeZone(true);
+		    writer.write(true);
 	    }
 	}		
     }

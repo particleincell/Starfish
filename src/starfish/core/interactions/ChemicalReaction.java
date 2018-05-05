@@ -192,10 +192,7 @@ public class ChemicalReaction extends VolumeInteraction
 	    for (int i=0;i<ni;i++)
 		for (int j=0;j<nj;j++)
 		{	    
-
-		    k[i][j] = rate_parser.eval(T[i][j]); 	
-		    if (i==0 && T[i][j]>0.1*Constants.EVtoK)
-			i=i;
+		    k[i][j] = rate_parser.eval(T[i][j]); 			    
 		}
 		    
 	}		

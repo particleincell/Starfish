@@ -8,6 +8,7 @@
 package starfish.core.io;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
@@ -30,7 +31,7 @@ public class OutputModule extends CommandModule
 	Starfish.domain_module.start();
 	
 	Writer writer = createWriter(element);
-	writer.writeZone();
+	writer.write();
 	writer.close();
     }
 
@@ -73,28 +74,26 @@ public class OutputModule extends CommandModule
 	
 	//combine "scalars" and "variables", keeping both for backwards compatibility
 	ArrayList<String> vars = new ArrayList<String>();
-	for (String v:variables) vars.add(v);
-	for (String v:scalars) vars.add(v);
+	vars.addAll(Arrays.asList(variables));
+	vars.addAll(Arrays.asList(scalars));
 	variables = vars.toArray(new String[0]);
 	
 	/*make writer*/
 	Writer writer;
-	if (format.equalsIgnoreCase("TECPLOT")) writer = new TecplotWriter();
-	else if (format.equalsIgnoreCase("VTK")) writer = new VTKWriter();
+	if (format.equalsIgnoreCase("TECPLOT")) writer = new TecplotWriter(file_name);
+	else if (format.equalsIgnoreCase("VTK")) writer = new VTKWriter(file_name);
 	else {Log.error("Unknown output format "+format);return null;}
 		 
 	/*TODO: replace this with "factories"*/
 	/*output data*/
 	if (type.equalsIgnoreCase("2D"))
-	    writer.open2D(file_name,variables,vectors,cell_data);
-	else if (type.equalsIgnoreCase("BOUNDARIES"))
-	    writer.openBoundaries(file_name,variables);
-	else if (type.equalsIgnoreCase("PARTICLES"))
-	    writer.openParticles(file_name,element);
+	    writer.init2D(variables,vectors,cell_data);
 	else if (type.equalsIgnoreCase("1D"))
-	{
-	    writer.open1D(file_name, variables, element);
-	}
+	    writer.init1D(variables,vectors,cell_data,element);
+	else if (type.equalsIgnoreCase("BOUNDARIES"))
+	    writer.initBoundaries(variables);
+	else if (type.equalsIgnoreCase("PARTICLES"))
+	    writer.initParticles(element);
 	else
 	    Log.error("Unknown output type "+type);
 

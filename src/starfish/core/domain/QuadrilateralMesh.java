@@ -341,6 +341,7 @@ public class QuadrilateralMesh extends Mesh
 	
 	if (l>=0 && m>=0 && l<=1.0000001 && m<=1.0000001)
 	{
+	    /*sanity check to make sure we got the right point*/
 	    double xi1 = a[0]+a[1]*l+a[2]*m+a[3]*l*m;
 	    double xj1 = b[0]+b[1]*l+b[2]*m+b[3]*l*m;
 	    double di = xi1-xi;

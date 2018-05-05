@@ -100,9 +100,11 @@ public class Contour
 		/*check if the value is between the current and the last position
 		check for v2<v1 to capture maximum lambda line beyond which lambda=0
 		*/		
-		if ((v1-value)*(v2-value)<0 || (v2<v1))
+		if ((v1-value)*(v2-value)<0 || (v2<v1 && value==0.0))
 		{
-		    t-=dt;
+		    //double f = (value-v1)/(v2-v1);	    
+		    //t-=(1-f)*dt;
+		    t -= dt;
 		    dt=0.5*dt;
 		    continue;
 		}
@@ -207,7 +209,7 @@ public class Contour
 	    return;
 	}
 			
-	this.save("contour.csv");
+	//this.save("contour-full.csv");
 
 	/*3) describe the contour by num_points equidistant points*/
 	/*compute length*/
@@ -346,6 +348,11 @@ public class Contour
 	    }
 
 	    px=field.pos(f[0],f[1]);
+	    
+	    /*skip points at lower radial position than prior,
+	    this is to prevent the contouring below the starting spline   */
+	    if (px[1]<point[numPoints()-1].x[1]) 
+		continue;
 
 	    /*do we already have this point?*/
 	    /*TODO: implement*/

@@ -26,7 +26,6 @@ public abstract class Writer
     static enum OutputType {FIELD,ONED,BOUNDARIES,PARTICLES};
     static enum Dim {I,J};
 	
-    PrintWriter pw = null;
     OutputType output_type;
     String scalars[];
     ArrayList <String[]> vectors;
@@ -39,34 +38,38 @@ public abstract class Writer
     /*for particles*/
     int particle_count;
 	
-    /**
-     *
-     * @param file_name
-     * @param variables
-     * @param element
-     */
-    public void open1D(String file_name,String[] variables, Element element)
+    /*general constructor*/
+    public Writer (String file_name)
     {
-	String mesh_name = InputParser.getValue("mesh",element);
-	String index_str = InputParser.getValue("index",element);
-	this.file_name = file_name;
-	    
-	output_type=OutputType.ONED;
-	ArrayList<String[]> vectors = new ArrayList<String[]>();
-	String cell_data[] = {};	
-	open(file_name,variables,vectors,cell_data,mesh_name,index_str);
+	this.file_name = file_name;	
     }
+    
+    protected PrintWriter open(String file_name)
+    {
+	PrintWriter pw = null;
 	
-
-    /** open function for 1D output
-     * @param file_name
+	try {
+	    pw = new PrintWriter(new FileWriter(file_name));
+	} catch (IOException ex) 
+	{
+	    Log.error("error opening file "+file_name);
+	}
+	
+	return pw;
+    }
+    
+    /** Outputs data along a specified I or J index in a single mesh
+     *
      * @param scalars
      * @param vectors
      * @param cell_data
-     * @param index
-     * @param mesh_name*/
-    protected void open(String file_name, String[] scalars, ArrayList<String[]> vectors, String[] cell_data, String mesh_name, String index)
+     * @param element
+     */
+    public void init1D(String[] scalars, ArrayList<String[]> vectors, String[] cell_data, Element element)
     {
+	String mesh_name = InputParser.getValue("mesh",element);
+	String str_index = InputParser.getValue("index",element);
+	    
 	/*grab the mesh*/
 	output_mesh =Starfish.domain_module.getMesh(mesh_name);
 	if (output_mesh==null)
@@ -74,10 +77,9 @@ public abstract class Writer
 	    Log.error("Mesh "+mesh_name+" does not exist");
 	    return;
 	}
-	this.file_name = file_name;
 	
 	/*parse index*/
-	String pieces[]=index.split("\\s*=\\s*");
+	String pieces[]=str_index.split("\\s*=\\s*");
 	if (pieces.length!=2)
 	    Log.error(String.format("couldn't parse index string %s, syntax [I/J]=value",index));
 		
@@ -90,26 +92,20 @@ public abstract class Writer
 	this.index=Integer.parseInt(pieces[1]);		
 		
 	/*call main open function*/
-	open2D(file_name, scalars, vectors, cell_data);	
-    }
+	init2D(scalars, vectors, cell_data);	
 	
-    /** open function for 2D field dat
-     * @param file_name
-     * @param scalarsa
+	/*set output type - after init2D*/
+	output_type=OutputType.ONED;
+    }
+	    	
+    /** open function for 2D field data
+     * @param scalars
      * @param vectors
      * @param cell_data*/
-    protected void open2D(String file_name, String[] scalars, ArrayList<String[]> vectors, String[] cell_data)
+    protected void init2D(String[] scalars, ArrayList<String[]> vectors, String[] cell_data)
     {
 	output_type=OutputType.FIELD;
-	this.file_name = file_name;
-	
-	try {
-	    pw = new PrintWriter(new FileWriter(file_name));
-	} catch (IOException ex) 
-	{
-	    Log.error("error opening file "+file_name);
-	}
-		
+			
 	String vars_temp[] = new String[scalars.length];
 	int temp_length=0;
 		
@@ -162,25 +158,14 @@ public abstract class Writer
 		Log.warning("Skipping unrecognized vector pair "+pair[0]+":"+pair[1]);
 	    }
 	}		
-	
-	/*write header*/
-	writeHeader();
     }
 	
-    /** open function for boundary dat
-     * @param file_namea
+    /** open function for boundary data
      * @param variables*/
-    protected void openBoundaries(String file_name, String[] variables)
+    protected void initBoundaries(String[] variables)
     {
 	output_type = OutputType.BOUNDARIES;
 	
-	try {
-	    pw = new PrintWriter(new FileWriter(file_name));
-	} catch (IOException ex) 
-	{
-	    Log.error("error opening file "+file_name);
-	}
-		
 	String vars_temp[] = new String[variables.length];
 	int temp_length=0;
 	
@@ -199,26 +184,15 @@ public abstract class Writer
 		
 	/*save vars*/
 	this.scalars = new String[temp_length];
-	System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);
-				
-	/*write header*/
-	writeHeader();
+	System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);			
     }
 
-    /** open function for particle outpu
-     * @param file_name
-     * @param elementt*/
-    public void openParticles(String file_name,Element element)
+    /** open function for particle output
+     * @param element*/
+    public void initParticles(Element element)
     {
 	output_type=OutputType.PARTICLES;
 
-	try {
-	    pw = new PrintWriter(new FileWriter(file_name));
-	} catch (IOException ex) 
-	{
-	    Log.error("error opening file "+file_name);
-	}
-		
 	/*get count*/
 	if (element!=null)
 	    particle_count = InputParser.getInt("count", element,1000);
@@ -250,22 +224,19 @@ public abstract class Writer
 	    scalars[3] = "utheta";
 	}
 	    
-	scalars[4] = "id";
-	
-	/*write header*/
-	writeHeader();
+	scalars[4] = "id";	
     }
 
-    /**
+    /** Wrapper for default parameter
      *
      */
-    public final void writeZone() {writeZone(false);}	   //wrapper for default param
+    public final void write() {write(false);}
 
-    /**
+    /** Writes latest data to a file
      *
      * @param animation
      */
-    public final void writeZone(boolean animation)
+    public final void write(boolean animation)
     {
 	/*update average data, this is needed mainly to capture anything if not yet at steady state,
 	 true parameter to force sampling even if not yet in steady state*/
@@ -273,74 +244,51 @@ public abstract class Writer
 	
 	switch (output_type)
 	{
-	    case FIELD: writeZone2D(animation);break;
-	    case ONED: writeZone1D();break;
-	    case BOUNDARIES: writeZoneBoundaries();break;
+	    case FIELD: write2D(animation);break;
+	    case ONED: write1D();break;
+	    case BOUNDARIES: writeBoundaries();break;
 	    case PARTICLES: writeParticles();break;
 		
-	}
-	pw.flush();
+	}	
     }
-	
-    /**
-     *
-     */
-    protected abstract void writeHeader();
 
     /**
      *
      * @param animation
      */
-    protected abstract void writeZone2D(boolean animation);
+    protected abstract void write2D(boolean animation);
 
     /**
      *
      */
-    protected abstract void writeZone1D();
+    protected abstract void write1D();
 
     /**
      *
      */
-    protected abstract void writeZoneBoundaries();
+    protected abstract void writeBoundaries();
 
     /**
      *
      */
     protected abstract void writeParticles();
 
-    /**
-     *
-     * @param data
-     */
-    public abstract void writeData(double data[]);
-    
-    /** closes the file*/
+    /** placeholder for file close out operations to be overriden as needed*/
     public void close()
     {
-	pw.close();
+	
     }
-	   	
-    /** convenience method for one stop writing
-     * @param file_name
-     * @param variables*/
-    public final void saveBoundaries(String file_name, String[] variables)
-    {
-	openBoundaries(file_name,variables);
-	writeZone();
-	close();
-    }
-    
+	   	    
     /** convenience method for one stop writing
     * @param file_name
      * @param scalars
      * @param vectors
      * @param cell_data
     * */
-    public final void saveMesh(String file_name, String[] scalars, ArrayList<String[]> vectors, String[] cell_data)
+    public final void saveMesh(String[] scalars, ArrayList<String[]> vectors, String[] cell_data)
     {
-	open2D(file_name,scalars,vectors,cell_data);
-	writeZone();
+	init2D(scalars,vectors,cell_data);
+	write();
 	close();
     }
-
 }

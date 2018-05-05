@@ -92,7 +92,8 @@ public class BoundaryModule extends CommandModule
 	for (Boundary boundary:boundary_list)
 	    if (boundary.name.equalsIgnoreCase(name))
 		return boundary;
-	throw new NoSuchElementException("boundary "+name+" not found");
+	Log.error("boundary "+name+" not found");
+	return null;	//this won't actually happen
     }
 		
     @Override

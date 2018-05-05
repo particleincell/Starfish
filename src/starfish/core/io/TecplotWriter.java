@@ -7,6 +7,7 @@
 
 package starfish.core.io;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import starfish.core.boundaries.Boundary;
@@ -26,13 +27,21 @@ import starfish.core.materials.Material;
 /**saves 2D data in a simple ASCII Tecplot(R) format*/
 public class TecplotWriter extends Writer
 {
-
     /**
      *
      */
-    @Override
+    protected PrintWriter pw = null;
+
+    public TecplotWriter(String file_name)
+    {
+	super(file_name);
+    }
+    
     public void writeHeader() 
     {
+	//open the file
+	pw = open(file_name);
+	
 	/*print header*/
 	if (Starfish.domain_module.getDomainType()==DomainType.XY)
 	    pw.print("VARIABLES = \"x (m)\" \"y (m)\"");
@@ -60,13 +69,16 @@ public class TecplotWriter extends Writer
 	
 	pw.println();
     }
+    
+    @Override
+    public void close() {pw.close();}
 	
     /**
      *
      * @param animation
      */
     @Override
-    public void writeZone2D(boolean animation)
+    public void write2D(boolean animation)
     {		
 	/*output all meshes*/
 	for (int m=0;m<Starfish.getMeshList().size();m++)
@@ -100,13 +112,14 @@ public class TecplotWriter extends Writer
 		    pw.println();
 		}
 	    }
+	    pw.flush();
 	}
  
 	/**
 	 * Saves field variables along a single mesh coordinate
 	 */
 	@Override
-	public void writeZone1D() 
+	public void write1D() 
 	{	
 	    int im,ip;
 	    int jm,jp;
@@ -166,7 +179,7 @@ public class TecplotWriter extends Writer
     * Saves data along surface boundaries
     */
     @Override
-    public void writeZoneBoundaries() 
+    public void writeBoundaries() 
     {
 	final int NP_SMOOTH=20;		//number of pieces a smooth segment is divided into
 
@@ -227,6 +240,7 @@ public class TecplotWriter extends Writer
 	    }  
 			
 	}
+        pw.flush();
     }	
 
     /**
@@ -276,25 +290,7 @@ public class TecplotWriter extends Writer
 		for (int i=1;i<p_delta;i++) iterator.next();
 		p+=p_delta;
 	    }
-
 	}
 	pw.flush();	
     }
-    
-    /**
-     *
-     * @param data
-     */
-    @Override
-    public void writeData(double data[])
-    {
-	/*TODO: this algorithm may select duplicate particles, add some check to avoid this*/
-	for (int i=0;i<data.length;i++)
-	{
-	    pw.printf("%g ", data[i]);
-    	}
-	pw.printf("\n");
-	pw.flush();	
-    }
-
 }

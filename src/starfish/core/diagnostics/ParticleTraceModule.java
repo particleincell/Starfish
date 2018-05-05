@@ -84,8 +84,8 @@ public class ParticleTraceModule extends CommandModule
 	{
 	    this.id = id;
 	    this.start_it = start_it;
-	    writer = new TecplotWriter();
-	    writer.openParticles(file_name,null);
+	    writer = new TecplotWriter(file_name);
+	    writer.initParticles(null);
 	    this.km = km;
 	}
 		
@@ -104,7 +104,7 @@ public class ParticleTraceModule extends CommandModule
 	    data[5] = part.vel[2];
 	    data[6] = Starfish.getIt();
 	    
-	    writer.writeData(data);			
+	    //writer.writeData(data);			
 	}
 	
 	void close() {writer.close();}
