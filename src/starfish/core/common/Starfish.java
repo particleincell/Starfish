@@ -50,6 +50,7 @@ import starfish.core.io.LoggerModule;
 import starfish.core.io.LoggerModule.Level;
 import starfish.core.io.NoteModule;
 import starfish.core.io.OutputModule;
+import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
 import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
@@ -332,11 +333,21 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     public static ArrayList<Mesh> getMeshList() {return domain_module.getMeshList();}
 	
     /**
-     *
      * @param name
-     * @return
+     * @return material given by the name
      */
     public static Material getMaterial(String name) {return materials_module.getMaterial(name);}
+
+    /**
+     * @param name
+     * @return kinetic material given by the name or null if not found or material is not kinetic type
+     */
+    public static KineticMaterial getKineticMaterial(String name) {
+	Material mat = getMaterial(name);
+	if (mat!=null && (mat instanceof KineticMaterial))
+	    return (KineticMaterial) mat;
+	else return null;
+    }
 
     /**
      *

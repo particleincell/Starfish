@@ -14,7 +14,6 @@ import starfish.core.solver.Solver;
  */
 abstract public class PotentialSolver extends Solver
 {
-
     /**
      *
      */

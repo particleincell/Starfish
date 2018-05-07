@@ -35,9 +35,10 @@ public class TecplotWriter extends Writer
     public TecplotWriter(String file_name)
     {
 	super(file_name);
+	writeHeader();
     }
     
-    public void writeHeader() 
+    final public void writeHeader() 
     {
 	//open the file
 	pw = open(file_name);
@@ -119,7 +120,7 @@ public class TecplotWriter extends Writer
 	 * Saves field variables along a single mesh coordinate
 	 */
 	@Override
-	public void write1D() 
+	public void write1D(boolean animation) 
 	{	
 	    int im,ip;
 	    int jm,jp;
@@ -179,7 +180,7 @@ public class TecplotWriter extends Writer
     * Saves data along surface boundaries
     */
     @Override
-    public void writeBoundaries() 
+    public void writeBoundaries(boolean animation) 
     {
 	final int NP_SMOOTH=20;		//number of pieces a smooth segment is divided into
 
@@ -247,7 +248,7 @@ public class TecplotWriter extends Writer
      *
      */
     @Override
-    protected void writeParticles()
+    protected void writeParticles(boolean animation)
     {
 	for (Material mat: Starfish.getMaterialsList())
 	{
@@ -293,4 +294,11 @@ public class TecplotWriter extends Writer
 	}
 	pw.flush();	
     }
+    
+    @Override
+    public void writeTrace(ArrayList<Particle> particles, ArrayList<Integer>time_steps)
+    {
+	Log.error("writeTrace not yet defined for TECPLOT");
+    }
+
 }

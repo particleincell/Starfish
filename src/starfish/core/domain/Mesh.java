@@ -140,7 +140,7 @@ public abstract class Mesh
     public static class MeshBoundaryData
     {
 	public Mesh neighbor[] = null;
-	MeshBoundaryType type;
+	MeshBoundaryType type = MeshBoundaryType.OPEN;
 	public int num_neighbors = 0;
 	public double buffer;
 	double value;	    //optional value for Dirichlet/Neumann boundaries
@@ -200,20 +200,11 @@ public abstract class Mesh
     /*mesh definition*/
     public final int ni,
 
-    /**
-     *
-     */
     nj;       /*number of nodes*/
     public final int n_nodes,
 
-    /**
-     *
-     */
     n_cells;
 
-    /**
-     *
-     */
     public final Node node[][];    
 
     /*geometry*/
@@ -221,9 +212,6 @@ public abstract class Mesh
 
     boolean virtual = false;
 
-    /**
-     *
-     */
     public void makeVirtual() {virtual=true;}
     
     /*name*/
@@ -253,9 +241,8 @@ public abstract class Mesh
      *
      * @param i
      * @param j
-     * @return
+     * @return node data type at i,j
      */
-
     public Node getNode(int i, int j) {return node[i][j];}
 
     /**
@@ -302,9 +289,11 @@ public abstract class Mesh
      */
     public boolean isDirichletNode(int i, int j) {return nodeType(i,j)==NodeType.DIRICHLET;}
     
-    /** @return true if node i,j is on a mesh boundary and is of the specified type
-     * @param i
-     * @param j
+    /**
+     * @return true if node i,j is on a mesh boundary and is of the specified type
+     * @param i node index
+     * @param j node index
+     * @param type type to check against
      */
     public boolean isMeshBoundaryType(int i, int j,MeshBoundaryType type) {
 	if (i==0) return this.boundaryType(Face.LEFT,j)==type;
@@ -944,14 +933,10 @@ public abstract class Mesh
 	return false;
     }
     
-	/*uses boundaries located in a node control volume to set node locations*/
-
-    /**
-     *
-     */
-
-	protected void setInterfaceNodeLocation()
-	{
+	
+    /** uses boundaries located in a node control volume to set node locations*/
+    protected void setInterfaceNodeLocation()
+    {
 	    int i,j;
 		
 	    /*now loop through all nodes and set the ones with cuts*/

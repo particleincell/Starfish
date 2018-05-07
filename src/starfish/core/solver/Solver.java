@@ -19,8 +19,6 @@ import starfish.core.common.Starfish.Log;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.Face;
 import starfish.core.domain.Mesh.Node;
-import starfish.core.domain.Mesh.NodeType;
-
 /**
  * Finite volume Matrix solver for Ax=b using the Gauss-Seidel method (for now)
  */
@@ -226,10 +224,7 @@ public abstract class Solver
 		    if (G.Gj[v]!=0) md.Gj.add(u, G.n[v], G.Gj[v]);
 		}
 	    }
-
 	
-
-		
 	/***** 2) set coefficients for potential solver **************/
 	for (i = 0; i < ni; i++)
 	    for (j = 0; j < nj; j++)
@@ -859,7 +854,7 @@ public abstract class Solver
 	e.dj_ni = x2[1] - x1[1];
 	e.di_nj = x1[0] - x2[0];	//multiplied by -1
 	
-		    /* find neighbor nodes */
+	/* find neighbor nodes */
 	e.N[0] = md.mesh.NodeIndexOffset(im, jm, -0.5, -0.5);
 	e.N[1] = md.mesh.NodeIndexOffset(im, jm, 0.5, -0.5);
 	e.N[2] = md.mesh.NodeIndexOffset(im, jm, 0.5, 0.5);
@@ -878,12 +873,9 @@ public abstract class Solver
 	    C[i] *= val;
     }
     
-    /*function used to compute, for instance, the electric field*/
-
-    /**
+    /** function used to compute, for instance, the electric field
      *
      */
-
     public abstract void updateGradientField();
 
     /*evaluate gradient of data "x" times scale and stores it into fi and fj*/
@@ -909,7 +901,6 @@ public abstract class Solver
 	{
 	    Vector.mult(gi, scale, gi);
 	    Vector.mult(gj, scale, gj);
-	}
-	    
+	}   
     }
 }

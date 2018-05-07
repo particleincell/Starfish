@@ -16,6 +16,7 @@ import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Mesh;
+import starfish.core.materials.KineticMaterial.Particle;
 
 /**
  *
@@ -23,7 +24,7 @@ import starfish.core.domain.Mesh;
  */
 public abstract class Writer 
 {
-    static enum OutputType {FIELD,ONED,BOUNDARIES,PARTICLES};
+    static enum OutputType {FIELD,ONED,BOUNDARIES,PARTICLES,TRACE};
     static enum Dim {I,J};
 	
     OutputType output_type;
@@ -37,6 +38,7 @@ public abstract class Writer
     
     /*for particles*/
     int particle_count;
+    String mat_name;
 	
     /*general constructor*/
     public Writer (String file_name)
@@ -193,11 +195,8 @@ public abstract class Writer
     {
 	output_type=OutputType.PARTICLES;
 
-	/*get count*/
-	if (element!=null)
-	    particle_count = InputParser.getInt("count", element,1000);
-	else
-	    particle_count = 1000;
+	particle_count = InputParser.getInt("count", element,1000);
+	mat_name = InputParser.getValue("material", element);
 	
 	/*save vars*/
 	scalars = new String[5];
@@ -227,6 +226,13 @@ public abstract class Writer
 	scalars[4] = "id";	
     }
 
+     /** open function for particle output
+     * @param element*/
+    public void initTrace()
+    {
+	output_type = OutputType.TRACE;
+    }
+
     /** Wrapper for default parameter
      *
      */
@@ -245,10 +251,10 @@ public abstract class Writer
 	switch (output_type)
 	{
 	    case FIELD: write2D(animation);break;
-	    case ONED: write1D();break;
-	    case BOUNDARIES: writeBoundaries();break;
-	    case PARTICLES: writeParticles();break;
-		
+	    case ONED: write1D(animation);break;
+	    case BOUNDARIES: writeBoundaries(animation);break;
+	    case PARTICLES: writeParticles(animation);break;
+	    case TRACE: Log.warning("write not supported for TRACE");break;		
 	}	
     }
 
@@ -261,17 +267,23 @@ public abstract class Writer
     /**
      *
      */
-    protected abstract void write1D();
+    protected abstract void write1D(boolean animation);
 
     /**
      *
      */
-    protected abstract void writeBoundaries();
+    protected abstract void writeBoundaries(boolean animation);
 
     /**
      *
      */
-    protected abstract void writeParticles();
+    protected abstract void writeParticles(boolean animation);
+    
+    /**
+     *
+     */
+    public abstract void writeTrace(ArrayList<Particle> particles, ArrayList<Integer>time_steps);
+    
 
     /** placeholder for file close out operations to be overriden as needed*/
     public void close()

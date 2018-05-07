@@ -9,10 +9,13 @@ package starfish.core.io;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.Mesh;
+import starfish.core.materials.KineticMaterial;
+import starfish.core.materials.KineticMaterial.Particle;
 
 /** writer for ASCII VTK files*/
 public class VTKWriter extends Writer 
@@ -208,7 +211,7 @@ public class VTKWriter extends Writer
      * Saves data along a single I/J grid line on a single mesh
      */
     @Override
-    public void write1D() 
+    public void write1D(boolean animation) 
     {
 	int part = 0;	
 	//split out extension from the file name
@@ -347,7 +350,7 @@ public class VTKWriter extends Writer
      *
      */
     @Override
-    public void writeBoundaries() 
+    public void writeBoundaries(boolean animation) 
     {
 	/*count number of points*/
 	int num_points = 0;
@@ -472,9 +475,140 @@ public class VTKWriter extends Writer
      *
      */
     @Override
-    protected void writeParticles()
+    protected void writeParticles(boolean animation)
     {
-	Log.warning("writeParticles not yet implemented for VTK"); //To change body of generated methods, choose Tools | Templates.
+	ArrayList<Particle> parts = new ArrayList();
+	KineticMaterial mat = Starfish.getKineticMaterial(mat_name);
+	if (mat==null)
+	{
+	    Log.warning("Material "+mat_name+" is not a kinetic material");
+	    return;
+	}
+	
+	double prob = (double)particle_count/mat.getNp();
+	for (Mesh mesh:Starfish.getMeshList())
+	{
+	    Iterator<Particle> it = mat.getIterator(mesh);
+	    while(it.hasNext())
+	    {
+		Particle part = it.next();
+		if (Starfish.rnd()<prob) parts.add(part);
+	    }
+	}
+	
+	String substr[] = splitFileName(file_name);
+	String name = substr[0];
+	if (animation)
+	    name += String.format("_%06d", Starfish.getIt());
+	name += substr[1];    
+	PrintWriter pw = open(name);
+	
+	pw.println("<?xml version=\"1.0\"?>");
+	pw.println("<VTKFile type=\"PolyData\">");
+	pw.println("<PolyData>");
+	pw.printf("<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"0\" "
+		+ "NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n",
+		parts.size());
+	
+	pw.println("<Points>");
+	pw.println("<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">");
+	for (int i=0;i<parts.size();i++)
+	{
+	    Particle part = parts.get(i);
+	    pw.printf("%g %g %g\n", part.pos[0], part.pos[1], part.pos[2]);
+	}
+	pw.println("</DataArray>");
+	pw.println("</Points>");
+	
+	/*data*/
+	pw.println("<PointData>");
+	
+	/*first save node area*/
+	pw.println("<DataArray Name=\"velocity\" type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
+	for (int i=0;i<parts.size();i++)
+	{
+	    Particle part = parts.get(i);
+	    pw.printf("%g %g %g\n", part.vel[0], part.vel[1], part.vel[2]);
+	}
+	pw.println("\n</DataArray>");
+
+	
+	pw.println("</PointData>");	
+	 
+	pw.println("</Piece>");
+	pw.println("</PolyData>");
+	pw.println("</VTKFile>");
+
+	/*save output file*/
+        pw.flush();
+    }
+
+    /** writes particle trace*/
+    public void writeTrace(ArrayList<Particle> particles, ArrayList<Integer>time_steps)
+    {
+	PrintWriter pw = open(file_name);
+	pw.println("<?xml version=\"1.0\"?>");
+	pw.println("<VTKFile type=\"PolyData\">");
+	pw.println("<PolyData>");
+	pw.printf("<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"0\" "
+		+ "NumberOfLines=\"%d\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n",
+		particles.size(),particles.size()-1);
+	
+	pw.println("<Points>");
+	pw.println("<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">");
+	for (int i=0;i<particles.size();i++)
+	{
+	    Particle part = particles.get(i);
+	    pw.printf("%g %g %g\n", part.pos[0], part.pos[1], part.pos[2]);
+	}
+	pw.println("</DataArray>");
+	pw.println("</Points>");
+	
+	pw.println("<Lines>");
+	pw.println("<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">");
+	for (int i=0;i<particles.size()-1;i++)
+	    pw.printf("%d %d ",i, i+1);
+	pw.println("\n</DataArray>");
+	pw.println("<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">");
+	for (int i=0;i<particles.size()-1;i++)
+	    pw.printf("%d ",i*2);
+	pw.println("\n</DataArray>");
+	pw.println("</Lines>");
+	
+	/*data*/
+	pw.println("<PointData>");
+	
+	/*velocities*/
+	pw.println("<DataArray Name=\"vel\" type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
+	for (int i=0;i<particles.size();i++)
+	{
+	    Particle part = particles.get(i);
+	    pw.printf("%g %g %g ", part.vel[0],part.vel[1],part.vel[2]);
+	}
+	pw.println("\n</DataArray>");
+
+	pw.println("<DataArray Name=\"time_step\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
+	for (int i=0;i<particles.size();i++)
+	{
+	    pw.printf("%d ", time_steps.get(i));
+	}
+	pw.println("\n</DataArray>");
+
+	pw.println("<DataArray Name=\"part_id\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
+	for (int i=0;i<particles.size();i++)
+	{
+	    Particle part = particles.get(i);	 
+	    pw.printf("%d ", part.id);
+	}
+	pw.println("\n</DataArray>");
+	pw.println("</PointData>");	
+	 
+	pw.println("</Piece>");
+	pw.println("</PolyData>");
+	pw.println("</VTKFile>");
+
+	/*save output file*/
+        pw.flush();
     }
 
 

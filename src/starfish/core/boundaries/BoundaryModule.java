@@ -14,7 +14,6 @@ import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.domain.Mesh.MeshBoundaryType;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
 import starfish.core.solver.Matrix;

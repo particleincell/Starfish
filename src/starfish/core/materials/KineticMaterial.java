@@ -211,8 +211,7 @@ public class KineticMaterial extends Material
     {
 	return getMeshData(mesh).getIterator();
     }
-    
-    
+        
     /*updates particles on a single block*/
     class ParticleMover extends Thread
     {
@@ -935,54 +934,18 @@ public class KineticMaterial extends Material
 
     static public class Particle
     {
-
-	/**
-	 *
-	 */
 	public double pos[];
-
-	/**
-	 *
-	 */
 	public double vel[];
-
-	/**
-	 *
-	 */
 	public double spwt;
-
-	/**
-	 *
-	 */
 	public double mass;		/*mass of the physical particle*/
-
-	/**
-	 *
-	 */
 	public double lc[];		/*logical coordinate of current position*/
-
-	/**
-	 *
-	 */
 	public double dt;		/*remaining dt to move through*/
-
-	/**
-	 *
-	 */
 	public long id;			/*particle id*/
-
-	/**
-	 *
-	 */
 	public int born_it;
-	
-	/**
-	 *
-	 */
 	public int trace_id = -1;		/*set to >=0 if particle is being traced*/
 
-	/** copy constructo
-	 * @param partr*/
+	/** copy constructor
+	 * @param part*/
 	public Particle (Particle part) 
 	{   
 	    pos = new double[3];
@@ -995,9 +958,8 @@ public class KineticMaterial extends Material
 	    dt=part.dt;
 	    id=part.id;
 	    born_it=part.born_it;
+	    trace_id = part.trace_id;
 	}
-	
-	//	KineticMaterial mat;	/*parent mat*/
 
 	/**
 	 *

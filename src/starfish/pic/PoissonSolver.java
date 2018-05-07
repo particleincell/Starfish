@@ -31,7 +31,6 @@ public class PoissonSolver extends PotentialSolver
     Method method;
 	
     /**
-     *
      * @param element
      */
     public PoissonSolver (Element element)
@@ -62,7 +61,7 @@ public class PoissonSolver extends PotentialSolver
 	eps = Constants.EPS0*eps_r;
 	Log.log("> eps_r: "+eps_r);
 
-	String sm = (InputParser.getValue("method", element, "direct")).toUpperCase();
+	String sm = (InputParser.getValue("method", element, "GS")).toUpperCase();
 	if (sm.equals("DIRECT")) method = Method.DIRECT;
 	else if (sm.equals("GS")) method= Method.GS;
 	else if (sm.equals("PCG")) method = Method.PCG;
@@ -105,8 +104,7 @@ public class PoissonSolver extends PotentialSolver
 	    md.b = Vector.merge(md.fixed_node, md.x, md.b);
 	}
 		
-	/* solve potential */
-	
+	/* solve potential */	
 	if (linear_mode)
 		solvePotentialLin();
 	else

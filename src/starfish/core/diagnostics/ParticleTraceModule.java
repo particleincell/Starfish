@@ -15,6 +15,7 @@ import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
 import starfish.core.io.TecplotWriter;
+import starfish.core.io.VTKWriter;
 import starfish.core.io.Writer;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
@@ -30,7 +31,7 @@ public class ParticleTraceModule extends CommandModule
     public void process(Element element) 
     {
 	String file_name = InputParser.getValue("file_name", element);
-	String format = InputParser.getValue("format", element,"TECPLOT");
+	String format = InputParser.getValue("format", element,"VTK");
 	String material = InputParser.getValue("material", element);
 	
 	Material mat = Starfish.getMaterial(material);
@@ -55,7 +56,8 @@ public class ParticleTraceModule extends CommandModule
     }
 
     /**
-     * @param part_id *  @return trace id associated with particle id, or -1 if no trace*/
+     * @param part_id *  
+     * @return trace id associated with particle id, or -1 if no trace*/
     public int getTraceId(long part_id)
     {
 	for (int i=0;i<tracer_list.size();i++)
@@ -64,8 +66,8 @@ public class ParticleTraceModule extends CommandModule
 	return -1;
     }
 
-    /** saves new trace for the specified particl
-     * @param parte*/	
+    /** saves new trace for the specified particle
+     * @param part*/	
     public void addTrace(Particle part)
     {
 	if (part.trace_id>=0)
@@ -78,35 +80,32 @@ public class ParticleTraceModule extends CommandModule
 	int start_it;	/** iteration to start sampling at */
 	PrintWriter pw = null;
 	Writer writer;
-	KineticMaterial km;
+	KineticMaterial km;	
+	ArrayList<Particle> particles = new ArrayList();
+	ArrayList<Integer> time_steps = new ArrayList();
 	
 	Tracer(String file_name, String format, KineticMaterial km, int id, int start_it)
 	{
 	    this.id = id;
 	    this.start_it = start_it;
-	    writer = new TecplotWriter(file_name);
-	    writer.initParticles(null);
-	    this.km = km;
+	    if (format.equalsIgnoreCase("VTK")) 
+		writer = new VTKWriter(file_name);
+	    else if (format.equalsIgnoreCase("TECPLOT"))
+		writer = new TecplotWriter(file_name);
+	    else
+		Log.error("Unsuported writer format "+format);
+	    writer.initTrace();
+	    this.km = km;	    
 	}
 		
 	/** saves new trace for the specified particle*/
 	void addTrace(Particle part)
-	{
-	 
+	{	 	    
 	    if (part==null || Starfish.getIt()<start_it) return;
-	    
-	    double data[] = new double [7];
-	    data[0] = part.pos[0];
-	    data[1] = part.pos[1];
-	    data[2] = part.pos[2];
-	    data[3] = part.vel[0];
-	    data[4] = part.vel[1];
-	    data[5] = part.vel[2];
-	    data[6] = Starfish.getIt();
-	    
-	    //writer.writeData(data);			
+	    particles.add(new Particle(part));
+	    time_steps.add(Starfish.getIt());	    
 	}
 	
-	void close() {writer.close();}
+	void close() {writer.writeTrace(particles, time_steps);writer.close();}
     }	
 }
