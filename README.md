@@ -1,5 +1,5 @@
 # Announcements
-The next Starfish seminar will be held January 25th. Please visit [https://www.particleincell.com/starfish](https://www.particleincell.com/starfish) for more info. 
+5/7/2018: I am currently working on re-enabling multi-mesh support. This version should be available by the end of the week.
 
 # Starfish-LE
 ![Starfish logo](starfish.png)
