@@ -9,7 +9,6 @@ package starfish.core.boundaries;
 import java.util.ArrayList;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
-import starfish.core.domain.Mesh.NodeType;
 import starfish.core.materials.Material;
 import starfish.core.source.ParticleListSource;
 import starfish.core.source.Source;
@@ -35,14 +34,29 @@ public class Boundary extends Spline
      * @param value
      * @param mat
      */
-    public Boundary (String name, NodeType type, double value, Material mat)
+    public Boundary (String name, BoundaryType type, double value, Material mat)
     {
 	this.name = name;
 	this.type = type;
 	this.value = value;	
 	this.material = mat;
     }
+
+    /**named constants for boundary types*/
+    static public enum BoundaryType    {
+	DIRICHLET(0),
+	OPEN(1),	
+	SINK(2),
+	VIRTUAL(3)
+	; 
 	
+	protected int val;
+	BoundaryType(int val) {this.val=val;}
+
+	/** @return associated value */
+	public int value() {return val;}	
+    }
+    
     /**allocates sources*/
     protected void init()
     {
@@ -89,7 +103,7 @@ public class Boundary extends Spline
      *
      * @return
      */
-    public NodeType getType() {return type;}
+    public BoundaryType getType() {return type;}
 
     /**
      *
@@ -97,8 +111,7 @@ public class Boundary extends Spline
      */
     public double getValue() {return value;}
  
-    /** returns default materia
-     * @return l*/
+    /**@return boundary material*/
     public Material getMaterial() {return material;}
 	
     /** returns material at spline position
@@ -141,7 +154,7 @@ public class Boundary extends Spline
      *
      */
 
-    protected final NodeType type;
+    protected final BoundaryType type;
 
     /**
      *

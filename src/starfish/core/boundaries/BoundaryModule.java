@@ -9,12 +9,12 @@ package starfish.core.boundaries;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import org.w3c.dom.Element;
+import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.domain.Mesh.NodeType;
+import starfish.core.domain.Mesh.MeshBoundaryType;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
 import starfish.core.solver.Matrix;
@@ -148,12 +148,13 @@ public class BoundaryModule extends CommandModule
 	double value = InputParser.getDouble("value", element,0);
 		
 	/*set boundary type*/
-	NodeType boundary_type=null;
-	if (type.equalsIgnoreCase("OPEN")) boundary_type = NodeType.OPEN;
-	else if (type.equalsIgnoreCase("SOLID")) boundary_type = NodeType.DIRICHLET;
-	else if (type.equalsIgnoreCase("SYMMETRY")) boundary_type = NodeType.SYMMETRY;
-	else if (type.equalsIgnoreCase("VIRTUAL")) boundary_type = NodeType.VIRTUAL;
-	else if (type.equalsIgnoreCase("SINK")) boundary_type = NodeType.SINK;
+	BoundaryType boundary_type=null;
+	if (type.equalsIgnoreCase("OPEN")) boundary_type = BoundaryType.OPEN;
+	else if (type.equalsIgnoreCase("SOLID")) boundary_type = BoundaryType.DIRICHLET;
+	//legacy support, symmetry should be set on meshes
+	else if (type.equalsIgnoreCase("SYMMETRY")) boundary_type = BoundaryType.VIRTUAL;	
+	else if (type.equalsIgnoreCase("VIRTUAL")) boundary_type = BoundaryType.VIRTUAL;
+	else if (type.equalsIgnoreCase("SINK")) boundary_type = BoundaryType.SINK;
 	else Log.error("Unknown boundary type "+type);
 		
 	/*try to grab material, only require for dirichlet*/
@@ -163,7 +164,7 @@ public class BoundaryModule extends CommandModule
 	    material = Starfish.getMaterial(mat_name);	
 	}
 	catch (Exception e) {
-	    if (boundary_type == NodeType.DIRICHLET)
+	    if (boundary_type == BoundaryType.DIRICHLET)
 		Log.error(e.getMessage());
 	}
 		

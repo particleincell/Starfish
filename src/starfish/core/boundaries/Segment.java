@@ -7,6 +7,7 @@
 
 package starfish.core.boundaries;
 
+import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.domain.Mesh;
 import static starfish.core.domain.Mesh.Face.BOTTOM;
 import static starfish.core.domain.Mesh.Face.LEFT;
@@ -55,7 +56,7 @@ public abstract class Segment
      *
      * @return
      */
-    public NodeType getBoundaryType() {return boundary.type;}
+    public BoundaryType getBoundaryType() {return boundary.type;}
 
     /**
      *

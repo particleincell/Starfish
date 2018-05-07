@@ -16,6 +16,7 @@ import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.Face;
 import starfish.core.domain.Mesh.NodeType;
 import starfish.core.common.Starfish.Log;
+import starfish.core.domain.Mesh.MeshBoundaryType;
 
 /**spline which defines a contour line*/
 public class Contour 
@@ -163,7 +164,7 @@ public class Contour
 	    if (edge==0)	/*bottom*/
 	    {
 		edge=2;
-		if (j==0 && mesh.nodeType(i, j)==NodeType.MESH)
+		if (j==0 && mesh.boundaryType(Face.BOTTOM,i)==MeshBoundaryType.MESH)
 		{
 		    mesh = mesh.boundaryData(Face.BOTTOM, i).neighbor[0];
 		    continue;
@@ -173,7 +174,7 @@ public class Contour
 	    else if (edge==1)	/*right*/
 	    {
 		edge=3;
-		if (i==field.getNi()-2 && mesh.nodeType(i,j)==NodeType.MESH)
+		if (i==field.getNi()-2 && mesh.boundaryType(Face.RIGHT,j)==MeshBoundaryType.MESH)
 		{
 		    mesh = mesh.boundaryData(Face.RIGHT, j).neighbor[0];
 		    continue;
@@ -183,7 +184,7 @@ public class Contour
 	    else if (edge==2)	/*top*/
 	    {
 		edge=0;
-		if (j==field.getNj()-2 && mesh.nodeType(i,j)==NodeType.MESH)
+		if (j==field.getNj()-2 && mesh.boundaryType(Face.TOP,i)==MeshBoundaryType.MESH)
 		{
 		    mesh = mesh.boundaryData(Face.TOP, i).neighbor[0];
 		    continue;
@@ -193,7 +194,7 @@ public class Contour
 	    else if (edge==3)	/*left*/
 	    {
 		edge=1;
-		if (i==0 && mesh.nodeType(i,j)==NodeType.MESH)
+		if (i==0 && mesh.boundaryType(Face.LEFT,j)==MeshBoundaryType.MESH)
 		{
 		    mesh = mesh.boundaryData(Face.LEFT, j).neighbor[0];
 		    continue;

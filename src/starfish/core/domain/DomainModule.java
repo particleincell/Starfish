@@ -273,7 +273,7 @@ public class DomainModule extends CommandModule
 	for (Element bc_ele:bc_eles)
 	{
 	    Face face = null;
-	    Mesh.NodeType node_type = null;
+	    Mesh.MeshBoundaryType node_type = null;
 	    double value = InputParser.getDouble("value", bc_ele,0);
 			
 	    try 
@@ -289,7 +289,7 @@ public class DomainModule extends CommandModule
 	    try 
 	    {
 		String type_name = InputParser.getValue("type", bc_ele);
-		node_type = Mesh.NodeType.valueOf(type_name.toUpperCase());
+		node_type = Mesh.MeshBoundaryType.valueOf(type_name.toUpperCase());
 	    }
 	    catch (Exception e)
 	    {

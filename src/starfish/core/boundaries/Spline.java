@@ -9,11 +9,11 @@ package starfish.core.boundaries;
 
 import java.util.ArrayList;
 import java.util.Scanner;
+import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
-import starfish.core.domain.Mesh.NodeType;
 import starfish.core.solver.Matrix;
 import starfish.core.common.Vector;
 
@@ -842,7 +842,7 @@ public class Spline
 	{
 	    for (Segment segment:segments)
 	    {
-		if (segment.boundary.type!=NodeType.DIRICHLET)
+		if (segment.boundary.type!=BoundaryType.DIRICHLET)
 		    continue;
 
 		/*during first pass we look only for linear segments*/
@@ -865,7 +865,7 @@ public class Spline
 		for (Segment segment2:segments)
 		{
 		    if (segment2==segment) continue;	/*skip self*/
-		    if (segment2.boundary.type!=NodeType.DIRICHLET)
+		    if (segment2.boundary.type!=BoundaryType.DIRICHLET)
 			continue;
 
 		    /*TODO: this algorithm does not work properly, it is tripped by

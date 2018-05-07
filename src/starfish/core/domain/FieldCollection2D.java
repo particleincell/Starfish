@@ -19,8 +19,9 @@ import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import starfish.core.common.Starfish;
-import starfish.core.domain.Mesh.BoundaryData;
+import starfish.core.domain.Mesh.MeshBoundaryData;
 import starfish.core.domain.Mesh.Face;
+import starfish.core.domain.Mesh.MeshBoundaryType;
 import starfish.core.domain.Mesh.NodeType;
 
 /**inner class holding fields for a particular mesh*/
@@ -170,7 +171,7 @@ public class FieldCollection2D
 	{
 	    for (Face face:Face.values())
 	    {
-		BoundaryData bc[] = mesh.boundary_data[face.ordinal()];
+		MeshBoundaryData bc[] = mesh.boundary_data[face.ordinal()];
 		int i,j;
 		
 		if (face==Face.BOTTOM || face==Face.TOP)
@@ -181,7 +182,7 @@ public class FieldCollection2D
 					
 		    for (i=0;i<mesh.ni;i++)
 		    {
-			if (mesh.node[i][j].type == NodeType.MESH)
+			if (mesh.isMeshBoundary(i,j))
 			{
 			    /*TODO: hardcoded for a single neighbor*/
 			    Mesh nm = bc[i].neighbor[0];
@@ -192,7 +193,7 @@ public class FieldCollection2D
 				bc[i].buffer+=getField(nm).gather_safe(lc);
 			    }							
 			}
-			else if (mesh.node[i][j].type == NodeType.PERIODIC)
+			else if (mesh.isMeshBoundaryType(i,j,MeshBoundaryType.PERIODIC))
 			{
 			    /*TODO: hardcoded for single cartesian mesh!*/
 			    bc[i].buffer+=getField(mesh).data[i][j2];
@@ -207,7 +208,7 @@ public class FieldCollection2D
 					
 		    for (j=0;j<mesh.nj;j++)
 		    {
-			if (mesh.node[i][j].type == NodeType.MESH)
+			if (mesh.isMeshBoundary(i, j))
 			{
 			    /*TODO: hardcoded for a single neighbor*/
 			    Mesh nm = bc[j].neighbor[0];
@@ -218,7 +219,7 @@ public class FieldCollection2D
 				bc[j].buffer+=getField(nm).gather_safe(lc);
 			    }				
 			} /*if mesh*/
-			else if (mesh.node[i][j].type == NodeType.PERIODIC)
+			else if (mesh.isMeshBoundaryType(i,j,MeshBoundaryType.PERIODIC))
 			{
 			    /*TODO: hardcoded for single cartesian mesh!*/
 			    bc[j].buffer+=getField(mesh).data[i2][j];
@@ -235,7 +236,7 @@ public class FieldCollection2D
 
 	    for (Face face:Face.values())
 	    {
-		BoundaryData bc[] = mesh.boundary_data[face.ordinal()];
+		MeshBoundaryData bc[] = mesh.boundary_data[face.ordinal()];
 		int i,j;
 
 		if (face==Face.BOTTOM || face==Face.TOP)
@@ -245,8 +246,8 @@ public class FieldCollection2D
 
 		    for (i=0;i<mesh.ni;i++)
 		    {
-			if (mesh.node[i][j].type == NodeType.MESH ||
-			    mesh.node[i][j].type == NodeType.PERIODIC)
+			if (mesh.isMeshBoundary(i,j) ||
+			    mesh.isMeshBoundaryType(i,j,MeshBoundaryType.PERIODIC))
 			{
 			    field.data[i][j]+=bc[i].buffer;
 			    
@@ -261,8 +262,8 @@ public class FieldCollection2D
 
 		    for (j=0;j<mesh.nj;j++)
 		    {
-			if (mesh.node[i][j].type == NodeType.MESH ||
-			    mesh.node[i][j].type == NodeType.PERIODIC)
+			if (mesh.isMeshBoundary(i,j) ||
+			    mesh.isMeshBoundaryType(i, j, MeshBoundaryType.PERIODIC))
 			{
 			    field.data[i][j]+=bc[j].buffer;
 			    field.data[i][j]*=0.5;

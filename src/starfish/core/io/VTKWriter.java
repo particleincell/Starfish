@@ -115,7 +115,7 @@ public class VTKWriter extends Writer
 	    pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
 	    for (int j=0;j<mesh.nj;j++)
 		for	(int i=0;i<mesh.ni;i++)
-		    pw.printf("%d ",mesh.getNode(i,j).type.ordinal());
+		    pw.printf("%d ",mesh.getNode(i,j).type.value());
 	    pw.println("\n</DataArray>");
 
 	    for (String var:scalars)
@@ -281,12 +281,12 @@ public class VTKWriter extends Writer
 	if (dim == Dim.I)
 	{
 	    for	(int j=0;j<mesh.ni;j++)
-		pw.printf("%d ",mesh.getNode(index,j).type.ordinal());
+		pw.printf("%d ",mesh.getNode(index,j).type.value());
 	}
 	else
 	{
 	    for	(int i=0;i<mesh.ni;i++)
-		pw.printf("%d ",mesh.getNode(i,index).type.ordinal());	    
+		pw.printf("%d ",mesh.getNode(i,index).type.value());	    
 	}
 	pw.println("\n</DataArray>");
 
@@ -414,7 +414,7 @@ public class VTKWriter extends Writer
 	for (Boundary boundary:bl)
 	    for (int i=0;i<boundary.numPoints()-1;i++)
 	    {
-		pw.printf("%d ", boundary.getType().ordinal());
+		pw.printf("%d ", boundary.getType().value());
 	    }
 	pw.println("\n</DataArray>");
 	

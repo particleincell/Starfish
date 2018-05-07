@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.Field1D;
 import starfish.core.boundaries.Segment;
@@ -24,166 +23,147 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
-import starfish.core.io.VTKWriter;
 
 /**abstract implementation of a mesh with a structured topology*/
 public abstract class Mesh 
 {
+       /** constructor
+     *
+     * @param ni
+     * @param nj
+     * @param domain_type
+     */
+    public Mesh (int ni, int nj, DomainType domain_type)
+    {
+	this.ni=ni;
+        this.nj=nj;
+	this.domain_type = domain_type;
+		
+	this.index=0;
+	if (Starfish.domain_module!=null)
+	    this.index = Starfish.getMeshList().size();
+		
+	n_nodes = ni*nj;
+        n_cells = (ni-1)*(nj-1);
+		
+	/*allocate nodes*/      
+        node = new Node[ni][nj];
+	
+	for (int i=0;i<ni;i++)
+	    for (int j=0;j<nj;j++)
+	    {
+		node[i][j]=new Node();
+		node[i][j].type=NodeType.UNKNOWN;
+	    }
+	
+	/*initialize boundary mesh data*/
+	boundary_data[Face.RIGHT.value()] = new MeshBoundaryData[nj];
+	boundary_data[Face.LEFT.value()] = new MeshBoundaryData[nj];
+	boundary_data[Face.TOP.value()] = new MeshBoundaryData[ni];
+	boundary_data[Face.BOTTOM.value()] = new MeshBoundaryData[ni];	
+	
+	for (int j=0;j<nj;j++)
+	{
+	    boundary_data[Face.LEFT.value()][j]= new MeshBoundaryData();
+	    boundary_data[Face.RIGHT.value()][j]= new MeshBoundaryData();	    
+	}
+	for (int i=0;i<ni;i++)
+	{
+	    boundary_data[Face.BOTTOM.value()][i]= new MeshBoundaryData();
+	    boundary_data[Face.TOP.value()][i]= new MeshBoundaryData();	    
+	}
+
+    }
+	
+    /** called by DomainModule during initialization*/
+    public void init()
+    {
+	if (!virtual) setMeshNeighbors();
+    }
+    
     /*mesh index corresponds to the DomainModule list, meshes not in the main mesh_list
     * will have duplicate index*/
-
-    /**
-     *
-     */
-
     protected int index;
 
-    /**
-     *
-     * @return
+     /** @return index identifying this mesh
      */
     public int getIndex() {return index;}
 
-    /*data definitions*/
-
-    /**
-     *
-     */
-
+    /** Named constants for mesh faces*/
     public enum Face {
 
-	/**
-	 *
-	 */
 	RIGHT (0),
-
-	/**
-	 *
-	 */
 	TOP(1),
-
-	/**
-	 *
-	 */
 	LEFT(2),
-
-	/**
-	 *
-	 */
 	BOTTOM(3);
-    private int val;
-    Face(int value) {val=value;}
+	private int val;
+	Face(int value) {val=value;}
 
-	/**
-	 *
-	 * @return
-	 */
+	/** @return associated value */
 	public int value() {return val;}
     }
-	
-    /*Internal data structures*/
 
-    /**
-     *
-     */
-
+    /** data structure defined on each node*/
     public static class Node
     {
-
-	/**
-	 *
-	 */
 	public NodeType type;
 
-	/**
-	 *
-	 */
 	public double bc_value;
 		
-	/*list of splines in this control volume*/
-
-	/**
-	 *
-	 */
-
+	/**list of splines in this control volume*/
 	public ArrayList<Segment>segments = new ArrayList<Segment>();
     }
     
     Field2D node_vol;
     Field2D getNodeVol() {return node_vol;}
 
-    /**
-     *
-     */
-    public static class BoundaryData
-    {
-
-	/**
-	 *
-	 */
-	public Mesh neighbor[] = null;
-
-	/**
-	 *
-	 */
-	public int num_neighbors = 0;
-
-	/**
-	 *
-	 */
-	public double buffer;
-    }
-	
-    BoundaryData boundary_data[][] = new BoundaryData[4][];	/*[face][node_index]*/
-	
-    /**
-     *
-     */
-    static public enum NodeType {
-
-	BAD(-99), 
-	UNKNOWN(-2), 
-	OPEN(-1), 
-	DIRICHLET(0), 
+    /*data type to specify the type of mesh boundary*/
+    static public enum MeshBoundaryType    {
+	OPEN(-1),
+	DIRICHLET(0),
 	NEUMANN(1), 
 	PERIODIC(2), 
 	SYMMETRY(3), 
 	MESH(4), 
-	VIRTUAL(5), 
-	SINK(6), 
-	CIRCUIT(7); 
+	SINK(5), 
+	CIRCUIT(6); 
+	
+	protected int val;
+	MeshBoundaryType(int val) {this.val=val;}
+
+	/** @return associated value
+	 */
+	public int value() {return val;}	
+    }
+    /** Data structure for storing information on mesh neighbors on boundary nodes
+     */
+    public static class MeshBoundaryData
+    {
+	public Mesh neighbor[] = null;
+	MeshBoundaryType type;
+	public int num_neighbors = 0;
+	public double buffer;
+	double value;	    //optional value for Dirichlet/Neumann boundaries
+    }
+	
+    MeshBoundaryData boundary_data[][] = new MeshBoundaryData[4][];	/*[face][node_index]*/
+	
+    /**
+     */
+    static public enum NodeType {
+	BAD(-99), 
+	UNKNOWN(-2), 
+	OPEN(-1),
+	DIRICHLET(0); 
 	
 	protected int val;
 	NodeType(int val) {this.val=val;}
 
-	/**
-	 *
-	 * @return
+	/** @return associated value
 	 */
 	public int value() {return val;}
-	};
+    };
     
-    /**
-     *
-     */
-    public class MeshBC
-    {
-
-	/**
-	 *
-	 */
-	public NodeType type = NodeType.OPEN;
-
-	/**
-	 *
-	 */
-	public double value = 0;
-    }
-
-    /**
-     *
-     */
-    public MeshBC mesh_bc[] = new MeshBC[4];
     
     /**
      *
@@ -191,19 +171,30 @@ public abstract class Mesh
      * @param type
      * @param value
      */
-    public void setMeshBCType(Face face, NodeType type, double value)
+    public void setMeshBCType(Face face, MeshBoundaryType type, double value)
     {
-	mesh_bc[face.value()].type=type;
-	mesh_bc[face.value()].value=value;
+	if (face==Face.LEFT || face==Face.RIGHT)
+	    for (int j=0;j<nj;j++)
+	    {
+		boundary_data[face.value()][j].type = type;
+		boundary_data[face.value()][j].value = value;
+	    }
+	else
+	    for (int i=0;i<ni;i++)
+	    {
+		boundary_data[face.value()][i].type = type;
+		boundary_data[face.value()][i].value = value;
+	    }
     }
     
-    /** Returns mesh boundary type at the corresponding face
-     * @param face
+    /** Returns mesh boundary type at the node of the specified face
+     * @param face mesh face
+     * @param index node index
      * @return boundary type
      */
-    public NodeType boundaryType(Face face)
+    public MeshBoundaryType boundaryType(Face face, int index)
     {
-	return mesh_bc[face.value()].type;
+	return boundary_data[face.value()][index].type;
     }
     	
     /*mesh definition*/
@@ -288,7 +279,7 @@ public abstract class Mesh
      * @param index
      * @return
      */
-    public BoundaryData boundaryData(Face face, int index) {return boundary_data[face.ordinal()][index];}
+    public MeshBoundaryData boundaryData(Face face, int index) {return boundary_data[face.value()][index];}
 
     /**
      *
@@ -305,55 +296,35 @@ public abstract class Mesh
 	    return false;
     }
     
-    /**
-     *
+    /** @return true if node i,j is a dirichlet node
      * @param i
      * @param j
-     * @return
      */
-    public boolean isDirichletNode(int i, int j) {return nodeType(i, j)==NodeType.DIRICHLET;}
+    public boolean isDirichletNode(int i, int j) {return nodeType(i,j)==NodeType.DIRICHLET;}
+    
+    /** @return true if node i,j is on a mesh boundary and is of the specified type
+     * @param i
+     * @param j
+     */
+    public boolean isMeshBoundaryType(int i, int j,MeshBoundaryType type) {
+	if (i==0) return this.boundaryType(Face.LEFT,j)==type;
+	else if (i==ni-1) return this.boundaryType(Face.RIGHT,j)==type;
+	else if (j==0) return this.boundaryType(Face.BOTTOM,i)==type;
+	else if (j==nj-1) return this.boundaryType(Face.TOP,i)==type;
+	else return false;
+    }
   
+    /** @return true if node i,j is a boundary node shared by meshes
+     * @param i
+     * @param j
+     */
+    public boolean isMeshBoundary(int i, int j) {
+	return isMeshBoundaryType(i,j,MeshBoundaryType.MESH);
+    }
+
     /*constructor*/
 
-    /**
-     *
-     * @param ni
-     * @param nj
-     * @param domain_type
-     */
-
-    public Mesh (int ni, int nj, DomainType domain_type)
-    {
-	this.ni=ni;
-        this.nj=nj;
-	this.domain_type = domain_type;
-		
-	this.index=0;
-	if (Starfish.domain_module!=null)
-	    this.index = Starfish.getMeshList().size();
-		
-	n_nodes = ni*nj;
-        n_cells = (ni-1)*(nj-1);
-		
-	/*allocate nodes*/      
-        node = new Node[ni][nj];
-	
-	for (int i=0;i<ni;i++)
-	    for (int j=0;j<nj;j++)
-	    {
-		node[i][j]=new Node();
-		node[i][j].type=NodeType.UNKNOWN;
-	    }
-	
-	/*set default boundary conditions*/
-	for (int i=0;i<4;i++) mesh_bc[i]=new MeshBC();	
-    }
-	
-    /** called by DomainModule during initialization*/
-    public void init()
-    {
-	if (!virtual) setMeshNeighbors();
-    }
+ 
 	    
     /**allocates memory, computes node volumes, and sets boundary cells*/
     void initNodes()
@@ -379,23 +350,18 @@ public abstract class Mesh
     {
 	int i,j;
     	
-	/*initialize boundary cells*/
-	boundary_data[Face.RIGHT.ordinal()] = new BoundaryData[nj];
-	boundary_data[Face.LEFT.ordinal()] = new BoundaryData[nj];
-	boundary_data[Face.TOP.ordinal()] = new BoundaryData[ni];
-	boundary_data[Face.BOTTOM.ordinal()] = new BoundaryData[ni];
 		
 	/*set defaults*/
 	for (j=0;j<nj;j++)
 	{
-	    boundary_data[Face.RIGHT.ordinal()][j] = new BoundaryData();
-	    boundary_data[Face.LEFT.ordinal()][j] = new BoundaryData();
+	    boundary_data[Face.RIGHT.value()][j] = new MeshBoundaryData();
+	    boundary_data[Face.LEFT.value()][j] = new MeshBoundaryData();
 	}
 
 	for (i=0;i<ni;i++)
 	{
-	    boundary_data[Face.TOP.ordinal()][i] = new BoundaryData();
-	    boundary_data[Face.BOTTOM.ordinal()][i] = new BoundaryData();	
+	    boundary_data[Face.TOP.value()][i] = new MeshBoundaryData();
+	    boundary_data[Face.BOTTOM.value()][i] = new MeshBoundaryData();	
 	}
 		
 	/*modify cells with neighbor meshes*/
@@ -419,54 +385,8 @@ public abstract class Mesh
 	    		
 		if (mesh.containsPos(pos(i,nj-1)))				
 		    addMeshToBoundary(Face.TOP,i,mesh);
-	    }
-	}
-    }
-	
-    /**
-    * Sets dirichlet nodes on open nodes, must be called after flood fill
-    * TODO: so far only supports DIRICHLET
-    */
-    void setBoundaryNodes()
-    {
-	int i,j;
-	double value;
-	NodeType type;
-		
-	/*set boundary conditions*/
-	value = mesh_bc[Face.LEFT.ordinal()].value;
-	type = mesh_bc[Face.LEFT.ordinal()].type;
-	for (j=0;j<nj;j++) {
-	    Node ln = node[0][j];
-	    if (ln.type==NodeType.DIRICHLET ||
-		ln.type==NodeType.MESH) continue;
-	    ln.type=type;ln.bc_value=value;
-	}
-		
-	value = mesh_bc[Face.RIGHT.ordinal()].value;
-	type = mesh_bc[Face.RIGHT.ordinal()].type;
-	for (j=0;j<nj;j++) {
-	    Node ln = node[ni-1][j];
-	    if (ln.type==NodeType.DIRICHLET ||
-		ln.type==NodeType.MESH) continue;
-	    ln.type=type;ln.bc_value=value;
-	}
-		
-	value = mesh_bc[Face.TOP.ordinal()].value;
-	type = mesh_bc[Face.TOP.ordinal()].type;
-	for (i=0;i<ni;i++) {
-	    Node ln = node[i][nj-1];
-	    if (ln.type==NodeType.DIRICHLET) continue;
-	    ln.type=type;ln.bc_value=value;
-	}
-		
-	value = mesh_bc[Face.BOTTOM.ordinal()].value;
-	type = mesh_bc[Face.BOTTOM.ordinal()].type;
-	for (i=0;i<ni;i++) {
-	    Node ln = node[i][0];
-	    if (ln.type==NodeType.DIRICHLET) continue;
-	    ln.type=type;ln.bc_value=value;
-	}		
+	    }	    
+	}	
     }
 	
     /**
@@ -477,22 +397,12 @@ public abstract class Mesh
      */
     protected void addMeshToBoundary(Face face, int  index, Mesh mesh)
     {
-	int i,j;
-	switch (face)
-	{
-	    case LEFT: i=0;j=index;break;
-	    case RIGHT: i=ni-1;j=index;break;
-	    case BOTTOM: j=0;i=index;break;
-	    case TOP: j=nj-1;i=index;break;
-	    default: Log.error("Unknown face");return;
-	}
-	node[i][j].type = NodeType.MESH;
-	
-	BoundaryData bc=boundary_data[face.ordinal()][index];
+	MeshBoundaryData bc=boundary_data[face.value()][index];
 	
 	if (bc.num_neighbors==0)
 	    bc.neighbor = new Mesh[Starfish.getMeshList().size()];
 		
+	bc.type = MeshBoundaryType.MESH;
 	bc.neighbor[bc.num_neighbors]=mesh;
 	bc.num_neighbors++;
     }
@@ -904,13 +814,9 @@ public abstract class Mesh
 	return ii;
     }
 
-    /*computes node cuts and performs flood fill*/
-
-    /**
-     *
+    /** computes node cuts and performs flood fill
      * @param boundary_list
      */
-
     public void setBoundaries(ArrayList<Boundary>boundary_list)
     {
 	if (!boundary_list.isEmpty())
@@ -919,34 +825,11 @@ public abstract class Mesh
 	    setInterfaceNodeLocation();		
 	    performFloodFill();
 	}
-	setBoundaryNodes();
-
-/*test of visibility!*/
-/*
-for (Mesh mesh:Starfish.getMeshList())
-{
-    for (int i=0;i<mesh.ni;i++)
-	for (int j=0;j<mesh.nj;j++)
-	{
-	    if (i==69 && j==1)
-		i=i;
-	    
-	    if (Starfish.boundary_module.isInternal(mesh.pos(i,j)))
-		mesh.node[i][j].type=NodeType.DIRICHLET;
-	    else
-		mesh.node[i][j].type=NodeType.OPEN;
-		
-	}
-}*/
     }
 	
-    /*marks boundaries located in a volume centered about each node*/
-
-    /**
-     *
+    /** marks boundaries located in a volume centered about each node
      * @param boundary_list
      */
-
     protected void setNodeControlVolumes(ArrayList<Boundary>boundary_list)
     {
 	int i,j;
@@ -1089,8 +972,8 @@ for (Mesh mesh:Starfish.getMeshList())
 		    {
 			node[i][j].type = NodeType.DIRICHLET;
 			node[i][j].bc_value = seg.boundary.getValue();
-		    }
-		    else
+		    }		    
+		    else if (node[i][j].type==NodeType.UNKNOWN) //do not overwrite MESH nodes
 		    {
 			node[i][j].type = NodeType.OPEN;
 			node[i][j].bc_value = 0;
@@ -1153,7 +1036,7 @@ for (Mesh mesh:Starfish.getMeshList())
 	}
 	
     /**
-     *
+     * Check if mesh contains a point, inclusive of all boundaries
      * @param x
      * @return
      */
@@ -1288,7 +1171,7 @@ for (Mesh mesh:Starfish.getMeshList())
 	    pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
 	    for (int j=0;j<nj;j++)
 		for	(int i=0;i<ni;i++)
-		    pw.printf("%d ",getNode(i,j).type.ordinal());
+		    pw.printf("%d ",getNode(i,j).type.value());
 	    pw.println("\n</DataArray>");
 	
 	    /*2d data*/

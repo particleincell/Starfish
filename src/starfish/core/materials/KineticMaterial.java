@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
+import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.boundaries.Segment;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
@@ -23,7 +24,7 @@ import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.Mesh;
-import starfish.core.domain.Mesh.BoundaryData;
+import starfish.core.domain.Mesh.MeshBoundaryData;
 import starfish.core.domain.Mesh.Face;
 import starfish.core.domain.Mesh.Node;
 import starfish.core.domain.Mesh.NodeType;
@@ -31,6 +32,7 @@ import starfish.core.domain.UniformMesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.MaterialsModule.MaterialParser;
 import starfish.core.common.Vector;
+import starfish.core.domain.Mesh.MeshBoundaryType;
 
 /** definition of particle-based material*/
 public class KineticMaterial extends Material
@@ -436,9 +438,9 @@ public class KineticMaterial extends Material
 		Node node = mesh.getNode(i, j);
 
 		for (Segment seg : node.segments)
-		    if (seg.getBoundaryType() == NodeType.DIRICHLET ||
-			seg.getBoundaryType() == NodeType.VIRTUAL ||
-			seg.getBoundaryType() == NodeType.SINK)
+		    if (seg.getBoundaryType() == BoundaryType.DIRICHLET ||
+			seg.getBoundaryType() == BoundaryType.VIRTUAL ||
+			seg.getBoundaryType() == BoundaryType.SINK)
 			segments.add(seg);
 	    }
 
@@ -459,7 +461,7 @@ public class KineticMaterial extends Material
 		 * as long as they are moving away from the surface*/
 		double acos=Vector.dot2(seg.normal(t[0]),part.vel)/Vector.mag2(part.vel);
 		if (t_part<Constants.FLT_EPS &&		    //ignore direction for virtual walls since particles can pass through
-			(acos>0 || seg.getBoundaryType()==NodeType.VIRTUAL)) continue;
+			(acos>0 || seg.getBoundaryType()==BoundaryType.VIRTUAL)) continue;
 		
 		/*is this a new minimum?*/
 		if (t_part<tp_min)
@@ -495,7 +497,7 @@ public class KineticMaterial extends Material
 	   if (!alive )
 	       Starfish.source_module.boundary_charge+=part.spwt*charge;	
 	    
-	    if (boundary_hit.getType()==NodeType.SINK) alive = false;
+	    if (boundary_hit.getType()==BoundaryType.SINK) alive = false;
 
 	    /*deposit flux and deposit, if stuck*/
 	    addSurfaceMomentum(boundary_hit, boundary_t, part.vel, part.spwt);
@@ -520,11 +522,11 @@ public class KineticMaterial extends Material
 	    if (part.lc[0] >= mesh.ni - 1)
 	    {
 		/*using >1.0 to place particle inside domain*/
-		t_right = (mesh.ni - 1.000001 - lc_old[0]) / (part.lc[0] - lc_old[0]);
+		t_right = (mesh.ni - 1.00000 - lc_old[0]) / (part.lc[0] - lc_old[0]);
 	    }
 	    if (part.lc[1] >= mesh.nj - 1)
 	    {
-		t_top = (mesh.nj - 1.000001 - lc_old[1]) / (part.lc[1] - lc_old[1]);
+		t_top = (mesh.nj - 1.00000 - lc_old[1]) / (part.lc[1] - lc_old[1]);
 	    }
 	    if (part.lc[0] < 0)
 	    {
@@ -573,8 +575,14 @@ public class KineticMaterial extends Material
 	    if (exit_face==Face.TOP) j++;
 	    if (exit_face==Face.RIGHT) i++;
 	    
+	    if (i<0) i=0;
+	    if (j<0) j=0;
+	    if (i>=mesh.ni-1) i=mesh.ni-1;
+	    if (j>=mesh.nj-1) j=mesh.nj-1;
+	    
 	    /*process boundary*/
-	    NodeType type = mesh.boundaryType(exit_face);
+	    /*TODO: need cell data*/
+	    MeshBoundaryType type = mesh.boundaryType(exit_face,i);
 	    
 	    switch (type)
 	    {
@@ -601,7 +609,7 @@ public class KineticMaterial extends Material
 		    if (exit_face==Face.LEFT || exit_face==Face.RIGHT)
 			index=(int)part.lc[1];
 		    else index=(int)part.lc[0];
-		    BoundaryData bc = mesh.boundaryData(exit_face, index);
+		    MeshBoundaryData bc = mesh.boundaryData(exit_face, index);
 		    for (int m = 0; m < bc.num_neighbors; m++)
 		    {
 			if (bc.neighbor[m].containsPos(part.pos))

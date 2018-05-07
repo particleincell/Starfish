@@ -162,27 +162,27 @@ public class PoissonSolver extends PotentialSolver
 			phiL=phi[i-1][j];phiR=phi[i+1][j];
 			phiB=phi[i][j-1];phiT=phi[i][j+1];
 		    }
-		    else if (j==0 && mesh.nodeType(i, j)!=NodeType.MESH)
+		    else if (j==0 && mesh.isMeshBoundary(i, j))
 		    {
 			phi[i][j]=phi[i][j+1];
 			continue;
 		    }
-		    else if (j==mesh.nj-1 && mesh.nodeType(i, j)!=NodeType.MESH)
+		    else if (j==mesh.nj-1 && mesh.isMeshBoundary(i, j))
 		    {
 			phi[i][j]=phi[i][j-1];
 			continue;
 		    }
-		    else if (i==0 && mesh.nodeType(i, j)!=NodeType.MESH)
+		    else if (i==0 && mesh.isMeshBoundary(i, j))
 		    {
 			phi[i][j]=phi[i+1][j];
 			continue;
 		    }
-		    else if (i==mesh.ni-1 && mesh.nodeType(i, j)!=NodeType.MESH)
+		    else if (i==mesh.ni-1 && mesh.isMeshBoundary(i, j))
 		    {
 			phi[i][j]=phi[i-1][j];
 			continue;
 		    }
-		    else if (i==0 && mesh.nodeType(i,j)==NodeType.MESH)
+		    else if (i==0 && mesh.isMeshBoundary(i, j))
 		    {
 			Mesh nm=mesh.boundaryData(Mesh.Face.LEFT, j).neighbor[0];
 			double x[] = mesh.pos(i-1,j);
@@ -191,7 +191,7 @@ public class PoissonSolver extends PotentialSolver
 			phiB=phi[i][j-1];phiT=phi[i][j+1];
 			
 		    }
-		    else if (i==mesh.ni-1 && mesh.nodeType(i,j)==NodeType.MESH)
+		    else if (i==mesh.ni-1 && mesh.isMeshBoundary(i, j))
 		    {
 			Mesh nm=mesh.boundaryData(Mesh.Face.RIGHT, j).neighbor[0];
 			double x[] = mesh.pos(i+1,j);
@@ -199,7 +199,7 @@ public class PoissonSolver extends PotentialSolver
 			phiL=phi[i-1][j];
 			phiB=phi[i][j-1];phiT=phi[i][j+1];
 		    }
-		    else if (j==0 && mesh.nodeType(i,j)==NodeType.MESH)
+		    else if (j==0 && mesh.isMeshBoundary(i, j))
 		    {
 			Mesh nm=mesh.boundaryData(Mesh.Face.BOTTOM, i).neighbor[0];
 			double x[] = mesh.pos(i,j-1);
@@ -207,7 +207,7 @@ public class PoissonSolver extends PotentialSolver
 			phiB=Starfish.domain_module.getPhi(nm).eval(x);
 			phiT=phi[i][j+1];
 		    }
-		    else if (j==mesh.nj-1 && mesh.nodeType(i,j)==NodeType.MESH)
+		    else if (j==mesh.nj-1 && mesh.isMeshBoundary(i, j))
 		    {
 			Mesh nm=mesh.boundaryData(Mesh.Face.TOP, j).neighbor[0];
 			double x[] = mesh.pos(i+1,j);

@@ -666,28 +666,23 @@ public abstract class Solver
     /**
      * Calculates the FVM coefficients at node i,j
      */
-    void CalculateCoefficients(MeshData md, int i0, int j0)
+    void CalculateCoefficients(MeshData md, int i, int j)
     {
-	double[] x1, x2;
-	double i, j;
 	double R;
 	int ni = md.mesh.ni;
 	int nj = md.mesh.nj;
 
 	Node node[][] = md.mesh.getNodeArray();
 
-	i = i0;
-	j = j0;	/*initialize*/
-	int u = md.mesh.IJtoN(i0, j0);
+	int u = md.mesh.IJtoN(i, j);
 
 	double phi[][] = Starfish.domain_module.getPhi(md.mesh).getData();
 
 	/*check for fixed nodes*/
-	if (node[i0][j0].type == NodeType.DIRICHLET ||
-	    node[i0][j0].type == NodeType.MESH)
+	if (md.mesh.isDirichletNode(i,j) || md.mesh.isMeshBoundary(i,j))
 	{
 	    /*set phi*/
-	    phi[i0][j0] = node[i0][j0].bc_value;
+	    phi[i][j] = node[i][j].bc_value;
 	    md.A.clearRow(u);
 	    md.A.set(u,u, 1);	    /*set one on the diagonal*/
 	    md.fixed_node[u] = true;
@@ -695,14 +690,14 @@ public abstract class Solver
 	}
 	
 	/*boundary nodes*/
-	if (i0==0 || i0==ni-1) {md.A.copyRow(md.Gi,u); return;}
-	if (j0==0 || j0==nj-1) {md.A.copyRow(md.Gj,u); return;}
+	if (i==0 || i==ni-1) {md.A.copyRow(md.Gi,u); return;}
+	if (j==0 || j==nj-1) {md.A.copyRow(md.Gj,u); return;}
 	
 
 	/*not a fixed node*/
 	for (Face face : Face.values())
 	{
-	    EdgeData e = ComputeEdgeData(face,i0,j0,md);
+	    EdgeData e = ComputeEdgeData(face,i,j,md);
 
 	    Gradient G = CalculateGradient(md, e.im, e.jm);
 	    R = G.R;
@@ -727,9 +722,9 @@ public abstract class Solver
 	}
 
 	/* scale by volume */
-	double V = md.mesh.nodeVol(i0, j0);
+	double V = md.mesh.nodeVol(i, j);
 	md.A.multRow(u, 1.0 / V);
-	node[i0][j0].bc_value /= V;
+	node[i][j].bc_value /= V;
     }
 
     /*
