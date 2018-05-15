@@ -16,8 +16,10 @@ import starfish.core.io.InputParser;
 import starfish.core.solver.Solver;
 import starfish.core.solver.SolverModule;
 import starfish.core.common.Vector;
-import starfish.core.domain.Mesh.NodeType;
-import starfish.core.domain.UniformMesh;
+import starfish.core.solver.LinearSolverGS;
+import starfish.core.solver.LinearSolverLU;
+import starfish.core.solver.LinearSolverMG;
+import starfish.core.solver.LinearSolverPCG;
 
 /**
  *
@@ -35,8 +37,6 @@ public class PoissonSolver extends PotentialSolver
      */
     public PoissonSolver (Element element)
     {
-	super();
-		
 	linear_mode = InputParser.getBoolean("linear", element, false);
 	if (!linear_mode)
 	{
@@ -62,10 +62,10 @@ public class PoissonSolver extends PotentialSolver
 	Log.log("> eps_r: "+eps_r);
 
 	String sm = (InputParser.getValue("method", element, "GS")).toUpperCase();
-	if (sm.equals("DIRECT")) method = Method.DIRECT;
-	else if (sm.equals("GS")) method= Method.GS;
-	else if (sm.equals("PCG")) method = Method.PCG;
-	else if (sm.equals("MULTIGRID")) method = Method.MULTIGRID;
+	if (sm.equals("DIRECT")) lin_solver = new LinearSolverLU();
+	else if (sm.equals("GS")) lin_solver = new LinearSolverGS();
+	else if (sm.equals("PCG")) lin_solver = new LinearSolverPCG();
+	else if (sm.equals("MULTIGRID")) lin_solver = new LinearSolverMG();
 	else Log.error("Unknown method "+sm);
 	Log.log("> method: "+sm);
 	   
@@ -106,7 +106,7 @@ public class PoissonSolver extends PotentialSolver
 		
 	/* solve potential */	
 	if (linear_mode)
-		solvePotentialLin();
+		lin_solver.solve(mesh_data, lin_max_it, lin_tol);
 	else
 		solvePotentialNL();
 	
@@ -115,133 +115,11 @@ public class PoissonSolver extends PotentialSolver
 	    Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
     }
         
-    /**
-     *
-     * @return
+    
+    /** Nonlinear solver using the Newthon Rhapson method
+     * 
+     * @return number of iterations
      */
-    protected int solvePotentialLin() 
-    {
-	int it = 0;
-	
-	/*call linear solver*/
-	if (method==Method.DIRECT)
-	    it = solveLU(mesh_data);
-	else if (method==Method.GS)
-	    it = solveLinearGS(mesh_data);
-	else if (method==Method.PCG)
-	    it = solveLinearPCG(mesh_data);
-	
-	return it;
-    }
-    
-    
-    /*HACK FOR IEPC*/
-    int solveLinearGSsimple()
-    {
-	for (int it=0;it<10000;it++)
-	for (MeshData md:mesh_data)
-	   
-	{
-	    UniformMesh mesh = (UniformMesh)md.mesh;
-	    
-	    double phi[][] = Starfish.domain_module.getPhi(mesh).data;
-	    double rho[][] = Starfish.domain_module.getRho(mesh).data;
-	    
-	    for (int i=0;i<mesh.ni;i++)
-		for (int j=0;j<mesh.nj;j++)
-		{
-		    if (mesh.node[i][j].type==NodeType.DIRICHLET) continue;
-		    
-		    double phiL,phiR,phiT,phiB;
-		    double dx=mesh.dh[0],dy=mesh.dh[1];
-		    /*if internal*/
-		    if (i>0 && j>0 && i<mesh.ni-1 && j<mesh.nj-1)
-		    {
-			phiL=phi[i-1][j];phiR=phi[i+1][j];
-			phiB=phi[i][j-1];phiT=phi[i][j+1];
-		    }
-		    else if (j==0 && mesh.isMeshBoundary(i, j))
-		    {
-			phi[i][j]=phi[i][j+1];
-			continue;
-		    }
-		    else if (j==mesh.nj-1 && mesh.isMeshBoundary(i, j))
-		    {
-			phi[i][j]=phi[i][j-1];
-			continue;
-		    }
-		    else if (i==0 && mesh.isMeshBoundary(i, j))
-		    {
-			phi[i][j]=phi[i+1][j];
-			continue;
-		    }
-		    else if (i==mesh.ni-1 && mesh.isMeshBoundary(i, j))
-		    {
-			phi[i][j]=phi[i-1][j];
-			continue;
-		    }
-		    else if (i==0 && mesh.isMeshBoundary(i, j))
-		    {
-			Mesh nm=mesh.boundaryData(Mesh.Face.LEFT, j).neighbor[0];
-			double x[] = mesh.pos(i-1,j);
-			phiL = Starfish.domain_module.getPhi(nm).eval(x);
-			phiR=phi[i+1][j];
-			phiB=phi[i][j-1];phiT=phi[i][j+1];
-			
-		    }
-		    else if (i==mesh.ni-1 && mesh.isMeshBoundary(i, j))
-		    {
-			Mesh nm=mesh.boundaryData(Mesh.Face.RIGHT, j).neighbor[0];
-			double x[] = mesh.pos(i+1,j);
-			phiR = Starfish.domain_module.getPhi(nm).eval(x);
-			phiL=phi[i-1][j];
-			phiB=phi[i][j-1];phiT=phi[i][j+1];
-		    }
-		    else if (j==0 && mesh.isMeshBoundary(i, j))
-		    {
-			Mesh nm=mesh.boundaryData(Mesh.Face.BOTTOM, i).neighbor[0];
-			double x[] = mesh.pos(i,j-1);
-			phiL=phi[i-1][j];phiR=phi[i+1][j];
-			phiB=Starfish.domain_module.getPhi(nm).eval(x);
-			phiT=phi[i][j+1];
-		    }
-		    else if (j==mesh.nj-1 && mesh.isMeshBoundary(i, j))
-		    {
-			Mesh nm=mesh.boundaryData(Mesh.Face.TOP, j).neighbor[0];
-			double x[] = mesh.pos(i+1,j);
-			phiL=phi[i-1][j];phiR=phi[i+1][j];
-			phiB=phi[i][j-1];phiT=Starfish.domain_module.getPhi(nm).eval(x);
-		    }
-		    else
-		    {
-			phiL=0;phiR=0;
-			phiT=0;phiB=0;
-			dx=mesh.dh[0];
-			dy=mesh.dh[1];
-		    }
-
-		    double dx2=dx*dx;
-		    double dy2=dy*dy;
-			
-		    phi[i][j] = (rho[i][j]/eps+(phiL+phiR)/dx2 + (phiB+phiT)/dy2)/(2/dx2+2/dy2);
-		    
-		}
-	    
-	}
-	
-	return 100;
-    }
-    
-    
-    
-
-    /* solves potential using Gauss-Seidel method */
-
-    /**
-     *
-     * @return
-     */
-
     protected int solvePotentialNL() 
     {
 	final double C=Constants.QE/eps;
@@ -275,12 +153,7 @@ public class PoissonSolver extends PotentialSolver
 	return it;
     }
     
-    /*SOLVER FACTORY*/
-
-    /**
-     *
-     */
-
+    /**SOLVER FACTORY*/
     public static SolverModule.SolverFactory poissonSolverFactory = new SolverModule.SolverFactory()
     {
 	@Override

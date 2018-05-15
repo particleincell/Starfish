@@ -60,7 +60,7 @@ public class CosineSource extends Source
 	
 	/*velocity*/
 	part.vel = Vector.lambertianVector(spline.normal(t), spline.tangent(t));
-
+	
 	/*set velocity and scale by drift*/
 	for (int i=0;i<3;i++)
 	    part.vel[i] *= v_drift;

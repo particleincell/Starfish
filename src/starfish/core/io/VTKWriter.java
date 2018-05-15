@@ -8,11 +8,13 @@
 package starfish.core.io;
 
 import java.io.PrintWriter;
+import static java.lang.Math.cos;
 import java.util.ArrayList;
 import java.util.Iterator;
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.domain.DomainModule;
 import starfish.core.domain.Mesh;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
@@ -98,7 +100,7 @@ public class VTKWriter extends Writer
 	    pw.println("<CellData>");
 	    pw.println("<DataArray Name=\"CellVol\" type=\"Float32\" NumberOfComponents=\"1\" format=\"ascii\">");
 	    for (int j=0;j<mesh.nj-1;j++)
-		for	(int i=0;i<mesh.ni-1;i++)
+		for (int i=0;i<mesh.ni-1;i++)
 		    pw.printf("%g ",mesh.cellVol(i, j));
 	    pw.println("\n</DataArray>");
 
@@ -117,7 +119,7 @@ public class VTKWriter extends Writer
 	    pw.println("<PointData>");
 	    pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
 	    for (int j=0;j<mesh.nj;j++)
-		for	(int i=0;i<mesh.ni;i++)
+		for (int i=0;i<mesh.ni;i++)
 		    pw.printf("%d ",mesh.getNode(i,j).type.value());
 	    pw.println("\n</DataArray>");
 
@@ -223,6 +225,7 @@ public class VTKWriter extends Writer
 	pw.println("<VTKFile type=\"StructuredGrid\">");
 	if (dim==Dim.I)
 	{
+	    
 	    pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 0 0 0\">\n", mesh.ni-1);
 	    pw.printf("<Piece Extent=\"0 %d 0 0 0 0\">\n",mesh.ni-1);
 	}
@@ -283,7 +286,7 @@ public class VTKWriter extends Writer
 	pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
 	if (dim == Dim.I)
 	{
-	    for	(int j=0;j<mesh.ni;j++)
+	    for	(int j=0;j<mesh.nj;j++)
 		pw.printf("%d ",mesh.getNode(index,j).type.value());
 	}
 	else
@@ -559,7 +562,12 @@ public class VTKWriter extends Writer
 	for (int i=0;i<particles.size();i++)
 	{
 	    Particle part = particles.get(i);
-	    pw.printf("%g %g %g\n", part.pos[0], part.pos[1], part.pos[2]);
+	    switch (Starfish.getDomainType())
+	    {
+		   case RZ: pw.printf("%g %g %g\n", part.pos[0]*Math.cos(part.pos[2]), part.pos[1], -part.pos[0]*Math.sin(part.pos[2]));break; 
+		   case ZR: pw.printf("%g %g %g\n", part.pos[0], part.pos[1]*Math.cos(part.pos[2]), part.pos[1]*Math.sin(part.pos[2]));break; 		    
+		   default: pw.printf("%g %g %g\n", part.pos[0], part.pos[1], part.pos[2]);break;	    
+	    }
 	}
 	pw.println("</DataArray>");
 	pw.println("</Points>");

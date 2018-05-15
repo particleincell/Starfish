@@ -103,7 +103,8 @@ public class ParticleTraceModule extends CommandModule
 	{	 	    
 	    if (part==null || Starfish.getIt()<start_it) return;
 	    particles.add(new Particle(part));
-	    time_steps.add(Starfish.getIt());	    
+	    time_steps.add(Starfish.getIt());	  
+	    writer.writeTrace(particles,time_steps);
 	}
 	
 	void close() {writer.writeTrace(particles, time_steps);writer.close();}

@@ -21,15 +21,7 @@ public class QuadrilateralMesh extends Mesh
 {
     /*variables*/
 
-    /**
-     *
-     */
-
     protected double IPOS[][];
-
-    /**
-     *
-     */
     protected double JPOS[][];
 	
     /*coefficients*/
@@ -59,22 +51,20 @@ public class QuadrilateralMesh extends Mesh
      * @param domain_type
      */
 
-    public QuadrilateralMesh (int ni, int nj, double ipos[][], double jpos[][], DomainType domain_type)
+    public QuadrilateralMesh (int nn[], double ipos[][], double jpos[][], String name, DomainType domain_type)
     {
-	super(ni,nj, domain_type);  
-	  
+	super(nn, name, domain_type); 
 	setPos(ipos,jpos);
     }
 	
     /**
-     *
-     * @param ni
-     * @param nj
-     * @param domain_type
+     * Constructor
+     * @param name mesh name
+     * @param domain_type type of domain
      */
-    public QuadrilateralMesh (int ni, int nj, DomainType domain_type)
+    public QuadrilateralMesh (int nn[], String name, DomainType domain_type)
     {
-	super(ni,nj,domain_type);
+	super(nn, name, domain_type);  
     }
   
     /**
@@ -85,8 +75,8 @@ public class QuadrilateralMesh extends Mesh
     public final void setPos(double ipos[][], double jpos[][])
     {
 	/*make sure we have the right size*/
-	if (ipos.length != ni || jpos.length!=ni ||
-	    ipos[0].length !=nj || jpos[0].length !=nj)
+	if (ipos.length != ni || jpos.length!=ipos.length ||
+	    ipos[0].length != nj || jpos[0].length !=ipos[0].length)
 	    throw new UnsupportedOperationException("wrong data size");
 	  
 	/*make a copy of data*/
@@ -95,20 +85,20 @@ public class QuadrilateralMesh extends Mesh
 	for (int i=0;i<ni;i++)
 	{
 	    System.arraycopy(ipos[i],0, IPOS[i], 0, nj);
-	    System.arraycopy(jpos[i],0, JPOS[i], 0, nj);
+	    System.arraycopy(jpos[i],0, JPOS[i], 0, nj);	    
 	}
 
+	/*compute positions of ghost nodes*/
+	computeGhostNodePositions();
+	
 	/*allocate memory for coefficients*/
 	alpha = new double[ni-1][nj-1][4];
 	beta = new double[ni-1][nj-1][4];
 
 	/*compute coefficients*/
-	for (int i=0;i<ni-1;i++)
-	    for (int j=0;j<nj-1;j++)
+	for (int i=0;i<ni-1-0;i++)
+	    for (int j=0;j<nj-1-0;j++)
 		ComputeCoeffs(i,j);
-		
-	/*call init on parent mesh to recompute node volumes, etc...*/
-	//init();
     }
     
     /**computes alphas and betas for interpolation, see
@@ -172,12 +162,8 @@ public class QuadrilateralMesh extends Mesh
 	return x;
     }
 
-    /*visited array*/
-
-    /**
-     *
+    /** array of visited notes for recursive flood fill
      */
-
     protected boolean visited[][];
 			
     /**
@@ -370,9 +356,16 @@ public class QuadrilateralMesh extends Mesh
     }
 
     @Override
-    public double[] boundaryNormal(Face face, double[] pos)
+    public double[] faceNormal(Face face, double[] pos)
     {
 	throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    /*computes positions of ghost nodes by interpolating internal nodes*/
+    private void computeGhostNodePositions()
+    {
+	Log.error("Not yet implemented!");
+	
     }
 
 }

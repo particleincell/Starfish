@@ -65,9 +65,10 @@ public abstract class Writer
      * @param scalars
      * @param vectors
      * @param cell_data
-     * @param element
+     * @param element XML element
      */
-    public void init1D(String[] scalars, ArrayList<String[]> vectors, String[] cell_data, Element element)
+    public void init1D(String[] scalars, ArrayList<String[]> vectors, String[] cell_data, 
+					    Element element)
     {
 	String mesh_name = InputParser.getValue("mesh",element);
 	String str_index = InputParser.getValue("index",element);
@@ -94,7 +95,7 @@ public abstract class Writer
 	this.index=Integer.parseInt(pieces[1]);		
 		
 	/*call main open function*/
-	init2D(scalars, vectors, cell_data);	
+	init2D(scalars, vectors, cell_data,element);	
 	
 	/*set output type - after init2D*/
 	output_type=OutputType.ONED;
@@ -103,127 +104,130 @@ public abstract class Writer
     /** open function for 2D field data
      * @param scalars
      * @param vectors
-     * @param cell_data*/
-    protected void init2D(String[] scalars, ArrayList<String[]> vectors, String[] cell_data)
+     * @param cell_data
+     * @param element xml data element*/ 
+    protected void init2D(String[] scalars, ArrayList<String[]> vectors, 
+	    String[] cell_data, Element element)
     {
-	output_type=OutputType.FIELD;
-			
-	String vars_temp[] = new String[scalars.length];
-	int temp_length=0;
-		
-	Mesh mesh = Starfish.getMeshList().get(0);
-	for (int v=0;v<scalars.length;v++)
-	{
-	    try{
-		Starfish.getField(mesh, scalars[v]);
-		vars_temp[temp_length++] = scalars[v];
-	    }
-	    catch(Exception e)
+	    output_type=OutputType.FIELD;
+
+	    String vars_temp[] = new String[scalars.length];
+	    int temp_length=0;
+
+	    Mesh mesh = Starfish.getMeshList().get(0);
+	    for (int v=0;v<scalars.length;v++)
 	    {
-		Log.warning("Skipping unrecognized variable "+scalars[v]);
+		try{
+		    Starfish.getField(mesh, scalars[v]);
+		    vars_temp[temp_length++] = scalars[v];
+		}
+		catch(Exception e)
+		{
+		    Log.warning("Skipping unrecognized variable "+scalars[v]);
+		}
 	    }
-	}
-		
-	/*save vars*/
-	this.scalars = new String[temp_length];
-	System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);
-				
-	/*now repeat for cell variables*/
-	String cell_data_temp[] = new String[cell_data.length];
-	int cell_data_temp_length=0;
-		
-	for (int v=0;v<cell_data.length;v++)
-	{
-	    try{
-		Starfish.getField(mesh, cell_data[v]);
-		cell_data_temp[cell_data_temp_length++]=cell_data[v];
-	    }
-	    catch(Exception e)
+
+	    /*save vars*/
+	    this.scalars = new String[temp_length];
+	    System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);
+
+	    /*now repeat for cell variables*/
+	    String cell_data_temp[] = new String[cell_data.length];
+	    int cell_data_temp_length=0;
+
+	    for (int v=0;v<cell_data.length;v++)
 	    {
-		Log.warning("Skipping unrecognized variable "+cell_data[v]);
-	    }
-	}		
-	/*save vars*/
-	this.cell_data = new String[cell_data_temp_length];
-	System.arraycopy(cell_data_temp, 0, this.cell_data, 0, cell_data_temp_length);
-	
-	this.vectors = new ArrayList<String[]>();		
-	for (String[] pair:vectors)
-	{
-	    try{
-		Starfish.getField(mesh, pair[0]);
-		Starfish.getField(mesh, pair[1]);	
-		this.vectors.add(pair);
-	    }
-	    catch(Exception e)
+		try{
+		    Starfish.getField(mesh, cell_data[v]);
+		    cell_data_temp[cell_data_temp_length++]=cell_data[v];
+		}
+		catch(Exception e)
+		{
+		    Log.warning("Skipping unrecognized variable "+cell_data[v]);
+		}
+	    }		
+	    /*save vars*/
+	    this.cell_data = new String[cell_data_temp_length];
+	    System.arraycopy(cell_data_temp, 0, this.cell_data, 0, cell_data_temp_length);
+
+	    this.vectors = new ArrayList<String[]>();		
+	    for (String[] pair:vectors)
 	    {
-		Log.warning("Skipping unrecognized vector pair "+pair[0]+":"+pair[1]);
-	    }
-	}		
+		try{
+		    Starfish.getField(mesh, pair[0]);
+		    Starfish.getField(mesh, pair[1]);	
+		    this.vectors.add(pair);
+		}
+		catch(Exception e)
+		{
+		    Log.warning("Skipping unrecognized vector pair "+pair[0]+":"+pair[1]);
+		}
+	    }		
     }
 	
     /** open function for boundary data
-     * @param variables*/
-    protected void initBoundaries(String[] variables)
+     * @param variables
+     * @param element xml element*/
+    protected void initBoundaries(String[] variables, Element element)
     {
-	output_type = OutputType.BOUNDARIES;
-	
-	String vars_temp[] = new String[variables.length];
-	int temp_length=0;
-	
-	/*validate variables*/
-	for (int v=0;v<variables.length;v++)
-	{
-	    try{
-		Starfish.boundary_module.getFieldCollection(variables[v]);
-		vars_temp[temp_length++]=variables[v];
-	    }
-	    catch(Exception e)
+	    output_type = OutputType.BOUNDARIES;
+
+	    String vars_temp[] = new String[variables.length];
+	    int temp_length=0;
+
+	    /*validate variables*/
+	    for (int v=0;v<variables.length;v++)
 	    {
-		Log.warning("Skipping unrecognized variable "+variables[v]);
+		try{
+		    Starfish.boundary_module.getFieldCollection(variables[v]);
+		    vars_temp[temp_length++]=variables[v];
+		}
+		catch(Exception e)
+		{
+		    Log.warning("Skipping unrecognized variable "+variables[v]);
+		}
 	    }
-	}
-		
-	/*save vars*/
-	this.scalars = new String[temp_length];
-	System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);			
+
+	    /*save vars*/
+	    this.scalars = new String[temp_length];
+	    System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);			
     }
 
     /** open function for particle output
      * @param element*/
     public void initParticles(Element element)
     {
-	output_type=OutputType.PARTICLES;
+	    output_type=OutputType.PARTICLES;
 
-	particle_count = InputParser.getInt("count", element,1000);
-	mat_name = InputParser.getValue("material", element);
-	
-	/*save vars*/
-	scalars = new String[5];
-	
-	if (Starfish.domain_module.getDomainType()==DomainType.XY)
-	{
-	    scalars[0] = "z (m)";
-	    scalars[1] = "u";
-	    scalars[2] = "v";
-	    scalars[3] = "w";
-	}
-	else if (Starfish.domain_module.getDomainType()==DomainType.RZ)
-	{
-	    scalars[0] = "theta (rad)";
-	    scalars[1] = "ur";
-	    scalars[2] = "uz";
-	    scalars[3] = "utheta";
-	}
-	else if (Starfish.domain_module.getDomainType()==DomainType.ZR)
-	{
-	    scalars[0] = "theta (rad)";
-	    scalars[1] = "uz";
-	    scalars[2] = "ur";
-	    scalars[3] = "utheta";
-	}
-	    
-	scalars[4] = "id";	
+	    particle_count = InputParser.getInt("count", element,1000);
+	    mat_name = InputParser.getValue("material", element);
+
+	    /*save vars*/
+	    scalars = new String[5];
+
+	    if (Starfish.domain_module.getDomainType()==DomainType.XY)
+	    {
+		scalars[0] = "z (m)";
+		scalars[1] = "u";
+		scalars[2] = "v";
+		scalars[3] = "w";
+	    }
+	    else if (Starfish.domain_module.getDomainType()==DomainType.RZ)
+	    {
+		scalars[0] = "theta (rad)";
+		scalars[1] = "ur";
+		scalars[2] = "uz";
+		scalars[3] = "utheta";
+	    }
+	    else if (Starfish.domain_module.getDomainType()==DomainType.ZR)
+	    {
+		scalars[0] = "theta (rad)";
+		scalars[1] = "uz";
+		scalars[2] = "ur";
+		scalars[3] = "utheta";
+	    }
+
+	    scalars[4] = "id";	
     }
 
      /** open function for particle output
@@ -299,8 +303,8 @@ public abstract class Writer
     * */
     public final void saveMesh(String[] scalars, ArrayList<String[]> vectors, String[] cell_data)
     {
-	init2D(scalars,vectors,cell_data);
-	write();
-	close();
+	    init2D(scalars,vectors,cell_data,null);
+	    write();
+	    close();
     }
 }

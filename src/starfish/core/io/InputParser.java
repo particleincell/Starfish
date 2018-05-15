@@ -128,6 +128,9 @@ public class InputParser implements Iterable
      */
     private static String getValueInternal(String key, Element element) throws NoSuchElementException
     {
+	/*make sure element is not null*/
+	if (element==null) throw new NoSuchElementException("element is null");
+	
 	/*check if attribute with this key exists*/
 	String attr = element.getAttribute(key);
 	if (!attr.isEmpty())

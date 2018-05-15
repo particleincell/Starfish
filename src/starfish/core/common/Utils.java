@@ -177,6 +177,18 @@ public class Utils
 	return 0;
     }	
     
+    /** returns val if between limits, otherwise returns one of the limits
+     * 
+     * @param val value to check
+     * @param min minimum allowed value
+     * @param max maximum allowed value
+     * @return value or one of the limits
+     */
+    public static double minmax(double val, double min, double max)
+    {
+	return ((val<min?min:val)>max?max:val);
+    }
+    
     
     /*class for storing 1D list and interpolating*/
 

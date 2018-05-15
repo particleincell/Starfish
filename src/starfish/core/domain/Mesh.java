@@ -16,28 +16,31 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import starfish.core.boundaries.Boundary;
+import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.boundaries.Field1D;
 import starfish.core.boundaries.Segment;
 import starfish.core.boundaries.Spline;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.common.Utils;
+import starfish.core.common.Vector;
 import starfish.core.domain.DomainModule.DomainType;
 
 /**abstract implementation of a mesh with a structured topology*/
 public abstract class Mesh 
 {
-       /** constructor
-     *
-     * @param ni
-     * @param nj
-     * @param domain_type
+     /** general 2D structured constructor
+     * @param nn number of nodes;
+     * @param name mesh identifier
+     * @param domain_type RZ/XY
      */
-    public Mesh (int ni, int nj, DomainType domain_type)
+    public Mesh (int nn[], String name, DomainType domain_type)
     {
-	this.ni=ni;
-        this.nj=nj;
-	this.domain_type = domain_type;
+	this.name = name;
+	this.domain_type = domain_type;	
+    	this.ni=nn[0];
+        this.nj=nn[1];
 		
 	this.index=0;
 	if (Starfish.domain_module!=null)
@@ -52,29 +55,28 @@ public abstract class Mesh
 	for (int i=0;i<ni;i++)
 	    for (int j=0;j<nj;j++)
 	    {
-		node[i][j]=new Node();
-		node[i][j].type=NodeType.UNKNOWN;
+		node[i][j] = new Node();
+		node[i][j].type = NodeType.UNKNOWN;
 	    }
 	
 	/*initialize boundary mesh data*/
-	boundary_data[Face.RIGHT.value()] = new MeshBoundaryData[nj];
-	boundary_data[Face.LEFT.value()] = new MeshBoundaryData[nj];
-	boundary_data[Face.TOP.value()] = new MeshBoundaryData[ni];
-	boundary_data[Face.BOTTOM.value()] = new MeshBoundaryData[ni];	
+	boundary_data[Face.RIGHT.val()] = new MeshBoundaryData[nj];
+	boundary_data[Face.LEFT.val()] = new MeshBoundaryData[nj];
+	boundary_data[Face.TOP.val()] = new MeshBoundaryData[ni];
+	boundary_data[Face.BOTTOM.val()] = new MeshBoundaryData[ni];	
 	
 	for (int j=0;j<nj;j++)
 	{
-	    boundary_data[Face.LEFT.value()][j]= new MeshBoundaryData();
-	    boundary_data[Face.RIGHT.value()][j]= new MeshBoundaryData();	    
+	    boundary_data[Face.LEFT.val()][j]= new MeshBoundaryData();
+	    boundary_data[Face.RIGHT.val()][j]= new MeshBoundaryData();	    
 	}
 	for (int i=0;i<ni;i++)
 	{
-	    boundary_data[Face.BOTTOM.value()][i]= new MeshBoundaryData();
-	    boundary_data[Face.TOP.value()][i]= new MeshBoundaryData();	    
+	    boundary_data[Face.BOTTOM.val()][i]= new MeshBoundaryData();
+	    boundary_data[Face.TOP.val()][i]= new MeshBoundaryData();	    
 	}
-
     }
-	
+    
     /** called by DomainModule during initialization*/
     public void init()
     {
@@ -85,22 +87,21 @@ public abstract class Mesh
     * will have duplicate index*/
     protected int index;
 
-     /** @return index identifying this mesh
-     */
+    /** @return index identifying this mesh
+    */
     public int getIndex() {return index;}
 
     /** Named constants for mesh faces*/
     public enum Face {
-
 	RIGHT (0),
 	TOP(1),
 	LEFT(2),
 	BOTTOM(3);
-	private int val;
-	Face(int value) {val=value;}
+	private int v;
+	Face(int val) {v=val;}
 
 	/** @return associated value */
-	public int value() {return val;}
+	public int val() {return v;}
     }
 
     /** data structure defined on each node*/
@@ -135,15 +136,15 @@ public abstract class Mesh
 	 */
 	public int value() {return val;}	
     }
+    
     /** Data structure for storing information on mesh neighbors on boundary nodes
      */
     public static class MeshBoundaryData
     {
-	public Mesh neighbor[] = null;
-	MeshBoundaryType type = MeshBoundaryType.OPEN;
-	public int num_neighbors = 0;
-	public double buffer;
-	double value;	    //optional value for Dirichlet/Neumann boundaries
+	public Mesh neighbor = null;
+	public MeshBoundaryType type = MeshBoundaryType.OPEN;
+	double bc_value;	    //optional value for Dirichlet/Neumann boundaries
+	public double buffer;		    //buffer for syncing boundaries
     }
 	
     MeshBoundaryData boundary_data[][] = new MeshBoundaryData[4][];	/*[face][node_index]*/
@@ -163,8 +164,7 @@ public abstract class Mesh
 	 */
 	public int value() {return val;}
     };
-    
-    
+        
     /**
      *
      * @param face
@@ -176,14 +176,14 @@ public abstract class Mesh
 	if (face==Face.LEFT || face==Face.RIGHT)
 	    for (int j=0;j<nj;j++)
 	    {
-		boundary_data[face.value()][j].type = type;
-		boundary_data[face.value()][j].value = value;
+		boundary_data[face.val()][j].type = type;
+		boundary_data[face.val()][j].bc_value = value;
 	    }
 	else
 	    for (int i=0;i<ni;i++)
 	    {
-		boundary_data[face.value()][i].type = type;
-		boundary_data[face.value()][i].value = value;
+		boundary_data[face.val()][i].type = type;
+		boundary_data[face.val()][i].bc_value = value;
 	    }
     }
     
@@ -194,18 +194,14 @@ public abstract class Mesh
      */
     public MeshBoundaryType boundaryType(Face face, int index)
     {
-	return boundary_data[face.value()][index].type;
+	return boundary_data[face.val()][index].type;
     }
     	
     /*mesh definition*/
-    public final int ni,
-
-    nj;       /*number of nodes*/
-    public final int n_nodes,
-
-    n_cells;
-
-    public final Node node[][];    
+    public int ni, nj;       /*number of nodes*/
+    public int n_nodes, n_cells;
+  
+    public Node node[][];    
 
     /*geometry*/
     private DomainType domain_type;
@@ -258,7 +254,7 @@ public abstract class Mesh
      * @param pos  position, must be along the boundary
      * @return boundary normal vector, pointing into the domain
      */
-    abstract public double[] boundaryNormal(Face face, double pos[]);
+    abstract public double[] faceNormal(Face face, double pos[]);
 	
     /**
      *
@@ -266,7 +262,7 @@ public abstract class Mesh
      * @param index
      * @return
      */
-    public MeshBoundaryData boundaryData(Face face, int index) {return boundary_data[face.value()][index];}
+    public MeshBoundaryData boundaryData(Face face, int index) {return boundary_data[face.val()][index];}
 
     /**
      *
@@ -283,12 +279,12 @@ public abstract class Mesh
 	    return false;
     }
     
-    /** @return true if node i,j is a dirichlet node
+    /** @return true if node i,j is a Dirichlet node
      * @param i
      * @param j
      */
     public boolean isDirichletNode(int i, int j) {return nodeType(i,j)==NodeType.DIRICHLET;}
-    
+
     /**
      * @return true if node i,j is on a mesh boundary and is of the specified type
      * @param i node index
@@ -296,11 +292,14 @@ public abstract class Mesh
      * @param type type to check against
      */
     public boolean isMeshBoundaryType(int i, int j,MeshBoundaryType type) {
-	if (i==0) return this.boundaryType(Face.LEFT,j)==type;
-	else if (i==ni-1) return this.boundaryType(Face.RIGHT,j)==type;
-	else if (j==0) return this.boundaryType(Face.BOTTOM,i)==type;
-	else if (j==nj-1) return this.boundaryType(Face.TOP,i)==type;
-	else return false;
+	//need to check corners where both i==0 and j==0 and so on
+	boolean check = false;
+	if (i==0) check = check |= this.boundaryType(Face.LEFT,j)==type;
+	else if (i==ni-1) check |= this.boundaryType(Face.RIGHT,j)==type;
+	else if (j==0) check |= this.boundaryType(Face.BOTTOM,i)==type;
+	else if (j==nj-1) check |= this.boundaryType(Face.TOP,i)==type;
+	else check = false;	
+	return check;
     }
   
     /** @return true if node i,j is a boundary node shared by meshes
@@ -311,9 +310,7 @@ public abstract class Mesh
 	return isMeshBoundaryType(i,j,MeshBoundaryType.MESH);
     }
 
-    /*constructor*/
-
- 
+    /*constructor*/ 
 	    
     /**allocates memory, computes node volumes, and sets boundary cells*/
     void initNodes()
@@ -340,17 +337,17 @@ public abstract class Mesh
 	int i,j;
     	
 		
-	/*set defaults*/
+	/*clear data?*/
 	for (j=0;j<nj;j++)
 	{
-	    boundary_data[Face.RIGHT.value()][j] = new MeshBoundaryData();
-	    boundary_data[Face.LEFT.value()][j] = new MeshBoundaryData();
+	    boundary_data[Face.RIGHT.val()][j] = new MeshBoundaryData();
+	    boundary_data[Face.LEFT.val()][j] = new MeshBoundaryData();
 	}
 
 	for (i=0;i<ni;i++)
 	{
-	    boundary_data[Face.TOP.value()][i] = new MeshBoundaryData();
-	    boundary_data[Face.BOTTOM.value()][i] = new MeshBoundaryData();	
+	    boundary_data[Face.TOP.val()][i] = new MeshBoundaryData();
+	    boundary_data[Face.BOTTOM.val()][i] = new MeshBoundaryData();	
 	}
 		
 	/*modify cells with neighbor meshes*/
@@ -366,7 +363,7 @@ public abstract class Mesh
 		if (mesh.containsPos(pos(ni-1,j)))				
 		    addMeshToBoundary(Face.RIGHT,j,mesh);
 	    }
-		
+			
 	    for (i=0;i<ni;i++)
 	    {
 		if (mesh.containsPos(pos(i,0)))				
@@ -374,7 +371,7 @@ public abstract class Mesh
 	    		
 		if (mesh.containsPos(pos(i,nj-1)))				
 		    addMeshToBoundary(Face.TOP,i,mesh);
-	    }	    
+	    }	    	    
 	}	
     }
 	
@@ -386,22 +383,140 @@ public abstract class Mesh
      */
     protected void addMeshToBoundary(Face face, int  index, Mesh mesh)
     {
-	MeshBoundaryData bc=boundary_data[face.value()][index];
+	MeshBoundaryData bc=boundary_data[face.val()][index];
 	
-	if (bc.num_neighbors==0)
-	    bc.neighbor = new Mesh[Starfish.getMeshList().size()];
-		
+	if (bc.neighbor!=null)
+	{
+	    Log.warning("Duplicate mesh neighbor");
+	}
+	
 	bc.type = MeshBoundaryType.MESH;
-	bc.neighbor[bc.num_neighbors]=mesh;
-	bc.num_neighbors++;
+	bc.neighbor = mesh;	
     }
 
-    /**evaluates position at topological coordinate i,
-     * @param ij
+    /**evaluates position at topological coordinate i,j
+     * @param i
      * @param j
      * @return */
     abstract public double[] pos(double i, double j);
+
+
+    /**returns position of node i,j with optional interpolation of ghost nodes on mesh boundaries
+    * @param i i coordinate
+    * @param j j coordinate
+    * @param ghost_interpolate if true, will interpolate position of ghost nodes based 
+    * on edge and one internal node    
+    */
+    public double[] pos(double i, double j, boolean ghost_interpolate)
+    {
+	//don't do anything if flag not set or indexes in bounds
+	if (!ghost_interpolate || 
+	    (i>=0 && i<=ni-1 && j>=0 && j<=nj-1)) return pos(i,j);
 	
+	//reset indexes to limits if no neighbor mesh along the boundary
+	if (i<0 && boundaryType(Face.LEFT,(int)Utils.minmax(j, 0, nj-1))!=MeshBoundaryType.MESH) 
+	    i=0;
+	if (i>ni-1 && boundaryType(Face.RIGHT,(int)Utils.minmax(j, 0, nj-1))!=MeshBoundaryType.MESH) 
+	    i=ni-1;
+	if (j<0 && boundaryType(Face.BOTTOM,(int)Utils.minmax(i, 0, ni-1))!=MeshBoundaryType.MESH) 
+	    j=0;
+	if (j>nj-1 && boundaryType(Face.TOP,(int)Utils.minmax(i, 0, ni-1))!=MeshBoundaryType.MESH) 
+	    j=nj-1;
+	  
+	double x0[];	    //node inside the mesh
+	double x1[];	    //node outside the mesh
+	
+	//there may be some recursive way to do this. Checking for 8+1 possible scenarios	
+	if (i>=0 && i<=ni-1 && j>=0 && j<=nj-1) return pos(i,j); //trivial case - node is in bounds	
+	else if (i<0 && j>=0 && j<=nj-1) //left face with j in bounds	
+	{
+	    double di = -i;
+	    x0 = pos(di,j);
+	    x1 = pos(0,j);	    
+	}
+	else if (i>=ni-1 && j>=0 && j<=nj-1) //right face with j in bounds	
+	{
+	    double di = i-(ni-1);
+	    x0 = pos(ni-1-di,j);
+	    x1 = pos(ni-1,j);
+	}
+	else if (j<0 && i>=0 && i<=ni-1) //bottom face with i in bounds
+	{
+	    double dj = -j;
+	    x0 = pos(i,dj);
+	    x1 = pos(i,0);
+	}
+	else if (j>=nj-1 && i>=0 && i<=ni-1) //top face with i in bounds	
+	{
+	    double dj = j-(nj-1);
+	    x0 = pos(i,nj-1-dj);
+	    x1 = pos(i,nj-1);
+	}
+	else if (i<0 && j<0) //bottom left corner
+	{
+	    //compute x0=(i,dj) and x1=(i,0)
+	    double di = -i;
+	    double dj = -j;
+	    double x00[] = pos(di,dj);
+	    double x01[] = pos(0,dj);
+	    x0 = new double[]{2*x01[0]-x00[0],2*x01[1]-x00[1]};
+	    	    
+	    double x10[] = pos(di,0);
+	    double x11[] = pos(0,0);
+	    x1 = new double[]{2*x11[0]-x10[0],2*x11[1]-x10[1]};
+	    
+	}
+	else if (i<0 && j>nj-1) //top left corner
+	{
+	    //compute x0=(i,nj-1-dj) and x1=(i,nj-1)
+	    double di = -i;
+	    double dj = j-(nj-1);
+	    double x00[] = pos(di,nj-1-dj);
+	    double x01[] = pos(0,nj-1-dj);
+	    x0 = new double[]{2*x01[0]-x00[0],2*x01[1]-x00[1]};
+	    
+	    double x10[] = pos(di,nj-1);
+	    double x11[] = pos(0,nj-1);
+	    x1 = new double[]{2*x11[0]-x10[0],2*x11[1]-x10[1]};	    
+	}
+	else if (i>ni-1 && j<0) //bottom right corner
+	{
+	    //need to interpolate points at (i,dj) and (i,0)
+	    double di = i-(ni-1);
+	    double dj = -j;
+	    double x00[] = pos(ni-1-di,dj);
+	    double x01[] = pos(ni-1,dj);
+	    x0 = new double[]{2*x01[0]-x00[0],2*x01[1]-x00[1]};
+	    
+	    double x10[] = pos(ni-1-di,0);
+	    double x11[] = pos(ni-1,0);
+	    x1 = new double[]{2*x11[0]-x10[0],2*x11[1]-x10[1]};	    
+	}
+	else if (i>ni-1 && j>nj-1) //top right corner
+	{
+	    //need to interpolate points at (i,dj) and (i,nj-1)
+	    double di = i-(ni-1);
+	    double dj = j-(nj-1);
+	    double x00[] = pos(ni-1-di,nj-1-dj);
+	    double x01[] = pos(ni-1,nj-1-dj);
+	    x0 = new double[]{2*x01[0]-x00[0],2*x01[1]-x00[1]};
+	    
+	    double x10[] = pos(ni-1-di,nj-1);
+	    double x11[] = pos(ni-1,nj-1);
+	    x1 = new double[]{2*x11[0]-x10[0],2*x11[1]-x10[1]};	    
+	}
+	else	//sanity check, this should never happen
+	{
+	    Log.error("Shouldn't be here in pos");
+	    x1 = new double[2];	//to get rid of the error
+	    x0 = new double[2];
+	}
+	
+	//we have x2=x0+2*(x1-x0)=2*x1-x0
+	double x2[] = {2*x1[0]-x0[0], 2*x1[1]-x0[1]};
+	return x2;	    
+    }
+    
     /**
      *
      * @param lc
@@ -412,6 +527,15 @@ public abstract class Mesh
 	return pos(lc[0], lc[1]);
     }
 
+    /**
+     *
+     * @param lc
+     * @return
+     */
+    public double[] pos(double lc[], boolean ghost_interpolate ) 
+    {
+	return pos(lc[0], lc[1], ghost_interpolate);
+    }
     /**
      * @param i1
      * @param j1 *  @return distance between two points
@@ -556,7 +680,7 @@ public abstract class Mesh
     public int IJtoN(int i, int j) 
     {
 	if (i>=0 && i<ni && j>=0 && j<nj)
-	    return i*nj + j;
+	    return j*ni + i;
 	return -1;
     }
 	
@@ -580,7 +704,7 @@ public abstract class Mesh
     public int IJtoC(int i, int j) 
     {
 	if (i>=0 && i<ni-1 && j>=0 && j<nj-1)
-	    return i*(nj-1) + j;
+	    return j*(ni-1) + i;
 	return -1;
     }
 
@@ -601,15 +725,26 @@ public abstract class Mesh
      * @return j*/
     public double area(double i0,double j0)
     {
-	return area(i0,j0,0.5);
+	return area(i0,j0,false,0.5);
     }
-    
+  
+    /**returns area for node/cell centered at i,
+     * @param i0
+     * @param j0
+     * @param with_ghosts
+     * @return j*/
+    public double area(double i0,double j0, boolean with_ghosts)
+    {
+	return area(i0,j0,with_ghosts,0.5);
+    }
+  
     /**returns area around a node/cell centered at i,j
      * @param i0
      * @param j0
-    *@param delta indicates the width in each direction, 0.5 will give a node volume
+     * @param with_ghosts if true, will extrapolate neighbor nodes on mesh boundaries
+     * @param delta indicates the width in each direction, 0.5 will give a node volume
      * @return */
-    public double area(double i0,double j0, double delta)
+    public double area(double i0,double j0, boolean with_ghosts, double delta)
     {
 	int e;
 	double V[][]=new double[4][];
@@ -626,14 +761,14 @@ public abstract class Mesh
 	    default:
 	    case 3: i=i0-delta;j=j0+delta;break;
 	    }
-
-	    if (i<0) i=0;
-	    else if (i>ni-1) i=ni-1;
+	    
+	    if (i<0 && !with_ghosts) i=0;
+	    else if (i>ni-1 && !with_ghosts) i=ni-1;
 			
-	    if (j<0) j=0;
-	    else if (j>nj-1) j=nj-1;
+	    if (j<0 && !with_ghosts) j=0;
+	    else if (j>nj-1 && !with_ghosts) j=nj-1;
 			
-	    V[e] = pos(i,j);
+	    V[e] = pos(i,j,with_ghosts);
 	}
 
 	/* compute cell area */
@@ -648,10 +783,14 @@ public abstract class Mesh
 	return A;
     }
 
-    /**
-     * @param i0 *  @return volume for node i,j
-     * @param j0*/
-    public double nodeVol(double i0,double j0)
+    
+    /** Computes node volume
+     * @param i0 *  
+     * @param j0
+     * @param include_ghosts if true will include ghost node positions on mesh boundaries
+     * @return volume for node i,j
+     */
+    public double nodeVol(double i0,double j0, boolean include_ghosts)
     {
 	if (domain_type==DomainType.XY)
 		return 1e-3*area(i0,j0);    //TODO: need better way to set domain width to simplify comparison of RZ to XY
@@ -675,9 +814,20 @@ public abstract class Mesh
 		r = R(i0,j0-0.25);
 	}
 
-	return 2*Math.PI*area(i0,j0)*r;
+	return 2*Math.PI*area(i0,j0,include_ghosts)*r;
     }
-	
+
+    /**
+     * Returns node volume, defaults to no ghost layers
+     * @param i0
+     * @param j0
+     * @return node volume
+     */
+    public double nodeVol(double i0,double j0)
+    {
+	return nodeVol(i0,j0,false);
+    }
+    
     /**
      * @param i * @return volume for cell i,j
      * @param j*/
@@ -767,10 +917,11 @@ public abstract class Mesh
 	return pos(ri,rj);
     }
 
-    /**returns index of node offset by di,dj from im,j
+    /**returns i,j index of node offset by di,dj from im,jm if the offset
+     * brings it to a new node. Truncated original index will be returned if only a partial distance
      * @param im
      * @param jm
-     * @param dim
+     * @param di
      * @param dj
      * @return */
     public int[] NodeIndexOffset(double im, double jm, double di, double dj) 
@@ -793,12 +944,12 @@ public abstract class Mesh
 	if (fj!=0) 
 	    ii[1] = (int)jm;
 	else ii[1] = (int)j;
-
-	/*make sure we are in bounds*/
-	if (ii[0]<0) ii[0]=0;
-	if (ii[1]<0) ii[1]=0;
-	if (ii[0]>=ni) ii[0]=ni-1;
-	if (ii[1]>=nj) ii[1]=nj-1;	
+	
+	/*make sure we are in bounds, we should never get any corner nodes*/
+	if (ii[0]<0 && boundaryType(Face.LEFT, ii[1])!=MeshBoundaryType.MESH) ii[0]=0;
+	if (ii[1]<0 && boundaryType(Face.BOTTOM, ii[0])!=MeshBoundaryType.MESH) ii[1]=0;
+	if (ii[0]>=ni && boundaryType(Face.RIGHT, ii[1])!=MeshBoundaryType.MESH) ii[0]=ni-1;
+	if (ii[1]>=nj && boundaryType(Face.TOP, ii[0])!=MeshBoundaryType.MESH) ii[1]=nj-1;	
 	
 	return ii;
     }
@@ -812,7 +963,7 @@ public abstract class Mesh
 	{
 	    setNodeControlVolumes(boundary_list);
 	    setInterfaceNodeLocation();		
-	    performFloodFill();
+	    performFloodFill();	    
 	}
     }
 	

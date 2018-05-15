@@ -184,8 +184,9 @@ public class FieldCollection2D
 		    {
 			if (mesh.isMeshBoundary(i,j))
 			{
-			    /*TODO: hardcoded for a single neighbor*/
-			    Mesh nm = bc[i].neighbor[0];
+			    Mesh nm = bc[i].neighbor;
+			    if (nm == null) continue;
+			    
 			    double x[] = mesh.pos(i,j);
 			    if (nm.containsPos(x))
 			    {
@@ -210,8 +211,7 @@ public class FieldCollection2D
 		    {
 			if (mesh.isMeshBoundary(i, j))
 			{
-			    /*TODO: hardcoded for a single neighbor*/
-			    Mesh nm = bc[j].neighbor[0];
+			    Mesh nm = bc[j].neighbor;
 			    double x[] = mesh.pos(i,j);
 			    if (nm.containsPos(x))
 			    {
@@ -250,7 +250,7 @@ public class FieldCollection2D
 			    mesh.isMeshBoundaryType(i,j,MeshBoundaryType.PERIODIC))
 			{
 			    field.data[i][j]+=bc[i].buffer;
-			    
+			    field.data[i][j]*=0.5;
 			    bc[i].buffer=0;
 			}
 		    }
@@ -351,6 +351,19 @@ public class FieldCollection2D
 	}
 	return def;
     }
+    
+    /** Evaluates the field at the specified mesh and logical coordinate
+     * 
+     * @param mesh
+     * @param lc
+     * @return interpolated value
+     */
+    public double gather(Mesh mesh, double lc[])
+    {
+	Field2D f = getField(mesh);
+	return f.gather(lc);
+    }
+	    
 
     /** sets all fields to zero*/
     public void clear() 

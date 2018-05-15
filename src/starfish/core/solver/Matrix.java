@@ -406,11 +406,9 @@ public class Matrix
     }
     
     
-    /*computes LU decomposition of the matrix without pivoting
-    based on the algorithm in Numerical Analysis
-    */
-
-    /**
+    /** computes LU decomposition of the matrix without pivoting
+     *  based on the algorithm in Numerical Analysis
+     * This is very slow making it basically unusable!
      *
      * @return
      * @throws UnsupportedOperationException

@@ -87,11 +87,11 @@ public class OutputModule extends CommandModule
 	/*TODO: replace this with "factories"*/
 	/*output data*/
 	if (type.equalsIgnoreCase("2D"))
-	    writer.init2D(variables,vectors,cell_data);
+	    writer.init2D(variables,vectors,cell_data,element);
 	else if (type.equalsIgnoreCase("1D"))
 	    writer.init1D(variables,vectors,cell_data,element);
 	else if (type.equalsIgnoreCase("BOUNDARIES"))
-	    writer.initBoundaries(variables);
+	    writer.initBoundaries(variables,element);
 	else if (type.equalsIgnoreCase("PARTICLES"))
 	    writer.initParticles(element);
 	else

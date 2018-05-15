@@ -9,9 +9,7 @@ package starfish.core.domain;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import org.w3c.dom.Element;
-import starfish.core.boundaries.Spline;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
@@ -169,8 +167,8 @@ public class DomainModule extends CommandModule
 	field_manager.add("p","Pa",EvalPressure);   //pressure
     }
 	
-    /**processes &lt; mesh %gt; nod
-     * @param elemente*/
+    /**processes &lt; mesh %gt; node
+     * @param element*/
     protected void AddMesh(Element element)
     {
 	
@@ -179,91 +177,25 @@ public class DomainModule extends CommandModule
 
 	/*get type*/
 	String type = InputParser.getValue("type", element);
-
-	Mesh abs_mesh = null;	/*abstract mesh*/
+	
+	/*number of nodes*/
+	String nodes[] = InputParser.getList("nodes", element);
+	int nn[] = {Integer.parseInt(nodes[0]), Integer.parseInt(nodes[1])};
+	
+	Mesh mesh = null;	
 		
 	/*uniform mesh*/
 	if (type.equalsIgnoreCase("UNIFORM"))
-	{
-	    String origin[] = InputParser.getList("origin", element);
-	    String spacing[] = InputParser.getList("spacing", element);
-	    String nodes[] = InputParser.getList("nodes", element);
-
+	{	    
 	    /*create new uniform mesh*/
-	    UniformMesh mesh = new UniformMesh(Integer.parseInt(nodes[0]),
-					    Integer.parseInt(nodes[1]),
-					    domain_type);
-	    
-	    mesh.setOrigin(Double.parseDouble(origin[0]),Double.parseDouble(origin[1]));
-	    mesh.setSpacing(Double.parseDouble(spacing[0]), Double.parseDouble(spacing[1]));
-	    mesh.setName(name);
-	    addMesh(mesh);
-			
-	    abs_mesh=mesh;
-			
-	    /*log*/
-	    Log.log("Added UNIFORM_MESH");
-	    Log.log("> nodes   = "+nodes[0]+" : "+nodes[1]);
-	    Log.log("> origin  = "+origin[0]+" : "+origin[1]);
-	    Log.log("> spacing = "+spacing[0]+" : "+spacing[1]);
+	    mesh = new UniformMesh(nn, element, name, domain_type);	    
+	    addMesh(mesh);	
 	}
 	else if (type.equalsIgnoreCase("ELLIPTIC"))
 	{
-	    String nodes[] = InputParser.getList("nodes", element);
-	    int ni = Integer.parseInt(nodes[0]);
-	    int nj = Integer.parseInt(nodes[1]);
-
-	    String left[] = InputParser.getList("left",element);
-	    String bottom[] = InputParser.getList("bottom",element);
-	    String right[] = InputParser.getList("right",element);
-	    String top[] = InputParser.getList("top",element);
-
-	    Spline splines[] = new Spline[4];
-	    ArrayList<Spline> list = new ArrayList<Spline>();
-
-	    try{
-		/*left*/
-		for (String str:left)
-		    list.add(Starfish.getBoundary(str));
-		splines[Face.LEFT.value()] = new Spline(list);
-
-		/*bottom*/
-		list.clear();
-		for (String str:bottom)
-		    list.add(Starfish.getBoundary(str));
-		splines[Face.BOTTOM.value()] = new Spline(list);
-
-		/*right*/
-		list.clear();
-		for (String str:right)
-		    list.add(Starfish.getBoundary(str));
-		splines[Face.RIGHT.value()] = new Spline(list);
-
-		/*top*/
-		list.clear();
-		for (String str:top)
-		    list.add(Starfish.getBoundary(str));
-		splines[Face.TOP.value()] = new Spline(list);
-	    }
-	    catch (NoSuchElementException e)
-	    {
-		Log.error(e.getMessage());
-	    }
-		
 	    /*create new uniform mesh*/
-	    EllipticMesh mesh = new EllipticMesh(ni,nj,splines,domain_type);
-	    mesh.setName(name);
+	    mesh = new EllipticMesh(nn, element, name,domain_type);
 	    addMesh(mesh);
-
-	    abs_mesh = mesh;
-
-	    /*log*/
-	    Log.log("Added ELLIPTIC_MESH");
-	    Log.log("> nodes   = "+ni+" : "+nj);
-	    Log.log("> left  = "+InputParser.getValue("left", element));
-	    Log.log("> bottom = "+InputParser.getValue("bottom",element));
-	    Log.log("> right = "+InputParser.getValue("right",element));
-	    Log.log("> top = "+InputParser.getValue("top",element));			
 	}
 	else
 	    Log.error("Unrecognized mesh type "+type);
@@ -295,7 +227,8 @@ public class DomainModule extends CommandModule
 	    {
 		Log.error("<type> must be set and must be one of DIRICHLET, NEUMANN or PERIODIC");
 	    }
-	    abs_mesh.setMeshBCType(face, node_type, value);	
+	    
+	    mesh.setMeshBCType(face, node_type, value);	
 	}
 				
     }

@@ -138,6 +138,18 @@ public class KineticMaterial extends Material
 	    getW(md.mesh).clear();
 	}
 
+	for (MeshData md:mesh_data)
+	{
+	    Iterator<Particle> iterator = md.getIterator();
+	    while (iterator.hasNext())
+	    {
+	    Particle part = iterator.next();
+	    if (part.lc[0]<0 || part.lc[1]<0 ||
+		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
+		Log.warning("out of bounds particle a "+part.id);
+	    }
+	}
+	
 	total_momentum = 0;
 	/*first loop through all particles*/
 	for (MeshData md : mesh_data)
@@ -145,11 +157,44 @@ public class KineticMaterial extends Material
 	    moveParticles(md, false);
 	}
 
-	/*now move transferred particle*/
-	/*TODO: multiple loops*/
-	for (MeshData md : mesh_data)
+		for (MeshData md:mesh_data)
 	{
-	    moveParticles(md, true);
+	    Iterator<Particle> iterator = md.getIterator();
+	    while (iterator.hasNext())
+	    {
+	    Particle part = iterator.next();
+	    if (part.lc[0]<0 || part.lc[1]<0 ||
+		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
+		Log.warning("out of bounds particle b "+part.id);
+	    }
+	}
+	/*now move transferred particle*/
+	//some number of loops so we don't run forever
+	int count=0;
+	for (int loop=0;loop<10;loop++)
+	{
+	    for (MeshData md : mesh_data)
+	    {	    
+		moveParticles(md, true);
+	    }
+	    
+	    //count number of remaining particles waiting to transfer, ideally none
+	    count=0;
+	    for (MeshData md:mesh_data) count+=md.getTransferNp();
+	    if (count==0) break;
+	}	
+	if (count>0) Log.warning("Failed to transfer all particles between domains!");
+	
+	for (MeshData md:mesh_data)
+	{
+	    Iterator<Particle> iterator = md.getIterator();
+	    while (iterator.hasNext())
+	    {
+	    Particle part = iterator.next();
+	    if (part.lc[0]<0 || part.lc[1]<0 ||
+		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
+		Log.warning("out of bounds particle c"+part.id);
+	    }
 	}
 	
 	/*update densities and velocities*/
@@ -175,6 +220,21 @@ public class KineticMaterial extends Material
 	Field2D V = getV(md.mesh);
 	Field2D W = getW(md.mesh);
 
+		
+	Iterator<Particle> iterator = md.getIterator();
+	while (iterator.hasNext())
+	{
+	    Particle part = iterator.next();
+	    if (part.lc[0]<0 || part.lc[1]<0 ||
+		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
+		Log.warning("out of bounds particle");
+	    
+	    Den.scatter(part.lc, part.spwt);
+	    U.scatter(part.lc, part.vel[0] * part.spwt);
+	    V.scatter(part.lc, part.vel[1] * part.spwt);
+	    W.scatter(part.lc, part.vel[2] * part.spwt);
+	}
+		
 	/*first get average velocities*/
 	U.divideByField(Den);
 	V.divideByField(Den);
@@ -211,7 +271,7 @@ public class KineticMaterial extends Material
     {
 	return getMeshData(mesh).getIterator();
     }
-        
+    
     /*updates particles on a single block*/
     class ParticleMover extends Thread
     {
@@ -239,11 +299,6 @@ public class KineticMaterial extends Material
 	    double bf[] = new double[3];
 
 	    Mesh mesh = md.mesh;
-	    Field2D Den = getDen(mesh);
-	    Field2D U = getU(mesh);
-	    Field2D V = getV(mesh);
-	    Field2D W = getW(mesh);
-
 	    Field2D Efi = md.Efi;
 	    Field2D Efj = md.Efj;
 
@@ -254,6 +309,9 @@ public class KineticMaterial extends Material
 	    {
 		Particle part = iterator.next();
 
+		if (part.id==574 && Starfish.getIt()==28)
+		    part=part;
+		
 		/*increment particle time*/
 		if (!particle_transfer)
 		{
@@ -310,18 +368,32 @@ public class KineticMaterial extends Material
 		
 		Particle part_old = new Particle(part);
 		
+		if (part.id==574 && Starfish.getIt()>=22)
+		    part=part;
+		
 		/*check if particle hit anything or left the domain*/		
 		alive = ProcessBoundary(part, mesh, old, old_lc);
 	
+		/*add post push/surface impact position to trace*/
+		if (part.trace_id>=0)
+		    Starfish.particle_trace_module.addTrace(part);
+		
+		if (part.lc[0]<0 || part.lc[1]<0 ||
+		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
+		{
+		    part = part_old;
+		    alive = ProcessBoundary(part, mesh, old, old_lc);
+	    
+		    Log.warning("out of bounds particle "+part.id);
+		}
+	    
 		if (!alive)
 		{
 		    iterator.remove();
 		    break;
 		}				
 				
-		/*are we tracing this particle, if so output trace*/
-		if (part.trace_id>=0)
-		    Starfish.particle_trace_module.addTrace(part);	
+			
 	    } /*dt*/
 	    
 	    /*TODO: bottleneck since only one thread can access at once*/
@@ -330,11 +402,6 @@ public class KineticMaterial extends Material
 	    {		
 		synchronized(this){
 		    		
-		Den.scatter(part.lc, part.spwt);
-		U.scatter(part.lc, part.vel[0] * part.spwt);
-		V.scatter(part.lc, part.vel[1] * part.spwt);
-		W.scatter(part.lc, part.vel[2] * part.spwt);
-
 		/*also add to the main list if transfer*/
 		if (particle_transfer)
 		{
@@ -352,7 +419,7 @@ public class KineticMaterial extends Material
 	private void rotateToRZ(Particle part)
 	{    
 	    /*movement in R plane*/
-	    double A = part.vel[2]*part.dt;
+	    double A = part.vel[2]*part.dt;	  //theta is in -z direction
 	    double B = part.pos[0];		/*new position in R plane*/
 	    double R = Math.sqrt(A*A + B*B);	/*new radius*/
 
@@ -360,7 +427,7 @@ public class KineticMaterial extends Material
 	    double sin = A/R;
 	    
 	    /*update particle theta, only used for visualization*/
-	    part.pos[2] += Math.asin(sin);
+	    part.pos[2] += Math.acos(cos);
 
 	    /*rotate velocity through theta*/
 	    double v1 = part.vel[0];
@@ -381,7 +448,7 @@ public class KineticMaterial extends Material
 	    double sin = A/R;
 	    
 	    /*update particle theta, only used for visualization*/
-	    part.pos[2] += Math.asin(sin);	
+	    part.pos[2] += Math.acos(cos);	
 
 	    /*rotate velocity through theta*/
 	    double v1 = part.vel[1];
@@ -513,23 +580,21 @@ public class KineticMaterial extends Material
 	if (part.lc[0] < 0 || part.lc[1] < 0
 	    || part.lc[0] >= mesh.ni - 1 || part.lc[1] >= mesh.nj - 1)
 	{
-	    
-	    
 	    /*determine exit face*/
 	    double t_right = 99, t_top = 99, t_left = 99, t_bottom = 99;
 
 	    if (part.lc[0] >= mesh.ni - 1)
 	    {
 		/*using >1.0 to place particle inside domain*/
-		t_right = (mesh.ni - 1.00000 - lc_old[0]) / (part.lc[0] - lc_old[0]);
+		t_right = (mesh.ni - 1.0 - lc_old[0]) / (part.lc[0] - lc_old[0]);
 	    }
 	    if (part.lc[1] >= mesh.nj - 1)
 	    {
-		t_top = (mesh.nj - 1.00000 - lc_old[1]) / (part.lc[1] - lc_old[1]);
+		t_top = (mesh.nj - 1.0 - lc_old[1]) / (part.lc[1] - lc_old[1]);
 	    }
 	    if (part.lc[0] < 0)
 	    {
-		t_left = lc_old[0] / (lc_old[0] - part.lc[0]);
+		t_left = lc_old[0] / (lc_old[0] - part.lc[0]);		
 	    }
 	    if (part.lc[1] < 0)
 	    {
@@ -581,7 +646,12 @@ public class KineticMaterial extends Material
 	    
 	    /*process boundary*/
 	    /*TODO: need cell data*/
-	    MeshBoundaryType type = mesh.boundaryType(exit_face,i);
+	    MeshBoundaryType type;
+	    
+	    if (exit_face == Face.LEFT || exit_face == Face.RIGHT) 
+		type = mesh.boundaryType(exit_face,j);
+	    else
+	    	type = mesh.boundaryType(exit_face,i);
 	    
 	    switch (type)
 	    {
@@ -589,7 +659,7 @@ public class KineticMaterial extends Material
 		    return false;
 		case SYMMETRY: 
 		    /*grab normal vector*/
-		    double n[] = mesh.boundaryNormal(exit_face,part.pos);
+		    double n[] = mesh.faceNormal(exit_face,part.pos);
 		    part.vel = Vector.mirror(part.vel,n);
 		    return true;
 		case PERIODIC: /*TODO: implemented only for single mesh*/
@@ -609,15 +679,11 @@ public class KineticMaterial extends Material
 			index=(int)part.lc[1];
 		    else index=(int)part.lc[0];
 		    MeshBoundaryData bc = mesh.boundaryData(exit_face, index);
-		    for (int m = 0; m < bc.num_neighbors; m++)
+		    if (bc.neighbor.containsPos(part.pos))
 		    {
-			if (bc.neighbor[m].containsPos(part.pos))
-			{
-			    Mesh next = bc.neighbor[m];
+			    Mesh next = bc.neighbor;
 			    part.lc = next.XtoL(part.pos);
 			    getMeshData(next).addTransferParticle(part);
-			    break;
-			}
 		    }
 		    return false;
 		case CIRCUIT:	//energy boundary for electrons
@@ -698,6 +764,8 @@ public class KineticMaterial extends Material
 	
 	/*set trace_id, will be set to -1 if no trace*/
 	part.trace_id = Starfish.particle_trace_module.getTraceId(part.id);
+	if (part.trace_id>=0)
+	    Starfish.particle_trace_module.addTrace(part);
 	
 	md.addParticle(part);
 	return true;
@@ -748,13 +816,6 @@ public class KineticMaterial extends Material
 	double s[] = new double[3];
 	double t_mag2;
 	
-	//TODO: hack
-	if (true)
-	{
-	B[0]=0;
-	B[1]=0;
-	B[2]=0;
-	}
 	int dim;
 	
 	/*t vector*/
@@ -943,7 +1004,7 @@ public class KineticMaterial extends Material
 	public long id;			/*particle id*/
 	public int born_it;
 	public int trace_id = -1;		/*set to >=0 if particle is being traced*/
-
+	
 	/** copy constructor
 	 * @param part*/
 	public Particle (Particle part) 
@@ -974,6 +1035,7 @@ public class KineticMaterial extends Material
 	    spwt = mat.spwt0;
 	    mass = mat.mass;
 	    born_it = Starfish.getIt();
+	    trace_id = -1;
 	}
 
 	/**
@@ -1073,8 +1135,8 @@ public class KineticMaterial extends Material
 	ParticleBlock particle_block[];
 	ParticleBlock transfer_block[];	/*particles transferred into this mesh from a neighboring one during the transfer*/
 
-	/**add particle to the list, attempting to keep block sizes equa
-	 * @param partl*/
+	/**add particle to the list, attempting to keep block sizes equal
+	 * @param part*/
 	public void addParticle(Particle part)
 	{
 	    /*find particle block with fewest particles*/
@@ -1097,11 +1159,12 @@ public class KineticMaterial extends Material
 	    for (int i=1;i<particle_block.length;i++)
 		if (transfer_block[i].particle_list.size()<min_count) {min_count=transfer_block[i].particle_list.size();block=i;}
 	    
-	    transfer_block[block].particle_list.add(part);
+	    /*call copy constructor since original particle may be deleted*/
+	    transfer_block[block].particle_list.add(new Particle(part));
 	}
 	
-	/** returns number of particle
-	 * @return s*/
+	/** 
+	 * @return number of particles*/
 	public long getNp()
 	{
 	    long count=0;
@@ -1109,8 +1172,18 @@ public class KineticMaterial extends Material
 	    return count;
 	}
 	
-	/** returns particle iterator for the given bloc
-	 * @param blockk
+	/** 
+	 * @return number of particles waiting to be transferred between domains
+	 */
+	public long getTransferNp()
+	{
+	    long count=0;
+	    for (int i=0;i<transfer_block.length;i++) count+=transfer_block[i].particle_list.size();
+	    return count;
+	}
+	
+	/** returns particle iterator for the given block
+	 * @param block
 	 * @return */
 	public Iterator<Particle> getIterator(int block) {return particle_block[block].particle_list.iterator();}
 	
@@ -1226,8 +1299,8 @@ public class KineticMaterial extends Material
 	Log.log("Cleared samples in Material "+name);
     }
     
-    /** updates velocity samples and also computes temperatur
-     * @param mde*/
+    /** updates velocity samples and also computes temperature
+     * @param md*/
     public void updateSamples(MeshData md)
     {
 	Field2D count_sum = this.field_manager2d.get(md.mesh, "count-sum");
@@ -1256,6 +1329,10 @@ public class KineticMaterial extends Material
 	while (iterator.hasNext())
 	{
 	    Particle part = iterator.next();
+	    if (part.lc[0]<0 || part.lc[1]<0 ||
+		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
+		Log.warning("out of bounds particle "+part.id);
+	    
 	    u_sum.scatter(part.lc, part.spwt * part.vel[0]);
 	    v_sum.scatter(part.lc, part.spwt * part.vel[1]);
 	    w_sum.scatter(part.lc, part.spwt * part.vel[2]);

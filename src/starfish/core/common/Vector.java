@@ -155,10 +155,10 @@ public class Vector
     	
 	double[] data1D = new double[ni * nj];
 		
-	/*this needs to match IJtoN, which uses i*nj + j*/
+	/*this needs to match IJtoN, which uses j*ni + i*/
 	int u=0;
-	for (int i = 0; i < ni; i++)
-	    for (int j = 0; j < nj; j++)
+	for (int j = 0; j < nj; j++)
+	    for (int i = 0; i < ni; i++)
 	    {
 		data1D[u++] = data2D[i][j];
 	    }
@@ -166,19 +166,19 @@ public class Vector
 	return data1D;		
     }
 
-    /** copies 2D data into 1D arra
+    /** copies 2D data into 1D array
      * @param data2D
-     * @param data1Dy*/
+     * @param data1D*/
     public static void deflate(double data2D[][], double data1D[])
     {
 	int ni = data2D.length;
 	int nj = data2D[0].length;
     	
 		
-	/*this needs to match IJtoN, which uses i*nj + j*/
+	/*this needs to match IJtoN, which uses j*ni + i*/
 	int u=0;
-	for (int i = 0; i < ni; i++)
-	    for (int j = 0; j < nj; j++)
+	for (int j = 0; j < nj; j++)
+	    for (int i = 0; i < ni; i++)
 	    {
 		data1D[u++] = data2D[i][j];
 	    }
@@ -192,8 +192,8 @@ public class Vector
     {
 	/*unpack data*/
 	int u = 0;
-	for (int i = 0; i < ni; i++)
-	    for (int j = 0; j < nj; j++)
+	for (int j = 0; j < nj; j++)
+	    for (int i = 0; i < ni; i++)
 	    	data2D[i][j] = data1D[u++];	
     }	
 	

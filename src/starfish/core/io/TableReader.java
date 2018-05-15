@@ -72,7 +72,8 @@ public class TableReader extends Reader
 	    if (j>=nj) {j=0;i++;}
 	}
 
-	Mesh mesh = new QuadrilateralMesh(ni, nj, z, r, Starfish.domain_module.getDomainType());
+	int nn[] = {ni,nj};
+	Mesh mesh = new QuadrilateralMesh(nn, z, r, "TableReaderMesh", Starfish.domain_module.getDomainType());
 
 	field_manager = new FieldManager2D(mesh);
 	field_manager.add("B", "",new Field2D(mesh,B),null);

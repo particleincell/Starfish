@@ -9,12 +9,12 @@ package starfish.core.boundaries;
 
 import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.domain.Mesh;
-import static starfish.core.domain.Mesh.Face.BOTTOM;
-import static starfish.core.domain.Mesh.Face.LEFT;
-import static starfish.core.domain.Mesh.Face.RIGHT;
-import static starfish.core.domain.Mesh.Face.TOP;
 import starfish.core.domain.Mesh.NodeType;
 import starfish.core.common.Vector;
+import static starfish.core.domain.Mesh.Face.RIGHT;
+import static starfish.core.domain.Mesh.Face.TOP;
+import static starfish.core.domain.Mesh.Face.LEFT;
+import static starfish.core.domain.Mesh.Face.BOTTOM;
 
 
 /********** SEGMENT IMPLEMENTATIONS ****************************/

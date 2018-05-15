@@ -14,7 +14,6 @@ import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.Face;
-import starfish.core.domain.Mesh.NodeType;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.Mesh.MeshBoundaryType;
 
@@ -166,7 +165,7 @@ public class Contour
 		edge=2;
 		if (j==0 && mesh.boundaryType(Face.BOTTOM,i)==MeshBoundaryType.MESH)
 		{
-		    mesh = mesh.boundaryData(Face.BOTTOM, i).neighbor[0];
+		    mesh = mesh.boundaryData(Face.BOTTOM, i).neighbor;
 		    continue;
 		}
 		j--;
@@ -176,7 +175,7 @@ public class Contour
 		edge=3;
 		if (i==field.getNi()-2 && mesh.boundaryType(Face.RIGHT,j)==MeshBoundaryType.MESH)
 		{
-		    mesh = mesh.boundaryData(Face.RIGHT, j).neighbor[0];
+		    mesh = mesh.boundaryData(Face.RIGHT, j).neighbor;
 		    continue;
 		}
 		i++;
@@ -186,7 +185,7 @@ public class Contour
 		edge=0;
 		if (j==field.getNj()-2 && mesh.boundaryType(Face.TOP,i)==MeshBoundaryType.MESH)
 		{
-		    mesh = mesh.boundaryData(Face.TOP, i).neighbor[0];
+		    mesh = mesh.boundaryData(Face.TOP, i).neighbor;
 		    continue;
 		}
 		j++;
@@ -196,7 +195,7 @@ public class Contour
 		edge=1;
 		if (i==0 && mesh.boundaryType(Face.LEFT,j)==MeshBoundaryType.MESH)
 		{
-		    mesh = mesh.boundaryData(Face.LEFT, j).neighbor[0];
+		    mesh = mesh.boundaryData(Face.LEFT, j).neighbor;
 		    continue;
 		}
 		i--;

@@ -162,7 +162,8 @@ public class TecplotReader extends Reader
 		    }
 
 		/*create a new mesh*/
-		Mesh mesh = new QuadrilateralMesh(ni,nj,IPOS,JPOS,Starfish.domain_module.getDomainType());	
+		int nn[] = {ni,nj};
+		Mesh mesh = new QuadrilateralMesh(nn,IPOS,JPOS,"TecplotReaderMesh",Starfish.domain_module.getDomainType());	
 
 		/*presently supporting only one mesh*/
 		field_manager = new FieldManager2D(mesh);

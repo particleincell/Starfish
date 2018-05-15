@@ -7,9 +7,14 @@
 
 package starfish.core.domain;
 
+import java.util.ArrayList;
+import java.util.NoSuchElementException;
+import org.w3c.dom.Element;
 import starfish.core.boundaries.Spline;
+import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
+import starfish.core.io.InputParser;
 
 /** Constructs a quadrilateral mesh bounded by four prescribed splines */
 public class EllipticMesh extends QuadrilateralMesh
@@ -21,61 +26,100 @@ public class EllipticMesh extends QuadrilateralMesh
     protected Spline splines[]; 
     
     /**boundaries are given by 4 splines: 
-    * splines[RIGHT]: left right
-    * splines[TOP]: bottom top
-    * splines[LEFT]: right left
-    * splines[BOTTOM]: top botto
-     * @param nim
-     * @param nj
-     * @param splines
-     * @param domain_type*/
-    public EllipticMesh (int ni, int nj, Spline splines[], DomainType domain_type)
+     * @param nn number of nodes
+     * @param element XML element
+     * @param name mesh name
+     * @param domain_type XY/RZ*/
+    public EllipticMesh (int nn[], Element element, String name, DomainType domain_type)
     {
-	super(ni,nj,domain_type);
+	super(nn, name,domain_type);
 		
+	String left[] = InputParser.getList("left",element);
+	String bottom[] = InputParser.getList("bottom",element);
+	String right[] = InputParser.getList("right",element);
+	String top[] = InputParser.getList("top",element);
+
+	splines = new Spline[4];
+	ArrayList<Spline> list = new ArrayList<Spline>();
+
+	try{
+	    /*left*/
+	    for (String str:left)
+		list.add(Starfish.getBoundary(str));
+	    splines[Face.LEFT.val()] = new Spline(list);
+
+	    /*bottom*/
+	    list.clear();
+	    for (String str:bottom)
+		list.add(Starfish.getBoundary(str));
+	    splines[Face.BOTTOM.val()] = new Spline(list);
+
+	    /*right*/
+	    list.clear();
+	    for (String str:right)
+		list.add(Starfish.getBoundary(str));
+	    splines[Face.RIGHT.val()] = new Spline(list);
+
+	    /*top*/
+	    list.clear();
+	    for (String str:top)
+		list.add(Starfish.getBoundary(str));
+	    splines[Face.TOP.val()] = new Spline(list);
+	}
+	catch (NoSuchElementException e)
+	{
+	    Log.error(e.getMessage());
+	}
+
+	/*log*/
+	Log.log("Added ELLIPTIC_MESH");
+	Log.log("> nodes   = "+ni+" : "+nj);
+	Log.log("> left  = "+InputParser.getValue("left", element));
+	Log.log("> bottom = "+InputParser.getValue("bottom",element));
+	Log.log("> right = "+InputParser.getValue("right",element));
+	Log.log("> top = "+InputParser.getValue("top",element));			
+   
 	int u,i,j;
 	double pos[], t[];
 	double gx[] = new double[ni*nj];
 	double gy[] = new double[ni*nj];
 
-	this.splines = splines;
-	
 	/*left boundary*/
-	t = splines[Face.LEFT.value()].splitSpline(nj,false);
+	t = splines[Face.LEFT.val()].splitSpline(nj,false);
 	for (j=0;j<nj;j++)
 	{
 	    u=j*ni;
-	    pos = splines[Face.LEFT.value()].pos(t[j]);
+	    pos = splines[Face.LEFT.val()].pos(t[j]);
 	    gx[u]=pos[0];
 	    gy[u]=pos[1];
 	}
     
 	/*right boundary*/
-	t = splines[Face.RIGHT.value()].splitSpline(nj,true);
+	t = splines[Face.RIGHT.val()].splitSpline(nj,true);
 	for (j=0;j<nj;j++)
 	{
 	    u=j*ni+ni-1;
-	    pos = splines[Face.RIGHT.value()].pos(t[j]);
+	    pos = splines[Face.RIGHT.val()].pos(t[j]);
 	    gx[u]=pos[0];
 	    gy[u]=pos[1];
 	}
 	
 	/*bottom*/
-	t = splines[Face.BOTTOM.value()].splitSpline(ni,true);
+	t = splines[Face.BOTTOM.val()].splitSpline(ni,true);
 	for (i=0;i<ni;i++)	
 	{
 	    u=i;
-	    pos = splines[Face.BOTTOM.value()].pos(t[i]);
+	    pos = splines[Face.BOTTOM.val()].pos(t[i]);
 	    gx[u]=pos[0];
 	    gy[u]=pos[1];
 	}
 	
 	/*top*/
-	t = splines[Face.TOP.value()].splitSpline(ni,false);
+	t = splines[Face.TOP.val()].splitSpline(ni,false);
 	for (i=0;i<ni;i++)
 	{
 	    u=(nj-1)*ni+i;
-	    pos = splines[Face.TOP.value()].pos(t[i]);
+	    pos = splines[Face.TOP.val()].pos(t[i]);
 	    gx[u]=pos[0];
 	    gy[u]=pos[1];
 	}
@@ -142,10 +186,10 @@ public class EllipticMesh extends QuadrilateralMesh
     /**Returns boundary normal by considering boundary spline
      * @return s*/
     @Override
-    public double[] boundaryNormal(Face face, double[] pos)
+    public double[] faceNormal(Face face, double[] pos)
     {
 	/*evaluate intersection position along spline*/
-	double t = splines[face.value()].evalT(pos);
+	double t = splines[face.val()].evalT(pos);
 	
 	if (t<0) 
 	{
@@ -153,7 +197,7 @@ public class EllipticMesh extends QuadrilateralMesh
 	    Log.error("call to BoundaryNormal for a point not on boundary");
 	}
 	
-	return splines[face.value()].normal(t);
+	return splines[face.val()].normal(t);
     }
 
 }

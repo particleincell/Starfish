@@ -7,7 +7,10 @@
 
 package starfish.core.domain;
 
+import org.w3c.dom.Element;
+import starfish.core.common.Starfish;
 import starfish.core.domain.DomainModule.DomainType;
+import starfish.core.io.InputParser;
 
 /**
  *
@@ -35,17 +38,52 @@ public class UniformMesh extends Mesh
 	
     /*methods*/
 
-    /**
-     *
-     * @param ni
-     * @param nj
+    /** 
+     * Creates a structured rectilinear mesh with uniform spacing in each direction
+     * @param nn number of nodes
+     * @param element XML element
+     * @param name mesh name
      * @param domain_type
      */
-
-    public UniformMesh (int ni, int nj, DomainType domain_type)
+    public UniformMesh (int nn[], Element element, String name, DomainType domain_type)
     {
-	super(ni,nj, domain_type);  
+	super(nn, name,domain_type);
+	
+	String origin[] = InputParser.getList("origin", element);
+	String spacing[] = InputParser.getList("spacing", element);
+	double x0[] = {Double.parseDouble(origin[0]), Double.parseDouble(origin[1])};
+	double dh[] = {Double.parseDouble(spacing[0]), Double.parseDouble(spacing[1])};	    
+	
+	setMetrics(x0,dh);
+	
+	/*log*/
+	Starfish.Log.log("Added UNIFORM_MESH");
+	Starfish.Log.log("> nodes   = "+nn[0]+" : "+nn[1]);
+	Starfish.Log.log("> origin  = "+origin[0]+" : "+origin[1]);
+	Starfish.Log.log("> spacing = "+spacing[0]+" : "+spacing[1]);	
     }
+    
+    /*
+    
+    	///check for axisymmetric domains, can't have ghosts on r=0 plane
+	if (domain_type==DomainType.RZ && x0[0]<0)
+	{
+	    while(x0[0]<0)
+	    {
+		x0[0] += dh[0];
+		ghost_layers[Face.LEFT.val()]--;
+	    }
+	}
+	else if (domain_type==DomainType.ZR && x0[1]<0)
+	{
+	    while(x0[1]<0)
+	    {
+		x0[1] += dh[1];
+		ghost_layers[Face.BOTTOM.val()]--;
+	    }
+	}
+
+    */
     
     /**
      *
@@ -59,42 +97,22 @@ public class UniformMesh extends Mesh
      */
     public double getDj() {return dh[1];}
 	
-    /*sets mesh origin*/
-
-    /**
+    /** Sets mesh origin and spacing
      *
      * @param x1
      * @param x2
      */
-
-    public void setOrigin(double x1, double x2)
+    public final void setMetrics(double x0[], double dh[])
     {
-	x0[0]=x1;
-	x0[1]=x2;
+	this.x0[0]=x0[0];
+	this.x0[1]=x0[1];
+	this.dh[0] = dh[0];
+	this.dh[1] = dh[1];
 	setXd();
     }
     
-    /*sets mesh spacing*/
-
-    /**
-     *
-     * @param d1
-     * @param d2
-     */
-
-    public void setSpacing(double d1, double d2)
-    {
-	dh[0]=d1;
-	dh[1]=d2;
-	setXd();
-    }
-	
-    /*computes diagonal point*/
-
-    /**
-     *
-     */
-
+  	
+    /**computes the diagonal point*/
     protected void setXd()
     {
 	xd[0]=x0[0]+(ni-1)*dh[0];
@@ -138,7 +156,7 @@ public class UniformMesh extends Mesh
     }
 
     @Override
-    public double[] boundaryNormal(Face face, double[] pos)
+    public double[] faceNormal(Face face, double[] pos)
     {
 	double n[] = new double[3];
 	
@@ -148,7 +166,7 @@ public class UniformMesh extends Mesh
 	    case RIGHT: n[0]=-1; break;
 	    case BOTTOM: n[1]=1;break;
 	    case TOP: n[1]=-1;break;
-	    default: throw new UnsupportedOperationException("Bad Face in a call to boundaryNormal");
+	    default: throw new UnsupportedOperationException("Bad Face in a call to faceNormal");
 	}
 	return n;
     }

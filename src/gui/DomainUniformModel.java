@@ -77,14 +77,12 @@ public class DomainUniformModel extends DefaultTableModel {
      */
     public void addRowChangeStarfish(Object[] rowData) {
 		//Name origin spacing nodes
-		UniformMesh newMesh = new UniformMesh(Integer.valueOf(rowData[5].toString()), 
-				Integer.valueOf(rowData[6].toString()), 
+		int nn[] = {Integer.valueOf(rowData[5].toString()), Integer.valueOf(rowData[6].toString())};
+		UniformMesh newMesh = new UniformMesh(nn,null,rowData[0].toString(),
 				Starfish.domain_module.getDomainType());
-		newMesh.setName(rowData[0].toString());
-		newMesh.setOrigin(Double.valueOf(rowData[1].toString()), 
-				Double.valueOf(rowData[2].toString()));
-		newMesh.setSpacing(Double.valueOf(rowData[3].toString()), 
-				Double.valueOf(rowData[4].toString()));
+		double x0[] = {Double.valueOf(rowData[1].toString()),Double.valueOf(rowData[2].toString())};
+		double dh[] = {Double.valueOf(rowData[3].toString()),Double.valueOf(rowData[4].toString())};
+		newMesh.setMetrics(x0,dh);
 		Starfish.domain_module.addMesh(newMesh);
 		
 		super.addRow(rowData);

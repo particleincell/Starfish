@@ -32,7 +32,6 @@ public class ConstantEF extends Solver
      */
     public ConstantEF(double ei, double ej)
     {
-	    super();
 	    ei0=ei;
 	    ej0=ej;
     }
