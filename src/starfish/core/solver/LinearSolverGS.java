@@ -14,7 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import starfish.core.common.Starfish;
+import starfish.core.common.Starfish.Log;
 import starfish.core.common.Vector;
+import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.solver.Solver.LinearSolver;
 import starfish.core.solver.Solver.MeshData;
@@ -66,7 +68,7 @@ public class LinearSolverGS implements LinearSolver
      * @param mesh_data
      * @return 
      */
-    public int solve(MeshData mesh_data[], int max_it, double tolerance)
+    public int solve(MeshData mesh_data[], FieldCollection2D fc, int max_it, double tolerance)
     {
 	/*create threads*/
 	int np = Starfish.getNumProcessors();
@@ -89,8 +91,7 @@ public class LinearSolverGS implements LinearSolver
 	    for (int i1=0, id=0;i1<nu;i1+=chunk_size)
 	    {
 		/*avoid creating new threads for pieces with less than 100 unknowns*/
-		if ((nu-(i1+chunk_size))<100) 
-		    chunk_size = nu-i1;		
+		if ((nu-(i1+chunk_size))<100) chunk_size = nu-i1;		
 	    	workers.add(new ParLinearGS(id,i1,i1+chunk_size,md));
 	    }
 	}
@@ -101,7 +102,7 @@ public class LinearSolverGS implements LinearSolver
 	while (it <= max_it)
 	{
 	    /*** update boundaries**/	    
-	    Solver.updateGhostVector(mesh_data, Starfish.domain_module.getPhi());
+	    Solver.updateGhostVector(mesh_data, fc);
 	    
 	    /* check convergence */
 	    if (it % 25 == 0)
@@ -111,7 +112,7 @@ public class LinearSolverGS implements LinearSolver
 		
 		for (MeshData md:mesh_data)
 		{
-		    norm += Solver.calculateResidue(md.A, md.x, md.b);
+		    norm += Solver.calculateResidue(md.A, md.Ax_neigh, md.x, md.b);
 		    nn += md.x.length;
 		}
 		
@@ -119,10 +120,12 @@ public class LinearSolverGS implements LinearSolver
 		
 		//System.out.println(norm);
 		if (norm < tolerance)
+		{
+		    Log.debug(String.format("GS converged in %d iterations with norm=%g",it,norm));
 		    break;
+		}
 	    }
-	
-	    
+		    
 	    try
 	    {
 		executor.invokeAll(workers);
@@ -130,14 +133,6 @@ public class LinearSolverGS implements LinearSolver
 	    {
 		Logger.getLogger(Solver.class.getName()).log(Level.SEVERE, null, ex);
 	    }
-	    
-	    /*unpack mesh*/
-	    for (MeshData md:mesh_data)
-	    {		
-		Mesh mesh = md.mesh;
-		Vector.inflate(md.x, mesh.ni, mesh.nj, Starfish.domain_module.getPhi(mesh).getData());
-	    }
-	        
 	    it++;
 	}
  	it--;
@@ -147,6 +142,9 @@ public class LinearSolverGS implements LinearSolver
 	}
 
 	executor.shutdown();
+	
+	/*hack for testing*/
+	
 	return it;
     }
 

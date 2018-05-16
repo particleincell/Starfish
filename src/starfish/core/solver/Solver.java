@@ -14,6 +14,7 @@ import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.Face;
+import starfish.core.domain.Mesh.DomainBoundaryType;
 import starfish.core.domain.Mesh.Node;
 
 /** Finite volume Matrix solver for Ax=b using the Gauss-Seidel method (for now)
@@ -83,7 +84,8 @@ public abstract class Solver
 	//support for multiple domains, these complement the "u" array
 	Mesh neighbor_mesh[] = new Mesh[6];
 	double neighbor_lc[][] = new double[6][];
-	
+	double neighbor_Gi[] = new double[6];
+	double neighbor_Gj[] = new double[6];
     }
 
          /** Container for values and coefficients for the matrix solver
@@ -141,9 +143,7 @@ public abstract class Solver
 	//coefficient and node locations needed to evaluate the terms from neighbor points
 	public NeighborData A_neigh[];
 	public NeighborData Gi_neigh[];
-	public NeighborData Gj_neigh[];
-	public FieldCollection2D fc;	    //little hack to save field collection used for neighbor values
-	
+	public NeighborData Gj_neigh[];	
     }
 
     public MeshData mesh_data[];
@@ -216,7 +216,7 @@ public abstract class Solver
      */
     public interface LinearSolver
     {
-	int solve(Solver.MeshData mesh_data[], int max_it, double tolerance);
+	int solve(Solver.MeshData mesh_data[], FieldCollection2D fc, int max_it, double tolerance);
     }
     
 
@@ -232,8 +232,8 @@ public abstract class Solver
 	md.Gi = new Matrix(nu);
 	md.Gj = new Matrix(nu);
 	
-	for (i = 0; i < ni; i++)
-	    for (j = 0; j < nj; j++)
+	for (j = 0; j < nj; j++)
+	    for (i = 0; i < ni; i++)
 	    {
 		Gradient G = getNodeGradient(md, i, j);
 		
@@ -248,7 +248,24 @@ public abstract class Solver
 		//non-local data
 		for (int v = 0; v < 6 && G.neighbor_mesh[v]!=null; v++)
 		{
-		    
+		    if (G.neighbor_Gi[v]!=0) 
+		    {
+			if (md.Gi_neigh[u]==null)
+			    md.Gi_neigh[u] = new NeighborData();
+			NeighborData nb = md.Gi_neigh[u];
+			nb.coeff.add(G.neighbor_Gi[v]);
+			nb.lc.add(G.neighbor_lc[v]);
+			nb.mesh.add(G.neighbor_mesh[v]);			
+		    }
+		    if (G.neighbor_Gj[v]!=0) 
+		    {
+			if (md.Gj_neigh[u]==null)
+			    md.Gj_neigh[u] = new NeighborData();
+			NeighborData nb = md.Gj_neigh[u];
+			nb.coeff.add(G.neighbor_Gj[v]);
+			nb.lc.add(G.neighbor_lc[v]);
+			nb.mesh.add(G.neighbor_mesh[v]);			
+		    }
 		}
 	    }
 	
@@ -279,7 +296,7 @@ public abstract class Solver
 	 * @param fixed
 	 * @return
 	 */
-	public double[] eval_b(double x[], boolean fixed[]);
+	public double[] eval_bx(double x[], boolean fixed[]);
 
 	/**
 	 *
@@ -287,14 +304,14 @@ public abstract class Solver
 	 * @param fixed
 	 * @return
 	 */
-	public double[] eval_prime(double x[], boolean fixed[]);
+	public double[] eval_bx_prime(double x[], boolean fixed[]);
     }
 
     /**
      * solves the nonlinear problem Ax-b=0 using the Newton method
      * This method is based on the algorithm on page 614 in Numerical Analysis
-     * F(x)=Ax-b
-     * J(x)=dF/dx=A-db/dx=A-P
+     * F(x)=Ax + (Ax)_neigh - b
+     * J(x)=dF/dx=A+A_neigh-db/dx=(A+A_neigh)-P
      * solve Jy=F
      * update x=x-y
      * also b=b0+b(x) where b0 is constant
@@ -302,78 +319,105 @@ public abstract class Solver
      * @param nl_eval
      * @return 
      */
-    public int solveNonLinearNR(MeshData md[], NL_Eval nl_eval)
+    public int solveNonLinearNR(MeshData mesh_data[], NL_Eval nl_eval, FieldCollection2D fc)
     {
 	int it;
 	double norm=-1;
 
-	boolean fixed_node[] = md[0].fixed_node;
-	double x[] = md[0].x;
-	double b0[] = md[0].b;
-	Matrix A = md[0].A;
+	MeshData md_nl[] = new MeshData[mesh_data.length];
+	for (int k=0;k<mesh_data.length;k++)	    
+	{
+	    md_nl[k] = new MeshData();
+	    md_nl[k].mesh = mesh_data[k].mesh;
+	    md_nl[k].x = new double[mesh_data[k].x.length];
+	    md_nl[k].Ax_neigh = new double[mesh_data[k].x.length];
+	}
 	
-	double y[] = new double[x.length];
+	/*create a new field collection to store y*/
+	FieldCollection2D fc_y = new FieldCollection2D(Starfish.getMeshList(),null);
 	
-	MeshData md_nl[] = new MeshData[1];
-	md_nl[0] = new MeshData();
-	    
+	//main newton-rhapson loop
 	for (it = 0; it < nl_max_it; it++)
 	{
-	    /*calculate b(x)*/
-	    double b_x[] = nl_eval.eval_b(x, fixed_node);
-
-	    /*rhs: b=b0+b_x*/
-	    double b[]= Vector.add(b0, b_x);
+	    //recompute Ax_neigh;
+	    updateGhostVector(mesh_data, fc);
 	    
-	    /*calculate P(x) = db/dx*/
-	    double P[] = nl_eval.eval_prime(x, fixed_node);
-
-	    /*TEMPORARY*/
-	    Mesh mesh = md[0].mesh;
-	    /*update boundaries */
-	    for (int j=0;j<mesh.nj;j++) 
+	    for (int k=0;k<mesh_data.length;k++)
 	    {
-		b[mesh.IJtoN(0, j)] = mesh.node[0][j].bc_value;
-		b[mesh.IJtoN(mesh.ni-1, j)] = mesh.node[mesh.ni-1][j].bc_value;		
+		Mesh mesh = md_nl[k].mesh;
 		
-		P[mesh.IJtoN(0, j)] = 0;
-		P[mesh.IJtoN(mesh.ni-1, j)] = 0;	
-	    }
+		/*calculate b(x)*/
+		double b_x[] = nl_eval.eval_bx(mesh_data[k].x, mesh_data[k].fixed_node);
+
+		/*rhs: b=b0+b_x*/
+		double b[]= Vector.add(mesh_data[k].b, b_x);
+		
+		/*calculate P(x) = db/dx*/
+		double P[] = nl_eval.eval_bx_prime(mesh_data[k].x, mesh_data[k].fixed_node);
 	    
-	    for (int i=0;i<mesh.ni;i++) 
+		for (int i=0;i<mesh.ni;i++)
+		    for (int j=0;j<mesh.nj;j++)
+		    {
+			int n = mesh.IJtoN(i,j);
+			if (mesh.isDirichletNode(i, j)) continue;
+			
+			if ((i==0 && mesh.boundaryType(Face.LEFT,j)!=DomainBoundaryType.MESH
+			 	  && mesh.boundaryType(Face.LEFT,j)!=DomainBoundaryType.DIRICHLET) ||					  
+			    (i==mesh.ni-1 && mesh.boundaryType(Face.RIGHT,j)!=DomainBoundaryType.MESH
+				 && mesh.boundaryType(Face.RIGHT,j)!=DomainBoundaryType.DIRICHLET) ||
+			    (j==0 && mesh.boundaryType(Face.BOTTOM,i)!=DomainBoundaryType.MESH
+				 && mesh.boundaryType(Face.BOTTOM,i)!=DomainBoundaryType.DIRICHLET) ||
+			    (j==mesh.nj-1 && mesh.boundaryType(Face.TOP,i)!=DomainBoundaryType.MESH
+				 && mesh.boundaryType(Face.TOP,i)!=DomainBoundaryType.DIRICHLET))				
+			{
+			    b[n] = 0;
+			    P[n] = 0;		    
+			}
+		    }
+
+		/*calculate F(x)=Ax + (Ax)_neigh - b*/
+		double lhs[] = mesh_data[k].A.mult(mesh_data[k].x);
+		lhs = Vector.add(lhs, mesh_data[k].Ax_neigh);
+		double F[] = Vector.subtract(lhs, b);
+		
+		/*calculate J(x) = d/dx(Ax-b) = A-diag(P)*/
+		/*The A_neigh matrix contributes only non-diagonal terms hence 
+		  doesn't need to be included directly. Contribution will be taken care of by
+		  updateGhostVector in the linear solver*/
+		Matrix J = mesh_data[k].A.subtractDiag(P);
+	    
+		/*check values*/
+		for (int n=0;n<F.length;n++)
+		{
+		    if (Math.abs(F[n])>1e10 ||
+			Math.abs(P[n])>1e10  )
+			n=n;
+		}
+		/*solve Jy=F*/   	    
+		md_nl[k].A=J;
+		md_nl[k].b=F;
+		md_nl[k].A_neigh = mesh_data[k].A_neigh;
+	    }
+
+	    int lin_it = lin_solver.solve(md_nl, fc_y, lin_max_it, lin_tol);
+
+	    /*md_nl.x is the "y", update solution from x=x-y*/
+	    for (int k=0;k<mesh_data.length;k++)
 	    {
-		b[mesh.IJtoN(i, 0)] = mesh.node[i][0].bc_value;
-		b[mesh.IJtoN(i,mesh.nj-1)] = mesh.node[i][mesh.nj-1].bc_value;		
-		P[mesh.IJtoN(i, 0)] = 0;
-		P[mesh.IJtoN(i,mesh.nj-1)] = 0;		
+		Vector.subtractInclusive(mesh_data[k].x, md_nl[k].x);
 	    }
-	    
-	    /*calculate F(x)=Ax-b*/
-	    double F[] = Vector.subtract(A.mult(x), b);
-
-	    /*calculate J(x) = d/dx(Ax-b) = A-diag(P)*/
-	    Matrix J = A.subtractDiag(P);
-	    
-	    /*solve Jy=F*/   	    
-	    /*temporary hack*/	    
-	    md_nl[0].A=J;
-	    md_nl[0].b=F;
-	    md_nl[0].mesh= md[0].mesh;
-	    md_nl[0].fixed_node = md[0].fixed_node;
-	    md_nl[0].x=y;
-	    
-	    int lin_it = lin_solver.solve(md_nl, lin_max_it, lin_tol);
-
-	    /*set x=x-y*/
-	    Vector.subtractInclusive(x, y);
 
 	    /*check norm(y) for convergence*/
-	    norm = Vector.norm(y);
+	    norm = 0;
+	    for (MeshData md:md_nl)
+		norm += Vector.norm(md.x);
+	    
 	  //  System.out.println(b0[mesh.IJtoN(5,10)]+" "+ lin_it+" "+norm);
 	    
 	    Log.log(">>>>NR:" + it + " " + String.format("%.2g", norm));
 	    if (norm < nl_tol)
 	    {
+		Log.debug(String.format("NR converged in %d iterations with norm=%g",it,norm));
 		break;
 	    }
 	}
@@ -389,9 +433,19 @@ public abstract class Solver
     */
     static void updateGhostVector(MeshData mesh_data[], FieldCollection2D fc)
     {
+	//can't do anything if fc not provided
+	if (fc==null) return;
+	
+	/*inflate data since using field collection gather to interpolate*/
+	for (MeshData md:mesh_data)
+		Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, fc.getField(md.mesh).getData());
+	
 	/*get ghost node values*/
 	for (MeshData md:mesh_data)
 	{
+	    if (md.A_neigh==null)
+		continue;
+	    
 	    for (int u=0;u<md.A_neigh.length;u++)
 	    {
 		md.Ax_neigh[u] = 0;
@@ -414,10 +468,13 @@ public abstract class Solver
      * @param b
      * @return 
      */
-    static double calculateResidue(Matrix A, double x[], double b[])
+    static double calculateResidue(Matrix A, double Ax_neigh[], double x[], double b[])
     {
 	/*this is ||Ax-b||*/
-	double norm = Vector.norm(Vector.subtract(A.mult(x), b));
+	double lhs[] = A.mult(x);
+	if (Ax_neigh!=null)
+	    lhs = Vector.add(lhs, Ax_neigh);
+	double norm = Vector.norm(Vector.subtract(lhs, b));
 	if (Double.isInfinite(norm)
 		|| Double.isNaN(norm))
 	{
@@ -443,10 +500,9 @@ public abstract class Solver
 	Node node[][] = mesh.getNodeArray();
 
 	int u = mesh.IJtoN(i, j);
-
+	
 	/*check for fixed nodes*/
-	if (mesh.isDirichletNode(i,j) ||
-	    mesh.isMeshBoundary(i,j))
+	if (mesh.isDirichletNode(i,j))
 	{
 	    md.A.clearRow(u);
 	    md.A.set(u,u, 1);	    /*set one on the diagonal*/
@@ -454,9 +510,14 @@ public abstract class Solver
 	    return;
 	}
 	
-	/*boundary nodes when ghost cells not used*/
-	if (i==0 || i==ni-1) {md.A.copyRow(md.Gi,u); return;}
-	if (j==0 || j==nj-1) {md.A.copyRow(md.Gj,u); return;}
+	/*check for Neumann boundary*/
+	if ( (i==0 && md.mesh.boundaryType(Face.LEFT, j)!=DomainBoundaryType.MESH) ||
+	     (i==ni-1 && md.mesh.boundaryType(Face.RIGHT, j)!=DomainBoundaryType.MESH))
+		{md.A.copyRow(md.Gi,u); return;}
+	
+	if ( (j==0 && md.mesh.boundaryType(Face.BOTTOM, i)!=DomainBoundaryType.MESH) ||
+	     (j==nj-1 && md.mesh.boundaryType(Face.TOP, i)!=DomainBoundaryType.MESH))
+		{md.A.copyRow(md.Gj,u); return;}
 	
 	/*not a fixed node*/
 	for (Face face : Face.values())
@@ -470,6 +531,8 @@ public abstract class Solver
 	    /*contribution along each face is grad(phi)* ndA, normal vector given by <dj, -di>*/
 	    MultiplyCoeffs(G.Gi, e.ndl_i * R);
 	    MultiplyCoeffs(G.Gj, e.ndl_j * R);
+	    MultiplyCoeffs(G.neighbor_Gi, e.ndl_i * R);
+	    MultiplyCoeffs(G.neighbor_Gj, e.ndl_j * R);
 	    
 	    //local node contribution
 	    for (int v = 0; v < 6 && G.u[v]>=0; v++)
@@ -482,7 +545,7 @@ public abstract class Solver
 	    //contribution for mesh neighbors
 	    for (int v=0; v<6 && G.neighbor_mesh[v]!=null; v++)
 	    {
-		double val = G.Gj[v]+G.Gi[v];		
+		double val = G.neighbor_Gj[v]+G.neighbor_Gi[v];		
 		if (val!=0)
 		{
 		   if (md.A_neigh[u]==null)
@@ -493,6 +556,9 @@ public abstract class Solver
 		   double lc[] = {G.neighbor_lc[v][0], G.neighbor_lc[v][1]};
 		   nb.lc.add(lc);
 		   nb.coeff.add(val);
+		   //sanity check - shouldn't be adding local nodes
+		   if (G.neighbor_mesh[v]==mesh)
+			Log.warning("local mesh being added to neighbor_mesh data structure");
 		}		
 	    }
 	}
@@ -500,6 +566,11 @@ public abstract class Solver
 	/* scale by volume */
 	double V = md.mesh.nodeVol(i, j, true);
 	md.A.multRow(u, 1.0 / V);
+	if (md.A_neigh[u]!=null)
+	{
+	    for(int v=0;v<md.A_neigh[u].coeff.size();v++)
+		md.A_neigh[u].coeff.set(v, md.A_neigh[u].coeff.get(v)/V);
+	}
 	node[i][j].bc_value /= V;
     }
 
@@ -546,8 +617,8 @@ public abstract class Solver
 			{
 			    G.neighbor_lc[k] = e.neighbor_lc[n];
 			    G.neighbor_mesh[k] = e.neighbor_mesh[n];
-			    G.Gi[k] += 0.25 * e.ndl_i;
-			    G.Gj[k] += 0.25 * e.ndl_j;
+			    G.neighbor_Gi[k] += 0.25 * e.ndl_i;
+			    G.neighbor_Gj[k] += 0.25 * e.ndl_j;
 			    break;  //go to next n value
 			}
 		    }
@@ -559,6 +630,8 @@ public abstract class Solver
 	double A = md.mesh.area(i, j, true);
 	MultiplyCoeffs(G.Gj, 1 / A);
 	MultiplyCoeffs(G.Gi, 1 / A);
+	MultiplyCoeffs(G.neighbor_Gi, 1/A);
+	MultiplyCoeffs(G.neighbor_Gj, 1/A);
 
 	/*radius at which gradient was calculated*/
 	G.R = md.mesh.R(i, j);
@@ -669,6 +742,10 @@ public abstract class Solver
 	    //find the neighbor mesh containing this point
 	    Mesh neighbor = Starfish.domain_module.getMesh(pos);
 	    
+	     //sanity check - shouldn't be adding local nodes
+	    if (neighbor==md.mesh)
+		Log.warning("local mesh being added to neighbor_mesh data structure");
+					
 	    /*this node was not found - could happen on physical left boundary along top edge where another mesh starts*/
 	    if (neighbor==null)
 	    {
@@ -707,8 +784,10 @@ public abstract class Solver
      * @param gj
      * @param md
      * @param scale
+     * @param fc    field collection for interpolation of neighbor data
      */
-    protected void evaluateGradient(double x[], double gi[], double gj[], MeshData md, double scale)
+    protected void evaluateGradient(double x[], double gi[], double gj[], MeshData md, double scale,
+	    FieldCollection2D fc)
     {
 	md.Gi.mult(x,gi);	/*gi = Gi*x*/
 	md.Gj.mult(x,gj);
@@ -720,7 +799,14 @@ public abstract class Solver
 	    {
 		NeighborData nd = md.Gi_neigh[u];		
 		for (int k=0;k<nd.coeff.size();k++)
-		    gi[u]+=nd.coeff.get(k)*md.fc.gather(nd.mesh.get(k), nd.lc.get(k));
+		    gi[u]+=nd.coeff.get(k)*fc.gather(nd.mesh.get(k), nd.lc.get(k));
+	    }
+
+	    if (md.Gj_neigh[u]!=null)
+	    {
+		NeighborData nd = md.Gj_neigh[u];		
+		for (int k=0;k<nd.coeff.size();k++)
+		    gj[u]+=nd.coeff.get(k)*fc.gather(nd.mesh.get(k), nd.lc.get(k));
 	    }
 	}
 	

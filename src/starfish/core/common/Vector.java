@@ -9,6 +9,7 @@
 package starfish.core.common;
 
 import java.util.Arrays;
+import starfish.core.domain.Mesh;
 
 /**classes for performing vector math*/
 public class Vector 
@@ -224,6 +225,28 @@ public class Vector
 		
 	for (int i=0;i<first.length;i++)
 	    r[i] = use_first[i]?first[i]:second[i];	
+    }
+    
+    /** Similar to merge, but merges in bc_value from mesh
+     * 
+     * @param fixed_node use data from mesh IJtoN node bc_value otherwise copy from second
+     * @param second vector of inputs
+     * @param mesh mesh data providing bc_value
+     * @return merged vector
+     */
+    public static double[] mergeBC(boolean[] fixed_node, Mesh mesh, double second[])
+    {
+	assert(second.length==mesh.n_nodes);
+		
+	double r[] = new double[second.length];
+	for (int i=0;i<mesh.ni;i++)
+	    for (int j=0;j<mesh.nj;j++)
+	    {
+		int n = mesh.IJtoN(i, j);
+		r[n] = fixed_node[n]?mesh.getNode(i,j).bc_value:second[n];		
+	    }
+	
+	return r;
     }
 
     /**

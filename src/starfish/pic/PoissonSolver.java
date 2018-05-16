@@ -11,15 +11,17 @@ import org.w3c.dom.Element;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.domain.Mesh;
-import starfish.core.io.InputParser;
-import starfish.core.solver.Solver;
-import starfish.core.solver.SolverModule;
 import starfish.core.common.Vector;
+import starfish.core.domain.Mesh;
+import starfish.core.domain.Mesh.DomainBoundaryType;
+import starfish.core.domain.Mesh.Face;
+import starfish.core.io.InputParser;
 import starfish.core.solver.LinearSolverGS;
 import starfish.core.solver.LinearSolverLU;
 import starfish.core.solver.LinearSolverMG;
 import starfish.core.solver.LinearSolverPCG;
+import starfish.core.solver.Solver;
+import starfish.core.solver.SolverModule;
 
 /**
  *
@@ -86,37 +88,45 @@ public class PoissonSolver extends PotentialSolver
 	    md.x = Vector.deflate(Starfish.domain_module.getPhi(mesh).getData());
 	    md.b = Vector.deflate(Starfish.domain_module.getRho(mesh).getData());	    
 	    md.b = Vector.mult(md.b, -1/eps);
-
-	    /*update boundaries */
-	    for (int j=0;j<md.mesh.nj;j++) 
-	    {
-		md.b[md.mesh.IJtoN(0, j)] = md.mesh.node[0][j].bc_value;
-		md.b[md.mesh.IJtoN(md.mesh.ni-1, j)] = md.mesh.node[md.mesh.ni-1][j].bc_value;		
-	    }
-	    
-	    for (int i=0;i<md.mesh.ni;i++) 
-	    {
-		md.b[md.mesh.IJtoN(i, 0)] = md.mesh.node[i][0].bc_value;
-		md.b[md.mesh.IJtoN(i,md.mesh.nj-1)] = md.mesh.node[i][md.mesh.nj-1].bc_value;		
-	    }
+	   
+	    /*update boundaries, looping over all nodes to avoid code reuse */
+	    for (int i=0;i<mesh.ni;i++) 
+		for (int j=0;j<mesh.nj;j++) 
+		{
+		    //skip dirichlet nodes
+		    if (mesh.isDirichletNode(i, j)) continue;
+		    
+		    //skip internal nodes
+		    if (i!=0 && i!=mesh.ni-1 && j!=0 && j!=mesh.nj-1) continue;
+		    
+		    //on corner nodes where one face is neumann and another mesh, we still set b=bc
+		    if (i==0 && mesh.boundaryType(Face.LEFT, j)!=DomainBoundaryType.MESH)
+			md.b[mesh.IJtoN(0,j)] = mesh.node[0][j].bc_value;
+		    if (i==mesh.ni-1 && mesh.boundaryType(Face.RIGHT, j)!=DomainBoundaryType.MESH)
+			md.b[mesh.IJtoN(mesh.ni-1,j)] = mesh.node[mesh.ni-1][j].bc_value;
+		    if (j==0 && mesh.boundaryType(Face.BOTTOM, i)!=DomainBoundaryType.MESH)
+			md.b[mesh.IJtoN(i,0)] = mesh.node[i][0].bc_value;
+		    if (j==mesh.ni-1 && mesh.boundaryType(Face.TOP, i)!=DomainBoundaryType.MESH)
+			md.b[mesh.IJtoN(i,mesh.nj-1)] = mesh.node[i][mesh.nj-1].bc_value;		
+		}
 	    
 	    /*add objects*/
-	    md.b = Vector.merge(md.fixed_node, md.x, md.b);
+	     md.b = Vector.mergeBC(md.fixed_node, mesh, md.b);
 	}
 		
 	/* solve potential */	
 	if (linear_mode)
-		lin_solver.solve(mesh_data, lin_max_it, lin_tol);
+		lin_solver.solve(mesh_data, Starfish.domain_module.getPhi(), lin_max_it, lin_tol);
 	else
 		solvePotentialNL();
-	
+	  
 	/*inflate and update electric field*/
 	for (MeshData md:mesh_data)
 	    Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
     }
         
     
-    /** Nonlinear solver using the Newthon Rhapson method
+    /** Nonlinear solver using the Newton Rhapson method
      * 
      * @return number of iterations
      */
@@ -128,7 +138,7 @@ public class PoissonSolver extends PotentialSolver
 	NL_Eval pot_boltzmann = new NL_Eval() 
 	{
 	    @Override
-	    public double[] eval_b(double[] x, boolean fixed[]) 
+	    public double[] eval_bx(double[] x, boolean fixed[]) 
 	    {
 		    double b[] = new double[x.length];
 		    for (int i=0;i<x.length;i++) 
@@ -137,7 +147,7 @@ public class PoissonSolver extends PotentialSolver
 	    }
 
 	    @Override
-	    public double[] eval_prime(double x[], boolean fixed[]) 
+	    public double[] eval_bx_prime(double x[], boolean fixed[]) 
 	    {
 		    double b_prime[] = new double[x.length];
 		    for (int i=0;i<x.length;i++) 
@@ -148,7 +158,7 @@ public class PoissonSolver extends PotentialSolver
 	};
 
 	/*call nonlinear solver*/
-	int it = solveNonLinearNR(mesh_data, pot_boltzmann);
+	int it = solveNonLinearNR(mesh_data, pot_boltzmann, Starfish.domain_module.getPhi());
 
 	return it;
     }

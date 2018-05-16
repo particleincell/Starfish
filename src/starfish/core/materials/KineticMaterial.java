@@ -32,7 +32,7 @@ import starfish.core.domain.UniformMesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.MaterialsModule.MaterialParser;
 import starfish.core.common.Vector;
-import starfish.core.domain.Mesh.MeshBoundaryType;
+import starfish.core.domain.Mesh.DomainBoundaryType;
 
 /** definition of particle-based material*/
 public class KineticMaterial extends Material
@@ -646,7 +646,7 @@ public class KineticMaterial extends Material
 	    
 	    /*process boundary*/
 	    /*TODO: need cell data*/
-	    MeshBoundaryType type;
+	    DomainBoundaryType type;
 	    
 	    if (exit_face == Face.LEFT || exit_face == Face.RIGHT) 
 		type = mesh.boundaryType(exit_face,j);

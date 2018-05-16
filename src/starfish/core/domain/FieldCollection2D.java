@@ -21,7 +21,7 @@ import java.util.Set;
 import starfish.core.common.Starfish;
 import starfish.core.domain.Mesh.MeshBoundaryData;
 import starfish.core.domain.Mesh.Face;
-import starfish.core.domain.Mesh.MeshBoundaryType;
+import starfish.core.domain.Mesh.DomainBoundaryType;
 import starfish.core.domain.Mesh.NodeType;
 
 /**inner class holding fields for a particular mesh*/
@@ -194,7 +194,7 @@ public class FieldCollection2D
 				bc[i].buffer+=getField(nm).gather_safe(lc);
 			    }							
 			}
-			else if (mesh.isMeshBoundaryType(i,j,MeshBoundaryType.PERIODIC))
+			else if (mesh.isMeshBoundaryType(i,j,DomainBoundaryType.PERIODIC))
 			{
 			    /*TODO: hardcoded for single cartesian mesh!*/
 			    bc[i].buffer+=getField(mesh).data[i][j2];
@@ -219,7 +219,7 @@ public class FieldCollection2D
 				bc[j].buffer+=getField(nm).gather_safe(lc);
 			    }				
 			} /*if mesh*/
-			else if (mesh.isMeshBoundaryType(i,j,MeshBoundaryType.PERIODIC))
+			else if (mesh.isMeshBoundaryType(i,j,DomainBoundaryType.PERIODIC))
 			{
 			    /*TODO: hardcoded for single cartesian mesh!*/
 			    bc[j].buffer+=getField(mesh).data[i2][j];
@@ -247,7 +247,7 @@ public class FieldCollection2D
 		    for (i=0;i<mesh.ni;i++)
 		    {
 			if (mesh.isMeshBoundary(i,j) ||
-			    mesh.isMeshBoundaryType(i,j,MeshBoundaryType.PERIODIC))
+			    mesh.isMeshBoundaryType(i,j,DomainBoundaryType.PERIODIC))
 			{
 			    field.data[i][j]+=bc[i].buffer;
 			    field.data[i][j]*=0.5;
@@ -263,7 +263,7 @@ public class FieldCollection2D
 		    for (j=0;j<mesh.nj;j++)
 		    {
 			if (mesh.isMeshBoundary(i,j) ||
-			    mesh.isMeshBoundaryType(i, j, MeshBoundaryType.PERIODIC))
+			    mesh.isMeshBoundaryType(i, j, DomainBoundaryType.PERIODIC))
 			{
 			    field.data[i][j]+=bc[j].buffer;
 			    field.data[i][j]*=0.5;

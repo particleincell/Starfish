@@ -163,8 +163,7 @@ public class VTKWriter extends Writer
 	}
 	
 	/*write the collection file*/
-	if (animation || Starfish.getMeshList().size()>1)
-	    writeCollection(animation);
+	writeCollection(animation);
     }
 
      /*colletor for generated files to add to collection*/

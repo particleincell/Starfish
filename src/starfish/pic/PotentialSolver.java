@@ -26,7 +26,7 @@ abstract public class PotentialSolver extends Solver
 	    double efj[] = new double[md.mesh.n_nodes];
 	    double phi1[] = Vector.deflate(Starfish.domain_module.getPhi(md.mesh).getData());
 	    
-	    evaluateGradient(phi1, efi, efj,md, -1);
+	    evaluateGradient(phi1, efi, efj,md, -1, Starfish.domain_module.getPhi());
 	    
 	    Vector.inflate(efi, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getEfi(md.mesh).getData());
 	    Vector.inflate(efj, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getEfj(md.mesh).getData());

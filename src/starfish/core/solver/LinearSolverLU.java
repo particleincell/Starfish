@@ -7,13 +7,14 @@
 package starfish.core.solver;
 
 import starfish.core.common.Starfish;
+import starfish.core.domain.FieldCollection2D;
 import starfish.core.solver.Solver.LinearSolver;
 
 public class LinearSolverLU implements LinearSolver
 {
 
     @Override
-    public int solve(Solver.MeshData[] mesh_data, int max_it, double tolerance)
+    public int solve(Solver.MeshData[] mesh_data, FieldCollection2D fc, int max_it, double tolerance)
     {
   	for (Solver.MeshData md:mesh_data)
 	{

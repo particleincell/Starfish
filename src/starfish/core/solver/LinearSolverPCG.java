@@ -8,12 +8,13 @@ package starfish.core.solver;
 
 import starfish.core.common.Starfish;
 import starfish.core.common.Vector;
+import starfish.core.domain.FieldCollection2D;
 import starfish.core.solver.Solver.LinearSolver;
 
 public class LinearSolverPCG implements LinearSolver
 {
     @Override
-    public int solve(Solver.MeshData[] md, int max_it, double tolerance)
+    public int solve(Solver.MeshData[] md, FieldCollection2D fc, int max_it, double tolerance)
     {
 	double norm = tolerance;
 	double alpha;

@@ -119,7 +119,7 @@ public abstract class Mesh
     Field2D getNodeVol() {return node_vol;}
 
     /*data type to specify the type of mesh boundary*/
-    static public enum MeshBoundaryType    {
+    static public enum DomainBoundaryType    {
 	OPEN(-1),
 	DIRICHLET(0),
 	NEUMANN(1), 
@@ -130,7 +130,7 @@ public abstract class Mesh
 	CIRCUIT(6); 
 	
 	protected int val;
-	MeshBoundaryType(int val) {this.val=val;}
+	DomainBoundaryType(int val) {this.val=val;}
 
 	/** @return associated value
 	 */
@@ -142,7 +142,7 @@ public abstract class Mesh
     public static class MeshBoundaryData
     {
 	public Mesh neighbor = null;
-	public MeshBoundaryType type = MeshBoundaryType.OPEN;
+	public DomainBoundaryType type = DomainBoundaryType.OPEN;
 	double bc_value;	    //optional value for Dirichlet/Neumann boundaries
 	public double buffer;		    //buffer for syncing boundaries
     }
@@ -171,7 +171,7 @@ public abstract class Mesh
      * @param type
      * @param value
      */
-    public void setMeshBCType(Face face, MeshBoundaryType type, double value)
+    public void setMeshBCType(Face face, DomainBoundaryType type, double value)
     {
 	if (face==Face.LEFT || face==Face.RIGHT)
 	    for (int j=0;j<nj;j++)
@@ -192,7 +192,7 @@ public abstract class Mesh
      * @param index node index
      * @return boundary type
      */
-    public MeshBoundaryType boundaryType(Face face, int index)
+    public DomainBoundaryType boundaryType(Face face, int index)
     {
 	return boundary_data[face.val()][index].type;
     }
@@ -291,7 +291,7 @@ public abstract class Mesh
      * @param j node index
      * @param type type to check against
      */
-    public boolean isMeshBoundaryType(int i, int j,MeshBoundaryType type) {
+    public boolean isMeshBoundaryType(int i, int j,DomainBoundaryType type) {
 	//need to check corners where both i==0 and j==0 and so on
 	boolean check = false;
 	if (i==0) check = check |= this.boundaryType(Face.LEFT,j)==type;
@@ -307,7 +307,7 @@ public abstract class Mesh
      * @param j
      */
     public boolean isMeshBoundary(int i, int j) {
-	return isMeshBoundaryType(i,j,MeshBoundaryType.MESH);
+	return isMeshBoundaryType(i,j,DomainBoundaryType.MESH);
     }
 
     /*constructor*/ 
@@ -350,21 +350,24 @@ public abstract class Mesh
 	    boundary_data[Face.BOTTOM.val()][i] = new MeshBoundaryData();	
 	}
 		
-	/*modify cells with neighbor meshes*/
+	/*modify cells with neighbor meshes
+	This is split into two parts: setting of the interior nodes [1:ni-2] and the corners
+	The corners are set such that, in system with one mesh on top of another one, we do not get
+	a mesh boundary on the (0,nj-1) left face, only on the top face.	*/
 	for (Mesh mesh:Starfish.getMeshList())
 	{
 	    /*skip self*/
 	    if (mesh==this) continue;
 			
-	    for (j=0;j<nj;j++)
+	    for (j=1;j<nj-1;j++)
 	    {
 		if (mesh.containsPos(pos(0,j)))				
 		    addMeshToBoundary(Face.LEFT,j,mesh);
 		if (mesh.containsPos(pos(ni-1,j)))				
 		    addMeshToBoundary(Face.RIGHT,j,mesh);
 	    }
-			
-	    for (i=0;i<ni;i++)
+	    		
+	    for (i=1;i<ni-1;i++)
 	    {
 		if (mesh.containsPos(pos(i,0)))				
 		    addMeshToBoundary(Face.BOTTOM,i,mesh);
@@ -372,7 +375,39 @@ public abstract class Mesh
 		if (mesh.containsPos(pos(i,nj-1)))				
 		    addMeshToBoundary(Face.TOP,i,mesh);
 	    }	    	    
-	}	
+	}
+
+	//now set the set corners
+	for (Mesh mesh:Starfish.getMeshList())
+	{
+	    /*skip self*/
+	    if (mesh==this) continue;
+	    
+	    //left boundary
+	    if (boundaryType(Face.LEFT,1)==DomainBoundaryType.MESH && 
+		mesh.containsPos(pos(0,0))) addMeshToBoundary(Face.LEFT,0,mesh);	    
+	    if (boundaryType(Face.LEFT,nj-2)==DomainBoundaryType.MESH && 
+		mesh.containsPos(pos(0,nj-1))) addMeshToBoundary(Face.LEFT,nj-1,mesh);
+	    
+   	    //right boundary
+	    if (boundaryType(Face.RIGHT,1)==DomainBoundaryType.MESH && 
+		mesh.containsPos(pos(ni-1,0))) addMeshToBoundary(Face.RIGHT,0,mesh);	    
+	    if (boundaryType(Face.RIGHT,nj-2)==DomainBoundaryType.MESH && 
+		mesh.containsPos(pos(ni-1,nj-1))) addMeshToBoundary(Face.RIGHT,nj-1,mesh);
+	    
+    	    //top boundary
+	    if (boundaryType(Face.TOP,1)==DomainBoundaryType.MESH && 
+		mesh.containsPos(pos(0,nj-1))) addMeshToBoundary(Face.TOP,0,mesh);	    
+	    if (boundaryType(Face.TOP,ni-2)==DomainBoundaryType.MESH && 
+		mesh.containsPos(pos(ni-1,nj-1))) addMeshToBoundary(Face.TOP,ni-1,mesh);
+
+    	    //bottom boundary
+	    if (boundaryType(Face.BOTTOM,1)==DomainBoundaryType.MESH && 
+		mesh.containsPos(pos(0,0))) addMeshToBoundary(Face.BOTTOM,0,mesh);	    
+	    if (boundaryType(Face.BOTTOM,ni-2)==DomainBoundaryType.MESH && 
+		mesh.containsPos(pos(ni-1,0))) addMeshToBoundary(Face.BOTTOM,ni-1,mesh);
+	}
+	    	
     }
 	
     /**
@@ -390,7 +425,7 @@ public abstract class Mesh
 	    Log.warning("Duplicate mesh neighbor");
 	}
 	
-	bc.type = MeshBoundaryType.MESH;
+	bc.type = DomainBoundaryType.MESH;
 	bc.neighbor = mesh;	
     }
 
@@ -414,13 +449,13 @@ public abstract class Mesh
 	    (i>=0 && i<=ni-1 && j>=0 && j<=nj-1)) return pos(i,j);
 	
 	//reset indexes to limits if no neighbor mesh along the boundary
-	if (i<0 && boundaryType(Face.LEFT,(int)Utils.minmax(j, 0, nj-1))!=MeshBoundaryType.MESH) 
+	if (i<0 && boundaryType(Face.LEFT,Utils.minmax((int)(j+0.5), 0, nj-1))!=DomainBoundaryType.MESH) 
 	    i=0;
-	if (i>ni-1 && boundaryType(Face.RIGHT,(int)Utils.minmax(j, 0, nj-1))!=MeshBoundaryType.MESH) 
+	if (i>ni-1 && boundaryType(Face.RIGHT,Utils.minmax((int)(j+0.5), 0, nj-1))!=DomainBoundaryType.MESH) 
 	    i=ni-1;
-	if (j<0 && boundaryType(Face.BOTTOM,(int)Utils.minmax(i, 0, ni-1))!=MeshBoundaryType.MESH) 
+	if (j<0 && boundaryType(Face.BOTTOM,Utils.minmax((int)(i+0.5), 0, ni-1))!=DomainBoundaryType.MESH) 
 	    j=0;
-	if (j>nj-1 && boundaryType(Face.TOP,(int)Utils.minmax(i, 0, ni-1))!=MeshBoundaryType.MESH) 
+	if (j>nj-1 && boundaryType(Face.TOP,Utils.minmax((int)(i+0.5), 0, ni-1))!=DomainBoundaryType.MESH) 
 	    j=nj-1;
 	  
 	double x0[];	    //node inside the mesh
@@ -945,11 +980,11 @@ public abstract class Mesh
 	    ii[1] = (int)jm;
 	else ii[1] = (int)j;
 	
-	/*make sure we are in bounds, we should never get any corner nodes*/
-	if (ii[0]<0 && boundaryType(Face.LEFT, ii[1])!=MeshBoundaryType.MESH) ii[0]=0;
-	if (ii[1]<0 && boundaryType(Face.BOTTOM, ii[0])!=MeshBoundaryType.MESH) ii[1]=0;
-	if (ii[0]>=ni && boundaryType(Face.RIGHT, ii[1])!=MeshBoundaryType.MESH) ii[0]=ni-1;
-	if (ii[1]>=nj && boundaryType(Face.TOP, ii[0])!=MeshBoundaryType.MESH) ii[1]=nj-1;	
+	/*make sure we are in bounds*/
+	if (ii[0]<0 && boundaryType(Face.LEFT, Utils.minmax(ii[1],0,nj-1))!=DomainBoundaryType.MESH) ii[0]=0;
+	if (ii[1]<0 && boundaryType(Face.BOTTOM, Utils.minmax(ii[0],0,ni-1))!=DomainBoundaryType.MESH) ii[1]=0;
+	if (ii[0]>=ni && boundaryType(Face.RIGHT, Utils.minmax(ii[1],0,nj-1))!=DomainBoundaryType.MESH) ii[0]=ni-1;
+	if (ii[1]>=nj && boundaryType(Face.TOP, Utils.minmax(ii[0],0,ni-1))!=DomainBoundaryType.MESH) ii[1]=nj-1;	
 	
 	return ii;
     }
