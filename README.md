@@ -1,6 +1,3 @@
-# Announcements
-5/7/2018: I am currently working on re-enabling multi-mesh support. This version should be available by the end of the week.
-
 # Starfish-LE
 ![Starfish logo](starfish.png)
 
