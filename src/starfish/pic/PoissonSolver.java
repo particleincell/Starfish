@@ -12,6 +12,7 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Vector;
+import starfish.core.domain.Field2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.DomainBoundaryType;
 import starfish.core.domain.Mesh.Face;
@@ -99,7 +100,7 @@ public class PoissonSolver extends PotentialSolver
 		    //skip internal nodes
 		    if (i!=0 && i!=mesh.ni-1 && j!=0 && j!=mesh.nj-1) continue;
 		    
-		    //on corner nodes where one face is neumann and another mesh, we still set b=bc
+		    //on corner nodes where one face is neumann and another is mesh, we still set b=bc
 		    if (i==0 && mesh.boundaryType(Face.LEFT, j)!=DomainBoundaryType.MESH)
 			md.b[mesh.IJtoN(0,j)] = mesh.node[0][j].bc_value;
 		    if (i==mesh.ni-1 && mesh.boundaryType(Face.RIGHT, j)!=DomainBoundaryType.MESH)
@@ -123,6 +124,20 @@ public class PoissonSolver extends PotentialSolver
 	/*inflate and update electric field*/
 	for (MeshData md:mesh_data)
 	    Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
+	
+	/*testing hack*/
+	for (MeshData md:mesh_data)
+	{
+	    Mesh mesh = md.mesh;
+	    double f[][] = Starfish.domain_module.getPhi(mesh).getData();
+	    for (int i=0;i<mesh.ni;i++)
+		for(int j=0;j<mesh.nj;j++)
+		{
+		    double pos[] = mesh.pos(i,j);
+	//	    f[i][j] = pos[0]*pos[0]+pos[1]*pos[1];
+		    
+		}
+	}
     }
         
     

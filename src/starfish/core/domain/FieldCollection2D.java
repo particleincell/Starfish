@@ -251,7 +251,7 @@ public class FieldCollection2D
 			{
 			    field.data[i][j]+=bc[i].buffer;
 			    field.data[i][j]*=0.5;
-			    bc[i].buffer=0;
+			    bc[i].buffer = 0;
 			}
 		    }
 		} /*bottom or top*/

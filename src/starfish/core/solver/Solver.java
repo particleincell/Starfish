@@ -518,21 +518,23 @@ public abstract class Solver
 	if ( (j==0 && md.mesh.boundaryType(Face.BOTTOM, i)!=DomainBoundaryType.MESH) ||
 	     (j==nj-1 && md.mesh.boundaryType(Face.TOP, i)!=DomainBoundaryType.MESH))
 		{md.A.copyRow(md.Gj,u); return;}
-	
-	/*not a fixed node*/
-	for (Face face : Face.values())
-	{
-	    /*evaluates face normals and areas*/
-	    EdgeData e = ComputeEdgeData(face,i,j,md);
 
-	    Gradient G = getNodeGradient(md, e.im, e.jm);
+	/*not a fixed or boundary node*/
+	
+	/*evaluates face normals and areas*/
+	EdgeData e[] = ComputeEdgeData(i,j,md);
+
+	//loop over faces
+	for (int f=0;f<4;f++)
+	{	    
+	    Gradient G = getNodeGradient(md, e[f].im, e[f].jm);
 	    R = G.R;
 		
 	    /*contribution along each face is grad(phi)* ndA, normal vector given by <dj, -di>*/
-	    MultiplyCoeffs(G.Gi, e.ndl_i * R);
-	    MultiplyCoeffs(G.Gj, e.ndl_j * R);
-	    MultiplyCoeffs(G.neighbor_Gi, e.ndl_i * R);
-	    MultiplyCoeffs(G.neighbor_Gj, e.ndl_j * R);
+	    MultiplyCoeffs(G.Gi, e[f].ndl_i * R);
+	    MultiplyCoeffs(G.Gj, e[f].ndl_j * R);
+	    MultiplyCoeffs(G.neighbor_Gi, e[f].ndl_i * R);
+	    MultiplyCoeffs(G.neighbor_Gj, e[f].ndl_j * R);
 	    
 	    //local node contribution
 	    for (int v = 0; v < 6 && G.u[v]>=0; v++)
@@ -580,10 +582,12 @@ public abstract class Solver
     private Gradient getNodeGradient(MeshData md, double i, double j)
     {
 	Gradient G = new Gradient();
+	
+	EdgeData edge_data[] = ComputeEdgeData(i,j,md);
 
-	for (Face face : Face.values())
+	for (int f=0;f<4;f++)
 	{
-	    EdgeData e = ComputeEdgeData(face,i,j,md);
+	    EdgeData e = edge_data[f];
 
 	    /* assemble the four coefficients into the 6-coefficient gradient table */
 	    for (int n = 0; n < 4; n++)
@@ -648,6 +652,7 @@ public abstract class Solver
 	double ndl_i;	/*dj * ni, area * normal vector*/
 	double ndl_j;	/*di * nj, area * normal vector*/
 	int[][] ij = new int[4][]; //four nodes used to compute the value at im,jm
+	boolean collapsed;	//used only to find collapsed node
 	
 	//on domain boundaries where the needed node is not in our mesh
 	double[][] neighbor_lc = new double[4][];
@@ -655,74 +660,82 @@ public abstract class Solver
 	
     }
     
-    /*this function computes the control volume face "area" and the mesh points used in evaluation*/
-    private EdgeData ComputeEdgeData(Face face, double i0, double j0, MeshData md)
+    /** this function computes (d/dn)*l for the four faces of a control volume along with the four nodes 
+     * used to interpolate the face value. Special care is taken on multi-domain corner nodes to use only
+     * the half control volume.
+     @return edge data or null if computation failed due to a non existing node
+     */
+    private EdgeData[] ComputeEdgeData(double i0, double j0, MeshData md)
     {
-	EdgeData e = new EdgeData();
-	double im,jm;	    /*edge mid point*/
-	double i1,j1;
-	double i2,j2;
+	EdgeData edge_data[] = new EdgeData[4];
 	
-	switch (face)
-	{
-	    case RIGHT:
-		im = i0 + 0.5;
-		jm = j0;
-		i1 = im;
-		j1 = jm - 0.5;
-		i2 = im;
-		j2 = jm + 0.5;
-		break;
-	    case TOP:
-		im = i0;
-		jm = j0 + 0.5;
-		i1 = im + 0.5;
-		j1 = jm;
-		i2 = im - 0.5;
-		j2 = jm;
-		break;
-	    case LEFT:
-		im = i0 - 0.5;
-		jm = j0;
-		i1 = im;
-		j1 = jm + 0.5;
-		i2 = im;
-		j2 = jm - 0.5;
-		break;
-	    case BOTTOM:
-		im = i0;
-		jm = j0 - 0.5;
-		i1 = im - 0.5;
-		j1 = jm;
-		i2 = im + 0.5;
-		j2 = jm;
-		break;
-	    default: throw new RuntimeException("Unknown face");
+	int v1=0,v2=0;
+	double im=0,jm=0;
+	
+	if (i0==13 && j0==41 && md.mesh.getName().equalsIgnoreCase("mesh1"))
+	    i0=i0;
+
+	//control volume over which we are integrating
+	double lcs[][] = md.mesh.controlVolumeLCs(i0, j0, 0.5);
+	
+	//loop over the four faces
+	for (Face face:Face.values())
+	{	    
+	    switch (face)
+	    {
+		case BOTTOM: v1=0; im = i0; jm = j0-0.5; break;
+		case RIGHT: v1=1; im = i0+0.5; jm=j0; break;
+		case TOP: v1=2; im = i0; jm=j0+0.5; break;
+		case LEFT: v1=3; im = i0-0.5; jm = j0; break;
+	    }
+	    v2 = v1+1;
+	    if (v2>3) v2=0;
+	    
+	    //make sure the center point (where value is computed) is in CV bounds
+	    if (im<lcs[0][0]) im=lcs[0][0]; //left bottom
+	    if (im<lcs[3][0]) im=lcs[3][0]; //left top
+	    if (im>lcs[1][0]) im=lcs[1][0]; //right bottom
+	    if (im>lcs[2][0]) im=lcs[2][0]; //right top
+	    
+	    if (jm<lcs[0][1]) jm=lcs[0][1]; //left bottom
+	    if (jm<lcs[1][1]) jm=lcs[1][1]; //left top
+	    if (jm>lcs[2][1]) jm=lcs[2][1]; //right bottom
+	    if (jm>lcs[3][1]) jm=lcs[3][1]; //right top
+	    
+	    EdgeData e = new EdgeData();
+	
+	    //edge end points - will include interpolated position on mesh boundaries
+	    double x1[] = md.mesh.pos(lcs[v1], true);
+	    double x2[] = md.mesh.pos(lcs[v2], true);
+	    
+	    if (x1==null || x2==null)
+	    {
+		    lcs = md.mesh.controlVolumeLCs(im, jm, 0.5);
+	    }
+	
+	    /* compute n*dl = (dy/dl,-dx/dl)*dl=(dy,-dx)	*/	
+	    e.ndl_i =   x2[1] - x1[1];	// dy
+	    e.ndl_j = -(x2[0] - x1[0]);	// -dx
+	
+	    /* set logical coordinates for the four nodes surrounding im,jm */
+	    e.ij[0] = md.mesh.NodeIndexOffset(im, jm, -0.5, -0.5);
+	    e.ij[1] = md.mesh.NodeIndexOffset(im, jm, 0.5, -0.5);
+	    e.ij[2] = md.mesh.NodeIndexOffset(im, jm, 0.5, 0.5);
+	    e.ij[3] = md.mesh.NodeIndexOffset(im, jm, -0.5, 0.5);
+	
+	    //on mesh neighbors, we may end up with nodes outside the domain
+	    //this function will replace these indexes with lookups on a neighbor mesh
+	    for (int n=0;n<4;n++)
+		if (!CheckNodeIndex(e,md,n)) return null;
+
+	    e.im = im;
+	    e.jm = jm;
+	    
+	    //save in the array
+	    edge_data[face.val()] = e;
 	}
 	
-	//edge end points - will include interpolated position on mesh boundaries
-	double x1[] = md.mesh.pos(i1, j1, true);
-	double x2[] = md.mesh.pos(i2, j2, true);
-
-	/* compute n*dl = (dy/dl,-dx/dl)*dl=(dy,-dx)	*/	
-	e.ndl_i =   x2[1] - x1[1];	// dy
-	e.ndl_j = -(x2[0] - x1[0]);	// -dx
-	
-	/* set logical coordinates for the four nodes surrounding im,jm */
-	e.ij[0] = md.mesh.NodeIndexOffset(im, jm, -0.5, -0.5);
-	e.ij[1] = md.mesh.NodeIndexOffset(im, jm, 0.5, -0.5);
-	e.ij[2] = md.mesh.NodeIndexOffset(im, jm, 0.5, 0.5);
-	e.ij[3] = md.mesh.NodeIndexOffset(im, jm, -0.5, 0.5);
-	
-	//on mesh neighbors, we may end up with nodes outside the domain
-	//this function will replace these indexes with lookups on a neighbor mesh
-	for (int n=0;n<4;n++)
-	    CheckNodeIndex(e,md,n);
-	
-	e.im = im;
-	e.jm = jm;
-	
-	return e;
+	return edge_data;
     }
     
     /**
@@ -732,7 +745,7 @@ public abstract class Solver
      * @param md mesh data structure, just to pass parent mesh
      * @param n [0:3] index indicating which of the four vertices to check
      */
-    private void CheckNodeIndex(EdgeData e, MeshData md, int n)
+    private boolean CheckNodeIndex(EdgeData e, MeshData md, int n)
     {
 	if (e.ij[n][0]<0 || e.ij[n][1]<0 || e.ij[n][0]>=md.mesh.ni || e.ij[n][1]>=md.mesh.nj)
 	{
@@ -749,11 +762,7 @@ public abstract class Solver
 	    /*this node was not found - could happen on physical left boundary along top edge where another mesh starts*/
 	    if (neighbor==null)
 	    {
-		if (e.ij[n][0]<0) e.ij[n][0]=0;
-		else if (e.ij[n][0]>md.mesh.ni-1) e.ij[n][0]=md.mesh.ni-1;
-		if (e.ij[n][1]<0) e.ij[n][1]=0;
-		else if (e.ij[n][1]>md.mesh.nj-1) e.ij[n][1]=md.mesh.nj-1;
-		return;
+		return false;
 	    }
 	    
 	    //logical coordinates of the point on the neighbor mesh
@@ -763,6 +772,7 @@ public abstract class Solver
 	    e.ij[n][0] = -1;	//clear this entry
 	    e.ij[n][1] = -1;	    
 	}
+	return true;
     }
     /* This functions multiplies all stencil coefficients by the given value */
     private void MultiplyCoeffs(double[] C, double val)

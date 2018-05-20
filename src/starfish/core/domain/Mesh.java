@@ -144,7 +144,7 @@ public abstract class Mesh
 	public Mesh neighbor = null;
 	public DomainBoundaryType type = DomainBoundaryType.OPEN;
 	double bc_value;	    //optional value for Dirichlet/Neumann boundaries
-	public double buffer;		    //buffer for syncing boundaries
+	public double buffer;	    //buffer for syncing boundaries	
     }
 	
     MeshBoundaryData boundary_data[][] = new MeshBoundaryData[4][];	/*[face][node_index]*/
@@ -366,7 +366,7 @@ public abstract class Mesh
 		if (mesh.containsPos(pos(ni-1,j)))				
 		    addMeshToBoundary(Face.RIGHT,j,mesh);
 	    }
-	    		
+	  		
 	    for (i=1;i<ni-1;i++)
 	    {
 		if (mesh.containsPos(pos(i,0)))				
@@ -450,13 +450,13 @@ public abstract class Mesh
 	
 	//reset indexes to limits if no neighbor mesh along the boundary
 	if (i<0 && boundaryType(Face.LEFT,Utils.minmax((int)(j+0.5), 0, nj-1))!=DomainBoundaryType.MESH) 
-	    i=0;
+	    return null;
 	if (i>ni-1 && boundaryType(Face.RIGHT,Utils.minmax((int)(j+0.5), 0, nj-1))!=DomainBoundaryType.MESH) 
-	    i=ni-1;
+	    return null;
 	if (j<0 && boundaryType(Face.BOTTOM,Utils.minmax((int)(i+0.5), 0, ni-1))!=DomainBoundaryType.MESH) 
-	    j=0;
+	    return null;
 	if (j>nj-1 && boundaryType(Face.TOP,Utils.minmax((int)(i+0.5), 0, ni-1))!=DomainBoundaryType.MESH) 
-	    j=nj-1;
+	    return null;
 	  
 	double x0[];	    //node inside the mesh
 	double x1[];	    //node outside the mesh
@@ -571,6 +571,83 @@ public abstract class Mesh
     {
 	return pos(lc[0], lc[1], ghost_interpolate);
     }
+    
+    /** Computes logical coordinates for a FVM control volume centered at i0,j0
+     *  On non-domain boundaries, the bounds collapse to half/quarter volume
+     *  On domain boundaries, the full volume is retained on non-corner nodes,
+     *  Corner nodes result in the appropriate half volume getting returned
+     * 
+     * @param i0 CV i index
+     * @param j0 CV j index
+     * @param delta CV size in logical coords in each direction
+     * @return [4][2] array with the first index being the node in BL, BR, TR, TL and second index is i/j
+     */
+    public double[][] controlVolumeLCs(double i0, double j0, double delta)	    
+    {
+	double i=-1,j=-1;
+	double lcs[][] = new double[4][2];
+	
+	for (int k=0;k<4;k++)
+	{
+	    //setting the starting node on each face
+	    switch (k)
+	    {
+		case 0: i=i0-delta;j=j0-delta;break;	//bottom left
+		case 1: i=i0+delta;j=j0-delta;break;	//bottom right
+		case 2: i=i0+delta;j=j0+delta;break;		//top right
+		case 3: i=i0-delta;j=j0-delta;break;		//top left
+	    }
+	    
+	    //first check for mesh boundaries
+	    if (i<0 && boundaryType(Face.LEFT,Utils.minmax((int)(j0+0.5),0,nj-1))!=DomainBoundaryType.MESH) i=0;
+	    if (i>ni-1 && boundaryType(Face.RIGHT,Utils.minmax((int)(j0+0.5),0,nj-1))!=DomainBoundaryType.MESH) i=ni-1;
+	    if (j<0 && boundaryType(Face.BOTTOM,Utils.minmax((int)(i0+0.5),0,ni-1))!=DomainBoundaryType.MESH) j=0;
+	    if (j>nj-1 && boundaryType(Face.TOP,Utils.minmax((int)(i0+0.5),0,ni-1))!=DomainBoundaryType.MESH) j=nj-1;
+	    
+	    //make sure this point exists in some mesh
+	    if (i<0 || j<0 || i>ni-1 || j>nj-1)
+	    {
+		double x[] = pos(i,j,true);
+		if (x==null || Starfish.domain_module.getMesh(x)==null)
+		{
+		    if (i<0) i=0;
+		    if (j<0) j=0;
+		    if (i>=ni-1) i=ni-1;
+		    if (j>=nj-1) j=nj-1;
+		}
+	    }
+	    
+	    lcs[k][0] = i;
+	    lcs[k][1] = j;	    
+	    
+	}
+	
+	//check for cases with diagonal edges (left at j-0.5, right at j, etc..) These happen on mesh boundary corners
+	//bottom edge (0,1), need to have the same j
+	lcs[0][1] = Math.max(lcs[0][1], lcs[1][1]);	//keep larger values if one node is j-0.5 and other is j
+	lcs[1][1] = lcs[0][1];
+	
+	//right edge (1,2), same i
+	lcs[1][0] = Math.min(lcs[1][0], lcs[2][0]);	
+	lcs[2][0] = lcs[1][0];
+	
+	//top edge (2,3), same j
+	lcs[1][0] = Math.min(lcs[1][0], lcs[2][0]);	
+	lcs[2][0] = lcs[1][0];
+
+	//right edge (1,2), same j
+	lcs[2][1] = Math.max(lcs[2][1], lcs[3][1]);	
+	lcs[3][1] = lcs[2][1];
+	
+	//left edge (2,3), same i
+	lcs[3][0] = Math.max(lcs[3][0], lcs[0][0]);	
+	lcs[0][0] = lcs[3][0];
+	
+	
+	
+	return lcs;
+    }
+    
     /**
      * @param i1
      * @param j1 *  @return distance between two points
@@ -785,27 +862,15 @@ public abstract class Mesh
 	double V[][]=new double[4][];
 	double i,j;
 	
+	double lcs[][] = this.controlVolumeLCs(i0, j0, delta);
+	
 	/*first set the four corner positions, these may not be nodes */
-	for (e=0;e<4;e++)
+	for (int k=0;k<4;k++)
 	{
-	    switch (e)
-	    {
-	    case 0: i=i0-delta;j=j0-delta;break; /*bottom left corner*/
-	    case 1: i=i0+delta;j=j0-delta;break;
-	    case 2: i=i0+delta;j=j0+delta;break;
-	    default:
-	    case 3: i=i0-delta;j=j0+delta;break;
-	    }
-	    
-	    if (i<0 && !with_ghosts) i=0;
-	    else if (i>ni-1 && !with_ghosts) i=ni-1;
-			
-	    if (j<0 && !with_ghosts) j=0;
-	    else if (j>nj-1 && !with_ghosts) j=nj-1;
-			
-	    V[e] = pos(i,j,with_ghosts);
+	    //set vertex position
+	    V[k] = pos(lcs[k],with_ghosts);
 	}
-
+	
 	/* compute cell area */
 	double A;
 	A=0.5*Math.abs(V[0][0]*V[1][1] - V[0][0]*V[2][1] +

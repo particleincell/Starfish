@@ -58,7 +58,7 @@ public class LinearSolverGS implements LinearSolver
 		 x[u] = x[u] + 1.4*(g-x[u]); /*SOR*/
 	    }
 	    
-	    return new String("OK");
+	    return "OK";
 	}
 	
     }
@@ -98,7 +98,7 @@ public class LinearSolverGS implements LinearSolver
 	
 	/* SOLVER */
 	int it = 1;			/*start with one so we don't compute residue on first run*/
-	double norm=1e99;
+	double norm=1e66;
 	while (it <= max_it)
 	{
 	    /*** update boundaries**/	    
