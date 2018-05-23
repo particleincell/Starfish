@@ -22,7 +22,7 @@
 <path>M 1.65,0 L 0.2,0.0</path>
 </boundary>
 
-<boundary name="spot" type="solid" value="1">
+<boundary name="spot" type="solid" value="0">
 <material>floor</material>
 <path>M floor:last L 0.0,0.0</path>
 </boundary>

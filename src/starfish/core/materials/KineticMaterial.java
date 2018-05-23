@@ -274,106 +274,106 @@ public class KineticMaterial extends Material
 		if (part.id==574 && Starfish.getIt()==28)
 		    part=part;
 		
-		/*increment particle time*/
+		/*increment particle time and velocity*/
 		if (!particle_transfer)
 		{
 		    part.dt += Starfish.getDt();
+
+		    /*update velocity*/
+		    ef[0] = Efi.gather(part.lc);
+		    ef[1] = Efj.gather(part.lc);
+
+		    /*update velocity*/
+		    bf[0] = Bfi.gather(part.lc);
+		    bf[1] = Bfj.gather(part.lc);
+
+		    /*update velocity*/
+		    if (bf[0] == 0 && bf[1] == 0)
+		    {
+			part.vel[0] += q_over_m * ef[0] * part.dt;
+			part.vel[1] += q_over_m * ef[1] * part.dt;
+		    } else
+		    {		
+			UpdateVelocityBoris(part, ef, bf);
+		    }
 		}
-
-	    /*update velocity*/
-	    ef[0] = Efi.gather(part.lc);
-	    ef[1] = Efj.gather(part.lc);
-
-	    /*update velocity*/
-	    bf[0] = Bfi.gather(part.lc);
-	    bf[1] = Bfj.gather(part.lc);
-
-	    /*update velocity*/
-	    if (bf[0] == 0 && bf[1] == 0)
-	    {
-		part.vel[0] += q_over_m * ef[0] * part.dt;
-		part.vel[1] += q_over_m * ef[1] * part.dt;
-	    } else
-	    {		
-		UpdateVelocityBoris(part, ef, bf);
-	    }
 	    
-	    int bounces = 0;
-	    boolean alive = true;
+		int bounces = 0;
+		boolean alive = true;
 
-	    /*iterate while we have time remaining*/
-	    while (part.dt > 0 && bounces++ < max_bounces)
-	    {
-		/*save old position*/
-		old[0] = part.pos[0];
-		old[1] = part.pos[1];
-		    
-		old_lc[0] = part.lc[0];
-		old_lc[1] = part.lc[1];
+		/*iterate while we have time remaining*/
+		while (part.dt > 0 && bounces++ < max_bounces)
+		{
+		    /*save old position*/
+		    old[0] = part.pos[0];
+		    old[1] = part.pos[1];
 
-		/*update position*/
-		part.pos[0] += part.vel[0] * part.dt;
-		part.pos[1] += part.vel[1] * part.dt;
-				
-		if (Starfish.getDomainType()==DomainType.RZ)
-		{
-		    rotateToRZ(part);
-		}
-		else if (Starfish.getDomainType()==DomainType.ZR)
-		{
-		    rotateToZR(part);
-		}		
-		else
-		    part.pos[2] += part.vel[2]*part.dt;
-		
-		part.lc = mesh.XtoL(part.pos);
-		
-		Particle part_old = new Particle(part);
-		
-		/*check if particle hit anything or left the domain*/		
-		alive = ProcessBoundary(part, mesh, old, old_lc);
-	
-		/*add post push/surface impact position to trace*/
-		if (part.trace_id>=0)
-		    Starfish.particle_trace_module.addTrace(part);
-		
-		if (!alive)
-		{
-		    iterator.remove();
-		    break;
-		}				
-		
-		//sanity check to make sure we don't have out of bounds particles
-		if (part.lc[0]<0 || part.lc[1]<0 || part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
-		{
-		    part = part_old;
-		    alive = ProcessBoundary(part, mesh, old, old_lc);	    
-		    Log.warning("out of bounds particle "+part.id);
-		    iterator.remove();
-		}
-	    		
-			
-	    } /*dt*/
+		    old_lc[0] = part.lc[0];
+		    old_lc[1] = part.lc[1];
+
+		    /*update position*/
+		    part.pos[0] += part.vel[0] * part.dt;
+		    part.pos[1] += part.vel[1] * part.dt;
+
+		    if (Starfish.getDomainType()==DomainType.RZ)
+		    {
+			rotateToRZ(part);
+		    }
+		    else if (Starfish.getDomainType()==DomainType.ZR)
+		    {
+			rotateToZR(part);
+		    }		
+		    else
+			part.pos[2] += part.vel[2]*part.dt;
+
+		    part.lc = mesh.XtoL(part.pos);
+
+		    Particle part_old = new Particle(part);
+
+		    /*check if particle hit anything or left the domain*/		
+		    alive = ProcessBoundary(part, mesh, old, old_lc);
+
+		    /*add post push/surface impact position to trace*/
+		    if (part.trace_id>=0)
+			Starfish.particle_trace_module.addTrace(part);
+
+		    if (!alive)
+		    {
+			iterator.remove();
+			break;
+		    }				
+
+		    //sanity check to make sure we don't have out of bounds particles
+		    if (part.lc[0]<0 || part.lc[1]<0 || part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
+		    {
+			part = part_old;
+			alive = ProcessBoundary(part, mesh, old, old_lc);	    
+			Log.warning("out of bounds particle "+part.id);
+			iterator.remove();
+		    }
+
+
+		} /*dt*/
 	    
-	    /*TODO: bottleneck since only one thread can access at once*/
-	    /*scatter data*/
-	    if (alive)
-	    {		
-		synchronized(this){
-		    		
-		/*also add to the main list if transfer*/
-		if (particle_transfer)
-		{
-		    md.addParticle(part);
-		    iterator.remove();
-		}
+		/*TODO: bottleneck since only one thread can access at once*/
+		/*scatter data*/
+		if (alive)
+		{		
+		    synchronized(this){
 
-		/*save momentum for diagnostics, will be multiplied by mass in updatefields*/
-		total_momentum += part.spwt * Vector.mag2(part.vel);
+		    /*also add to the main list if transfer*/
+		    if (particle_transfer)
+		    {
+			md.addParticle(part);
+			iterator.remove();
+		    }
+
+		    /*save momentum for diagnostics, will be multiplied by mass in updatefields*/
+		    total_momentum += part.spwt * Vector.mag2(part.vel);
+		    }
 		}
-	    }
-	}	/*end of particle loop*/
-    }
+	    }	/*end of particle loop*/
+	}
 
 	private void rotateToRZ(Particle part)
 	{    
@@ -386,7 +386,7 @@ public class KineticMaterial extends Material
 	    double sin = A/R;
 	    
 	    /*update particle theta, only used for visualization*/
-	    part.pos[2] += Math.acos(cos);
+	    part.pos[2] += Math.asin(sin);
 
 	    /*rotate velocity through theta*/
 	    double v1 = part.vel[0];
@@ -1042,7 +1042,7 @@ public class KineticMaterial extends Material
     }
 
     /**
-     * @return number of particles
+     * @return number of particles across all domains
      */
     public long getNp()
     {

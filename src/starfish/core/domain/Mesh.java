@@ -444,9 +444,18 @@ public abstract class Mesh
     */
     public double[] pos(double i, double j, boolean ghost_interpolate)
     {
-	//don't do anything if flag not set or indexes in bounds
-	if (!ghost_interpolate || 
-	    (i>=0 && i<=ni-1 && j>=0 && j<=nj-1)) return pos(i,j);
+	//don't do anything if in bounds
+	if (i>=0 && i<=ni-1 && j>=0 && j<=nj-1) return pos(i,j);
+	
+	//otherwise, reset to inbounds if interpolate flag not set
+	if (!ghost_interpolate)
+	{
+	    if (i<0) i=0;
+	    else if (i>ni-1) i=ni-1;
+	    if (j<0) j=0;
+	    else if (j>nj-1) j=nj-1;
+	    return pos(i,j);	    
+	}
 	
 	//reset indexes to limits if no neighbor mesh along the boundary
 	if (i<0 && boundaryType(Face.LEFT,Utils.minmax((int)(j+0.5), 0, nj-1))!=DomainBoundaryType.MESH) 

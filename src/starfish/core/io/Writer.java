@@ -38,6 +38,7 @@ public abstract class Writer
     
     /*for particles*/
     int particle_count;
+    boolean rotate;
     String mat_name;
 	
     /*general constructor*/
@@ -201,6 +202,7 @@ public abstract class Writer
 
 	    particle_count = InputParser.getInt("count", element,1000);
 	    mat_name = InputParser.getValue("material", element);
+	    rotate = InputParser.getBoolean("rotate",element,true);
 
 	    /*save vars*/
 	    scalars = new String[5];

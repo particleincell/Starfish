@@ -15,6 +15,7 @@ import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule;
+import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Mesh;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
@@ -517,7 +518,22 @@ public class VTKWriter extends Writer
 	for (int i=0;i<parts.size();i++)
 	{
 	    Particle part = parts.get(i);
-	    pw.printf("%g %g %g\n", part.pos[0], part.pos[1], part.pos[2]);
+	    double pos[] = {part.pos[0], part.pos[1], 0};
+	    
+	    if (rotate)
+	    {
+		
+		switch (Starfish.getDomainType())
+		{
+		    case RZ:    pos[0]=part.pos[0]*Math.cos(part.pos[2]);
+				pos[2]=-part.pos[0]*Math.sin(part.pos[2]);
+				break;
+		    case ZR:	pos[1]=part.pos[1]*Math.cos(part.pos[2]);
+				pos[2]=part.pos[1]*Math.sin(part.pos[2]);
+				break;
+		}		
+	    }	  		   
+	    pw.printf("%g %g %g\n", pos[0], pos[1], pos[2]);
 	}
 	pw.println("</DataArray>");
 	pw.println("</Points>");

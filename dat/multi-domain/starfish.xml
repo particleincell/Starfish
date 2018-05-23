@@ -17,7 +17,7 @@
 	<material>ar+</material>
 	<mdot>5.0e-14</mdot>
 	<temperature>1000</temperature>	
-	<v_drift>500</v_drift> <!--was zero before-->
+	<v_drift>1000</v_drift> 
 	</boundary_source>
 	
 </sources>
@@ -38,9 +38,9 @@
 
 <!-- set time parameters 5e-8-->
 <time>
-<num_it>1000</num_it>
+<num_it>4000</num_it>
 <dt>5e-8</dt>
-<steady_state>100</steady_state>
+<steady_state>2000</steady_state>
 </time>	
 
 <!-- enable restart save -->
@@ -64,7 +64,7 @@
 -->
 
 <!-- run simulation -->
-<starfish randomize="false" max_processors="1" />
+<starfish randomize="false" max_processors="2" />
 
 <output type="2D" file_name="results/field.vts" format="vtk">
 <scalars>nodevol, phi, rho, p, nd.ar+, nd-ave.ar+, t.ar+,dsmc-count, mcc-count, mpc.ar+</scalars>
@@ -74,4 +74,12 @@
 <output type="boundaries" file_name="results/boundaries.vtp" format="vtk">
 <variables>deprate.ar+, flux-normal.ar+</variables>
 </output>
+
+<output type="particles" file_name="results/particles.vtp" format="vtk">
+<count>1000</count>
+<material>ar+</material>
+<rotate>true</rotate>
+</output>
+
+
 </simulation>

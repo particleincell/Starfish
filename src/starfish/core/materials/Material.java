@@ -626,15 +626,6 @@ public abstract class Material
 	/*apply boundaries*/
 	for (FieldCollection2D fc : field_manager2d.getFieldCollections())
 	{
-	    for (Mesh mesh:Starfish.getMeshList())
-	    {
-		double data[][] = fc.getField(mesh).getData();
-		for (int i=0;i<mesh.ni;i++)
-		    for (int j=0;j<mesh.nj;j++)
-		    {
-		//	data[i][j] = mesh.pos1(i,j);
-		    }
-	    }
 	    fc.syncMeshBoundaries();
 	}
     }
