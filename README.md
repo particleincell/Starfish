@@ -17,14 +17,9 @@ Input files for the tutorials are included in the dat directory. On the PIC-C we
 a [PowerPoint presentation](dat/tutorial/starfish-code-overview.pdf) with some introductory remarks about the source code. The associated video is [available here](https://www.youtube.com/watch?v=IDFeT_X-IsU).
 
 # Examples
-![ion velocity](doc/plots/ion-vel.png)
-Axial velocity of ions streaming past a charged sphere
+![ion velocity](doc/plots/ion-vel.png) ![temperature profile](doc/plots/dsmc-t.png) ![ion density](doc/plots/tube.png)
 
-![temperature profile](doc/plots/dsmc-t.png)
-DSMC computation of temperature in an atmospheric jet expanding to a low pressure tank
-
-![ion density](doc/plots/tube.png)
-Number density of ions flowing through a sectioned tube computed on a domain consisting of multiple meshes
+These examples show: the axial velocity of ions streaming past a charged sphere, a DSMC computation of temperature in an atmospheric jet expanding to a low pressure tank, and the number density of ions flowing through a sectioned tube computed on a domain consisting of multiple meshes
 
 # Bug Reporting
 The code is under ongoing development and may contain numerous bugs. Please submit a bug report if you find anything odd!
