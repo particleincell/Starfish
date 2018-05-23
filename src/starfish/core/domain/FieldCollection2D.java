@@ -236,7 +236,7 @@ public class FieldCollection2D
 
 	    for (Face face:Face.values())
 	    {
-		MeshBoundaryData bc[] = mesh.boundary_data[face.ordinal()];
+		MeshBoundaryData bc[] = mesh.boundary_data[face.val()];
 		int i,j;
 
 		if (face==Face.BOTTOM || face==Face.TOP)
@@ -246,8 +246,8 @@ public class FieldCollection2D
 
 		    for (i=0;i<mesh.ni;i++)
 		    {
-			if (mesh.isMeshBoundary(i,j) ||
-			    mesh.isMeshBoundaryType(i,j,DomainBoundaryType.PERIODIC))
+			if (mesh.boundaryType(face, i)==DomainBoundaryType.MESH ||
+			    mesh.boundaryType(face, i)==DomainBoundaryType.PERIODIC)
 			{
 			    field.data[i][j]+=bc[i].buffer;
 			    field.data[i][j]*=0.5;
@@ -262,8 +262,8 @@ public class FieldCollection2D
 
 		    for (j=0;j<mesh.nj;j++)
 		    {
-			if (mesh.isMeshBoundary(i,j) ||
-			    mesh.isMeshBoundaryType(i, j, DomainBoundaryType.PERIODIC))
+			if (mesh.boundaryType(face, j)==DomainBoundaryType.MESH ||
+			    mesh.boundaryType(face, j)==DomainBoundaryType.PERIODIC)
 			{
 			    field.data[i][j]+=bc[j].buffer;
 			    field.data[i][j]*=0.5;
@@ -275,8 +275,8 @@ public class FieldCollection2D
 	}	/*for mesh loop*/	
     }
 
-    /**sets the entire collection to a constant valu
-     * @param valuee*/
+    /**sets the entire collection to a constant value
+     * @param value*/
     public void setValue(double value) 
     {
 	for (Field2D field:this.fields.values())

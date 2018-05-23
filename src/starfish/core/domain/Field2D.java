@@ -10,7 +10,6 @@ package starfish.core.domain;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.NoSuchElementException;
 import starfish.core.common.Starfish;
 import starfish.core.domain.DomainModule.DomainType;
 
@@ -73,12 +72,7 @@ public class Field2D
     }
     
     /*variables*/
-    public final int ni,
-
-    /**
-     *
-     */
-    nj;
+    public final int ni,nj;
     
     /**
      *
@@ -145,8 +139,8 @@ public class Field2D
 	this.data = data;  
     }
 	
-    /**copies data from one field to another, deep cop
-     * @param srcy*/
+    /**copies data from one field to another, deep copy
+     * @param src*/
     public void copy(Field2D src) 
     {
 	if (src.data.length!=ni ||
@@ -163,8 +157,8 @@ public class Field2D
 	setValue(0);
     }
 
-    /**sets all data to the same valu
-     * @param valuee*/
+    /**sets all data to the same value
+     * @param value*/
     public void setValue(double value) 
     {
 	for (int i=0;i<ni;i++)
@@ -347,13 +341,13 @@ public class Field2D
 		
 	if (i<0) {i=0;di=0;}
 	if (j<0) {j=0;dj=0;}
-	if (i>=ni-1) {i=ni-2;di=0.99999;}
-	if (j>=nj-1) {j=nj-2;dj=0.99999;}
-		
-        v = (1-di)*(1-dj)*data[i][j];
-        v+= di*(1-dj)*data[i+1][j];
-        v+= di*dj*data[i+1][j+1];
-        v+= (1-di)*dj*data[i][j+1];
+	if (i>=ni-1) {i=ni-1;di=0;}
+	if (j>=nj-1) {j=nj-1;dj=0;}
+	
+	v = (1-di)*(1-dj)*data[i][j];
+        if (di>0) v+= di*(1-dj)*data[i+1][j];
+        if (di>0 && dj>0) v+= di*dj*data[i+1][j+1];
+        if (dj>0) v+= (1-di)*dj*data[i][j+1];
         
         return v;	
     }

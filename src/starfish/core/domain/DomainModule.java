@@ -264,7 +264,7 @@ public class DomainModule extends CommandModule
 	    mesh.initNodes();	    
 	}
 	
-	/*synch mesh volumes*/
+	/*sync mesh volumes*/
 	Starfish.getFieldCollection("NodeVol").syncMeshBoundaries();	
 	
 	has_started = true;

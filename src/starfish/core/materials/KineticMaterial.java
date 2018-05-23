@@ -137,18 +137,6 @@ public class KineticMaterial extends Material
 	    getV(md.mesh).clear();
 	    getW(md.mesh).clear();
 	}
-
-	for (MeshData md:mesh_data)
-	{
-	    Iterator<Particle> iterator = md.getIterator();
-	    while (iterator.hasNext())
-	    {
-	    Particle part = iterator.next();
-	    if (part.lc[0]<0 || part.lc[1]<0 ||
-		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
-		Log.warning("out of bounds particle a "+part.id);
-	    }
-	}
 	
 	total_momentum = 0;
 	/*first loop through all particles*/
@@ -157,17 +145,6 @@ public class KineticMaterial extends Material
 	    moveParticles(md, false);
 	}
 
-		for (MeshData md:mesh_data)
-	{
-	    Iterator<Particle> iterator = md.getIterator();
-	    while (iterator.hasNext())
-	    {
-	    Particle part = iterator.next();
-	    if (part.lc[0]<0 || part.lc[1]<0 ||
-		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
-		Log.warning("out of bounds particle b "+part.id);
-	    }
-	}
 	/*now move transferred particle*/
 	//some number of loops so we don't run forever
 	int count=0;
@@ -184,19 +161,7 @@ public class KineticMaterial extends Material
 	    if (count==0) break;
 	}	
 	if (count>0) Log.warning("Failed to transfer all particles between domains!");
-	
-	for (MeshData md:mesh_data)
-	{
-	    Iterator<Particle> iterator = md.getIterator();
-	    while (iterator.hasNext())
-	    {
-	    Particle part = iterator.next();
-	    if (part.lc[0]<0 || part.lc[1]<0 ||
-		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
-		Log.warning("out of bounds particle c"+part.id);
-	    }
-	}
-	
+		
 	/*update densities and velocities*/
 	for (MeshData md : mesh_data)
 	{
@@ -225,9 +190,6 @@ public class KineticMaterial extends Material
 	while (iterator.hasNext())
 	{
 	    Particle part = iterator.next();
-	    if (part.lc[0]<0 || part.lc[1]<0 ||
-		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
-		Log.warning("out of bounds particle");
 	    
 	    Den.scatter(part.lc, part.spwt);
 	    U.scatter(part.lc, part.vel[0] * part.spwt);
@@ -368,9 +330,6 @@ public class KineticMaterial extends Material
 		
 		Particle part_old = new Particle(part);
 		
-		if (part.id==574 && Starfish.getIt()>=22)
-		    part=part;
-		
 		/*check if particle hit anything or left the domain*/		
 		alive = ProcessBoundary(part, mesh, old, old_lc);
 	
@@ -378,21 +337,21 @@ public class KineticMaterial extends Material
 		if (part.trace_id>=0)
 		    Starfish.particle_trace_module.addTrace(part);
 		
-		if (part.lc[0]<0 || part.lc[1]<0 ||
-		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
-		{
-		    part = part_old;
-		    alive = ProcessBoundary(part, mesh, old, old_lc);
-	    
-		    Log.warning("out of bounds particle "+part.id);
-		}
-	    
 		if (!alive)
 		{
 		    iterator.remove();
 		    break;
 		}				
-				
+		
+		//sanity check to make sure we don't have out of bounds particles
+		if (part.lc[0]<0 || part.lc[1]<0 || part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
+		{
+		    part = part_old;
+		    alive = ProcessBoundary(part, mesh, old, old_lc);	    
+		    Log.warning("out of bounds particle "+part.id);
+		    iterator.remove();
+		}
+	    		
 			
 	    } /*dt*/
 	    
@@ -1329,9 +1288,6 @@ public class KineticMaterial extends Material
 	while (iterator.hasNext())
 	{
 	    Particle part = iterator.next();
-	    if (part.lc[0]<0 || part.lc[1]<0 ||
-		 part.lc[0]>=md.mesh.ni || part.lc[1]>=md.mesh.nj)
-		Log.warning("out of bounds particle "+part.id);
 	    
 	    u_sum.scatter(part.lc, part.spwt * part.vel[0]);
 	    v_sum.scatter(part.lc, part.spwt * part.vel[1]);

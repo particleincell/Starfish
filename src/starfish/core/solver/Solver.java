@@ -672,9 +672,6 @@ public abstract class Solver
 	int v1=0,v2=0;
 	double im=0,jm=0;
 	
-	if (i0==13 && j0==41 && md.mesh.getName().equalsIgnoreCase("mesh1"))
-	    i0=i0;
-
 	//control volume over which we are integrating
 	double lcs[][] = md.mesh.controlVolumeLCs(i0, j0, 0.5);
 	

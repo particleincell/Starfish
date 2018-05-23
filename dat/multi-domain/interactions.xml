@@ -1,0 +1,11 @@
+<material_interactions>
+
+<surface_hit source="ar+" target="floor">
+	<model>absorb</model>	
+</surface_hit>
+
+<surface_hit source="ar+" target="pipe">
+	<model>absorb</model>	
+</surface_hit>
+
+</material_interactions>
