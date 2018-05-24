@@ -205,7 +205,7 @@ public class DomainModule extends CommandModule
 	for (Element bc_ele:bc_eles)
 	{
 	    Face face = null;
-	    Mesh.DomainBoundaryType node_type = null;
+	    Mesh.DomainBoundaryType boundary_type = null;
 	    double value = InputParser.getDouble("value", bc_ele,0);
 			
 	    try 
@@ -221,14 +221,14 @@ public class DomainModule extends CommandModule
 	    try 
 	    {
 		String type_name = InputParser.getValue("type", bc_ele);
-		node_type = Mesh.DomainBoundaryType.valueOf(type_name.toUpperCase());
+		boundary_type = Mesh.DomainBoundaryType.valueOf(type_name.toUpperCase());
 	    }
 	    catch (Exception e)
 	    {
 		Log.error("<type> must be set and must be one of DIRICHLET, NEUMANN or PERIODIC");
 	    }
 	    
-	    mesh.setMeshBCType(face, node_type, value);	
+	    mesh.setMeshBCType(face, boundary_type, value);	
 	}
 				
     }

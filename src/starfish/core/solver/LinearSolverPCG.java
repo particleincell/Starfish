@@ -57,6 +57,9 @@ public class LinearSolverPCG implements LinearSolver
 	    /*reset norm*/
 	    norm = -1;
 	    
+	     /*** update boundaries**/	    
+	    Solver.updateGhostVector(md, fc);
+	    
 	    /*iterate over all meshes*/
 	    for (int i=0;i<md.length;i++)
 	    {

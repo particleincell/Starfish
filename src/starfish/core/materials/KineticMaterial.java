@@ -427,7 +427,7 @@ public class KineticMaterial extends Material
     boolean ProcessBoundary(Particle part, Mesh mesh, double old[], double lc_old[])
     {
 	boolean left_mesh = false;
-	Face exit_face = null;
+	Face exit_face;
 	boolean alive=true;
 
 	double dt0 = part.dt;	/*initial time step*/
@@ -518,7 +518,7 @@ public class KineticMaterial extends Material
 	   if (target_mat!=null)
 		alive = target_mat.performSurfaceInteraction(part.vel, mat_index, seg_min, tsurf_min);
 	   
-	   //track boundary charge
+	   //track boundary charge for use with the circuit model
 	   if (!alive )
 	       Starfish.source_module.boundary_charge+=part.spwt*charge;	
 	    
@@ -604,7 +604,6 @@ public class KineticMaterial extends Material
 	    if (j>=mesh.nj-1) j=mesh.nj-1;
 	    
 	    /*process boundary*/
-	    /*TODO: need cell data*/
 	    DomainBoundaryType type;
 	    
 	    if (exit_face == Face.LEFT || exit_face == Face.RIGHT) 

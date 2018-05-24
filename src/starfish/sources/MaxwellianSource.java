@@ -134,7 +134,7 @@ public class MaxwellianSource extends Source
 	    	    
 	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, mdot, v_drift, temp, start_it, end_it);
 	    
-	    /*TODO: clean this up*/
+	    /*use this source with the circuit model?*/
     	    source.circuit_model = InputParser.getBoolean("circuit_model", element, false);
 	    
 	    boundary.addSource(source);

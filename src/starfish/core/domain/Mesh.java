@@ -336,20 +336,6 @@ public abstract class Mesh
     {
 	int i,j;
     	
-		
-	/*clear data?*/
-	for (j=0;j<nj;j++)
-	{
-	    boundary_data[Face.RIGHT.val()][j] = new MeshBoundaryData();
-	    boundary_data[Face.LEFT.val()][j] = new MeshBoundaryData();
-	}
-
-	for (i=0;i<ni;i++)
-	{
-	    boundary_data[Face.TOP.val()][i] = new MeshBoundaryData();
-	    boundary_data[Face.BOTTOM.val()][i] = new MeshBoundaryData();	
-	}
-		
 	/*modify cells with neighbor meshes
 	This is split into two parts: setting of the interior nodes [1:ni-2] and the corners
 	The corners are set such that, in system with one mesh on top of another one, we do not get

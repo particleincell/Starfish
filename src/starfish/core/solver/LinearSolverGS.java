@@ -15,9 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.common.Vector;
 import starfish.core.domain.FieldCollection2D;
-import starfish.core.domain.Mesh;
 import starfish.core.solver.Solver.LinearSolver;
 import starfish.core.solver.Solver.MeshData;
 

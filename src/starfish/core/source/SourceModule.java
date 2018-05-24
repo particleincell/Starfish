@@ -41,11 +41,7 @@ public class SourceModule extends CommandModule
      */
     protected ArrayList<VolumeSource> volume_source_list = new ArrayList<VolumeSource>();
 
-    //hack
-
-    /**
-     *
-     */
+    /** boundary charge for the circuit model    */
     public double boundary_charge = 0;
     
     @Override
@@ -228,7 +224,6 @@ public class SourceModule extends CommandModule
     /**
      * samples sources and adds particles or updates boundaries
      */
-    /*TODO move this to flying material*/
     public void sampleSources()
     {
 	/*surface sources*/
@@ -245,7 +240,7 @@ public class SourceModule extends CommandModule
 		//circuit to model to inject electrons lost to the wall
 		int num_mp_delta = 0;
 				
-		if (source.circuit_model && boundary_charge<0 && source.name.equals("inlet_e")&& source.getMaterial().charge<0)
+		if (source.circuit_model && boundary_charge<0 && source.getMaterial().charge<0)
 		{
 		    KineticMaterial km = (KineticMaterial)source.getMaterial();
 		    double spwt = km.getSpwt0();

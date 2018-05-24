@@ -69,6 +69,7 @@ starfish-LE.jar
 nbproject/private/private.xml
 *.zip
 dat/multi-domain/results/field.pvd
+dat/**/*.png
 *.bin
 *.pvd
 *.csv
