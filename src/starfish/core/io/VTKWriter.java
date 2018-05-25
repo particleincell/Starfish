@@ -31,7 +31,7 @@ public class VTKWriter extends Writer
 
     /** splits file name into directory, prefix, and extension
      * @param name     
-     * @return Array containing [file name, extension, path, prefix], 
+     * @return Array containing [file name with path, extension, path, prefix], 
      * for instance "results/field.vts" returns [results/field,.vts,results,field]
      */
     protected String[] splitFileName(String name)
@@ -47,8 +47,8 @@ public class VTKWriter extends Writer
 	//if extension not found, set to end
 	if (p2==0) p2 = name.length()-1;
 	
-	//if no path specified, set to extension position
-	if (p1==0) p1=p2;	
+	//if no path specified
+	if (p1<=0) p1=0;	
 	
 	String substr[] = {name.substring(0,p2),
 			   name.substring(p2),

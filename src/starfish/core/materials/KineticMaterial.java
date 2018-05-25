@@ -584,6 +584,12 @@ public class KineticMaterial extends Material
 	    part.lc[0] = lc_old[0] + t * (part.lc[0] - lc_old[0]);
 	    part.lc[1] = lc_old[1] + t * (part.lc[1] - lc_old[1]);
 	    
+	    //take care of round off errors, particle should be on mesh boundary
+	    if (part.lc[0]<0) part.lc[0] = 0;
+	    else if (part.lc[0]>mesh.ni-1) part.lc[0] = mesh.ni-1;
+	    if (part.lc[1]<0) part.lc[1] = 0;
+	    else if (part.lc[1]>mesh.nj-1) part.lc[1] = mesh.nj-1;
+	    
 	    double x[] = mesh.pos(part.lc);
 
 	    /*update particle position, part.pos is double[3], wall pos is double[2]*/

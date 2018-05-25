@@ -1,14 +1,10 @@
 # Starfish-LE
 ![Starfish logo](starfish.png)
 
-[Starfish](https://www.particleincell.com/starfish) is a general 2D Cartesian or axisymmetric code for simulating plasmas and gases. 
-It consists of two "editions", light and regular. The light edition is what is posted here.
-It includes support for the Particle In Cell (PIC) method with MCC or DSMC collisions,
-several gas injection sources, and preliminary support for fluid and kinetic materials. The
-code can be easily extended with plugins. 
-
-The full version implements sources specific to plasma thrusters. The full version is not publicly available.
-
+[Starfish](https://www.particleincell.com/starfish) is a 2D (Cartesian or axisymmetric) code for simulating a wide range of plasma and gas problems.
+It implements the electrostatic Particle-in-Cell (ES-PIC) method along with several fluid solvers. Material interactions are included through
+MCC or DSMC collisions, or via chemical reactions. The computational domain can be divided into multiple rectilinear or body-fitted meshes, and linear/cubic
+splines represent the surface geometry. The code can be easily extended with plugins. Starfish is written in Java and is actively being developed.
 
 ## Getting Started
 Start by taking a look at a five-step 

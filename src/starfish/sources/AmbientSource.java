@@ -270,7 +270,7 @@ public class AmbientSource extends Source
 	part.vel = Utils.diffuseReflVel(v_th,norm, tang);
 	
 	/*old way, doesn't generate correct temperature*/
-	//double v_max[] = Utils.isotropicVel(Utils.SampleMaxwSpeed(v_th));
+	//part.vel = Utils.isotropicVel(Utils.SampleMaxwSpeed(v_th));
 	
 	/*add drift*/
 	part.vel[0] += v_drift[0];
