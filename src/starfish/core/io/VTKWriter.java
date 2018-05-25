@@ -8,14 +8,11 @@
 package starfish.core.io;
 
 import java.io.PrintWriter;
-import static java.lang.Math.cos;
 import java.util.ArrayList;
 import java.util.Iterator;
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.domain.DomainModule;
-import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Mesh;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
@@ -27,34 +24,6 @@ public class VTKWriter extends Writer
     public VTKWriter(String file_name)
     {
 	super(file_name);
-    }
-
-    /** splits file name into directory, prefix, and extension
-     * @param name     
-     * @return Array containing [file name with path, extension, path, prefix], 
-     * for instance "results/field.vts" returns [results/field,.vts,results,field]
-     */
-    protected String[] splitFileName(String name)
-    {
-	int p1,p2;
-	
-	/*find the last back or forward slash*/
-	for (p1=name.length()-1;p1>=0;p1--)
-	    if (name.charAt(p1)=='/' || name.charAt(p1)=='\\') break;
-	
-	for (p2=name.length()-1;p2>=0;p2--) if (name.charAt(p2)=='.') break;
-	
-	//if extension not found, set to end
-	if (p2==0) p2 = name.length()-1;
-	
-	//if no path specified
-	if (p1<=0) p1=0;	
-	
-	String substr[] = {name.substring(0,p2),
-			   name.substring(p2),
-			   name.substring(0,p1), 
-			   name.substring((p1>0)?(p1+1):0,p2)};
-   	return substr;    
     }
     
     /**saves 2D data in VTK ASCII forma
