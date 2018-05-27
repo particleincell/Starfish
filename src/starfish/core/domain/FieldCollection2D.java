@@ -162,10 +162,19 @@ public class FieldCollection2D
     public Set<Mesh> getMeshes() {return fields.keySet();}
 	
     HashMap<Mesh,Field2D> fields = new HashMap<Mesh,Field2D>();
+    
+    /**if true, this field will not by synced along multi-domain boundaries*/
+    boolean no_sync = false;
+    
+    /**disables or re-enables multi-domain value sync*/
+    void setNoSync(boolean s) {no_sync=s;}
 		
     /**creates continuity across mesh boundaries*/
     public void syncMeshBoundaries()
     {
+	//skip over fields with no_sync flag set (such as velocity moment sums)
+	if (no_sync) return;
+	
 	/*pass 1: add values to buffer*/
 	for (Mesh mesh:Starfish.getMeshList())
 	{

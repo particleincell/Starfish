@@ -163,6 +163,19 @@ public class FieldManager2D
     	
 	return collection;
     }
+    
+     /**add a new named field or returns the existing one if we already have this and flags the field as one without 
+      * boundary sync in multi-domain simulations (this is needed for particle velocity moment sums)
+     * @param name
+     * @param unit
+     * @param eval_fun
+     * @return */
+    public FieldCollection2D add_nosync(String name, String unit, MeshEvalFun eval_fun) 
+    {
+	FieldCollection2D fc = add(name,unit,eval_fun);
+	fc.setNoSync(true);
+	return fc;
+    }
 	
     /**add a new named field and initializes it according to data from Fiel
      * @param named
@@ -177,10 +190,10 @@ public class FieldManager2D
 	Field2D.DataCopy(values.data,field.data);	
     }
 	
-    /**add a new named field and initializes it to a constant valu
+    /**add a new named field and initializes it to a constant value
      * @param name
      * @param unit
-     * @param valuee
+     * @param value
      * @param eval_fun*/
     public void add(String name, String unit, double value, MeshEvalFun eval_fun) 
     {

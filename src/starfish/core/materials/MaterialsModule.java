@@ -93,8 +93,8 @@ public class MaterialsModule extends CommandModule
     static HashMap<String,MaterialParser> parser_list = new HashMap<String,MaterialParser>();
 
     /*TODO: comput on demand but also save so don't have to compute multiple times per time step*/
-    /** return Total neutral densit
-     * @return y*/
+    /** @return Total neutral density */
+     
     public FieldCollection2D getNeutralDensity()
     {
 	FieldCollection2D den = new FieldCollection2D(Starfish.getMeshList(),null);
@@ -108,8 +108,8 @@ public class MaterialsModule extends CommandModule
     }
     
     /*TODO: comput on demand but also save so don't have to compute multiple times per time step*/
-    /** return Total neutral densit
-     * @return y*/
+    /** @return Total neutral density
+     */
     public FieldCollection2D getIonDensity()
     {
 	FieldCollection2D den = new FieldCollection2D(Starfish.getMeshList(),null);

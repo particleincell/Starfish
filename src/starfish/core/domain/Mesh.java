@@ -925,11 +925,12 @@ public abstract class Mesh
     
     /**
      * @param i * @return volume for cell i,j
-     * @param j*/
+     * @param j
+     * @return volume of a cell centered at i+0.5, j+0.5
+     */
     public double cellVol(int i, int j)
     {
-	double lc[] = {i+0.5,j+0.5};
-	return node_vol.gather(lc);
+	return nodeVol(i+0.5,j+0.5);
     }
 
     /*uses monte carlo approach to compute node volumes in interface node control volumes*/
