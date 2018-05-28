@@ -408,7 +408,9 @@ public abstract class Mesh
 	
 	if (bc.neighbor!=null)
 	{
-	    Log.warning("Duplicate mesh neighbor");
+	    Log.warning(String.format("Duplicate mesh neighbor in %s, face %s, index %d",getName(), face, index));
+	    Log.warning(String.format("Current neighbor is %s, found duplicate in %s",bc.neighbor.getName(), mesh.getName()));
+	    
 	}
 	
 	bc.type = DomainBoundaryType.MESH;

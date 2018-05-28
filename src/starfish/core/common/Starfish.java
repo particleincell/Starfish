@@ -290,7 +290,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     static public double rnd2Ex() {double r; do {r=rnd2();} while (r==-1.0); return r;}  //(-1,1)
 	
     /*code version*/
-    static String VERSION = "v0.19 LE  (Development)";
+    static String VERSION = "v0.19.1 LE  (Development)";
 
     /**
      *

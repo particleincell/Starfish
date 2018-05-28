@@ -22,7 +22,6 @@ import starfish.core.common.Starfish;
 import starfish.core.domain.Mesh.MeshBoundaryData;
 import starfish.core.domain.Mesh.Face;
 import starfish.core.domain.Mesh.DomainBoundaryType;
-import starfish.core.domain.Mesh.NodeType;
 
 /**inner class holding fields for a particular mesh*/
 public class FieldCollection2D
@@ -191,7 +190,7 @@ public class FieldCollection2D
 					
 		    for (i=0;i<mesh.ni;i++)
 		    {
-			if (mesh.isMeshBoundary(i,j))
+			if (mesh.boundaryType(face,i)==DomainBoundaryType.MESH)
 			{
 			    Mesh nm = bc[i].neighbor;
 			    if (nm == null) continue;
@@ -203,7 +202,7 @@ public class FieldCollection2D
 				bc[i].buffer+=getField(nm).gather_safe(lc);
 			    }							
 			}
-			else if (mesh.isMeshBoundaryType(i,j,DomainBoundaryType.PERIODIC))
+			else if (mesh.boundaryType(face,i)==DomainBoundaryType.PERIODIC)
 			{
 			    /*TODO: hardcoded for single cartesian mesh!*/
 			    bc[i].buffer+=getField(mesh).data[i][j2];
@@ -218,7 +217,7 @@ public class FieldCollection2D
 					
 		    for (j=0;j<mesh.nj;j++)
 		    {
-			if (mesh.isMeshBoundary(i, j))
+			if (mesh.boundaryType(face,j)==DomainBoundaryType.MESH)
 			{
 			    Mesh nm = bc[j].neighbor;
 			    double x[] = mesh.pos(i,j);
@@ -228,7 +227,7 @@ public class FieldCollection2D
 				bc[j].buffer+=getField(nm).gather_safe(lc);
 			    }				
 			} /*if mesh*/
-			else if (mesh.isMeshBoundaryType(i,j,DomainBoundaryType.PERIODIC))
+			else if (mesh.boundaryType(face,j)==DomainBoundaryType.PERIODIC)
 			{
 			    /*TODO: hardcoded for single cartesian mesh!*/
 			    bc[j].buffer+=getField(mesh).data[i2][j];

@@ -105,12 +105,13 @@ public class KineticMaterial extends Material
 	
 	/*macroparticles per cell*/
 	field_manager2d.add_nosync("mpc-sum","#",null);
-	field_manager2d.add("mpc","#",null);
+	field_manager2d.add_nosync("mpc","#",null); //since cell-based
 	
 	
     }
 
     boolean steady_state = false;	/*TODO: temporary hack to clear samples*/
+    boolean first_time = true;
     
     @Override
     public void updateFields()
@@ -123,18 +124,6 @@ public class KineticMaterial extends Material
 	    for (MeshData md:mesh_data)
 		clearSamples(md);
 	    steady_state=true;
-	}
-
-	/*update velocity moments, num_samples moved out for multi-domain cases*/	
-	for (MeshData md : mesh_data)	    
-	    updateSamples(md);
-	num_samples++;
-	
-	//compute temperature and average densities and velocities
-	if (Starfish.getIt()%10==0)
-	{
-	    for (MeshData md : mesh_data)
-		computeFields(md);
 	}
 
 	total_momentum = 0;
@@ -166,12 +155,17 @@ public class KineticMaterial extends Material
 	{
 	    updateFields(md);
 	}
-
+	
+	/*update velocity moments, num_samples moved out for multi-domain cases*/	
+	updateGasProperties();
+	
 	/*scale momentum by mass*/
 	total_momentum *= mass;
 	
 	/*apply boundaries*/
 	updateBoundaries();
+	
+	first_time = false;
     }
 
     /**
@@ -1278,6 +1272,24 @@ public class KineticMaterial extends Material
 	Log.log("Cleared samples in Material "+name);
     }
     
+    /** updates velocity samples and recomputes average density, temperature and pressure fields
+     * 
+     */    
+    protected void updateGasProperties()
+    {
+	for (MeshData md:mesh_data)
+	    updateSamples(md);
+    
+        num_samples++;
+	
+	//compute temperature and average densities and velocities
+	if (first_time || Starfish.getIt()%10==0)
+	{
+	    for (MeshData md : mesh_data)
+		computeFields(md);
+	}
+    }
+    
     /** updates velocity samples 
      * @param md*/
     protected void updateSamples(MeshData md)
@@ -1330,59 +1342,55 @@ public class KineticMaterial extends Material
 	Field2D T2 = this.field_manager2d.get(md.mesh,"t2");	
 	Field2D T3 = this.field_manager2d.get(md.mesh,"t3");	
 	
-	//TODO: the frequency of field re-computes needs to be a user input
-	if (Starfish.getIt()%1==0)
-	{
-	    /*compute temperatures*/	
-	    for (int i=0;i<md.mesh.ni;i++)
-		for (int j=0;j<md.mesh.nj;j++)
+	/*compute temperatures*/	
+	for (int i=0;i<md.mesh.ni;i++)
+	    for (int j=0;j<md.mesh.nj;j++)
+	    {
+		double count = count_sum.at(i, j);
+		if (count>0) 
 		{
-		     double count = count_sum.at(i, j);
-		     if (count>0) 
-		     {
-			 double u = u_sum.at(i,j)/count;
-			 double v = v_sum.at(i,j)/count;
-			 double w = w_sum.at(i,j)/count;
-			 double uu = uu_sum.at(i,j)/count - u*u;
-			 double vv = vv_sum.at(i,j)/count - v*v;
-			 double ww = ww_sum.at(i,j)/count - w*w;
-			 double f = mass/(Constants.K);
-			 T.data[i][j] = (uu+vv+ww)*f/3.0;
-			 T1.data[i][j] = uu*f;
-			 T2.data[i][j] = vv*f;
-			 T3.data[i][j] = ww*f;
-		     }
-		     else
-		     {
-			 T.data[i][j] = -1;
-			 T1.data[i][j] = -1;
-			 T2.data[i][j] = -1;
-			 T3.data[i][j] = -1;  
-		     }
+		    double u = u_sum.at(i,j)/count;
+		    double v = v_sum.at(i,j)/count;
+		    double w = w_sum.at(i,j)/count;
+		    double uu = uu_sum.at(i,j)/count - u*u;
+		    double vv = vv_sum.at(i,j)/count - v*v;
+		    double ww = ww_sum.at(i,j)/count - w*w;
+		    double f = mass/(Constants.K);
+		    T.data[i][j] = (uu+vv+ww)*f/3.0;
+		    T1.data[i][j] = uu*f;
+		    T2.data[i][j] = vv*f;
+		    T3.data[i][j] = ww*f;
 		}
+		else
+		{
+		    T.data[i][j] = -1;
+		    T1.data[i][j] = -1;
+		    T2.data[i][j] = -1;
+		    T3.data[i][j] = -1;  
+		}
+	    }
 
-	    /*set average density and velocities*/
-	    nd_ave.copy(count_sum);
-	    nd_ave.mult(1.0/num_samples);
-	    nd_ave.scaleByVol();
+	/*set average density and velocities*/
+	nd_ave.copy(count_sum);
+	nd_ave.mult(1.0/num_samples);
+	nd_ave.scaleByVol();
 
-	    u_ave.copy(u_sum);
-	    u_ave.divideByField(count_sum);
-	    v_ave.copy(v_sum);
-	    v_ave.divideByField(count_sum);
-	    w_ave.copy(w_sum);
-	    w_ave.divideByField(count_sum);
+	u_ave.copy(u_sum);
+	u_ave.divideByField(count_sum);
+	v_ave.copy(v_sum);
+	v_ave.divideByField(count_sum);
+	w_ave.copy(w_sum);
+	w_ave.divideByField(count_sum);
 
-	    /*set pressure*/
-	    for (int i=0;i<md.mesh.ni;i++)
-		for (int j=0;j<md.mesh.nj;j++)
-		    p.data[i][j] = nd_ave.at(i,j)*Constants.K*T.at(i,j);
+	/*set pressure*/
+	for (int i=0;i<md.mesh.ni;i++)
+	    for (int j=0;j<md.mesh.nj;j++)
+		p.data[i][j] = nd_ave.at(i,j)*Constants.K*T.at(i,j);
 
-	    /*macroparticles per cell*/
-	    Field2D mpc = this.field_manager2d.get(md.mesh,"mpc");	
-	    mpc.copy(mpc_sum);
-	    mpc.mult(1./num_samples);
-	}
+	/*macroparticles per cell*/
+	Field2D mpc = this.field_manager2d.get(md.mesh,"mpc");	
+	mpc.copy(mpc_sum);
+	mpc.mult(1./num_samples);
 	
     }
 
