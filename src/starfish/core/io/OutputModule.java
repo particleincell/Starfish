@@ -90,6 +90,8 @@ public class OutputModule extends CommandModule
 	    writer.init2D(variables,vectors,cell_data,element);
 	else if (type.equalsIgnoreCase("1D"))
 	    writer.init1D(variables,vectors,cell_data,element);
+	else if (type.equalsIgnoreCase("3D"))
+	    writer.init3D(variables,vectors,cell_data,element);
 	else if (type.equalsIgnoreCase("BOUNDARIES"))
 	    writer.initBoundaries(variables,element);
 	else if (type.equalsIgnoreCase("PARTICLES"))

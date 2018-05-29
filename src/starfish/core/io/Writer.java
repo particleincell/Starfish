@@ -26,7 +26,7 @@ import starfish.core.materials.KineticMaterial.Particle;
  */
 public abstract class Writer 
 {
-    static enum OutputType {FIELD,ONED,BOUNDARIES,PARTICLES,TRACE};
+    static enum OutputType {FIELD,ONED,THREED,BOUNDARIES,PARTICLES,TRACE};
     static enum Dim {I,J};
 	
     OutputType output_type;
@@ -35,6 +35,7 @@ public abstract class Writer
     String cell_data[];	    //cell centered variables
     Mesh output_mesh;
     Dim dim;
+    int resolution;	//for three-D rotation
     int index;
     String file_name;
     
@@ -71,6 +72,27 @@ public abstract class Writer
 	return pw;
     }
     
+    /** Outputs data revolved around the axis
+     *
+     * @param scalars
+     * @param vectors
+     * @param cell_data
+     * @param element XML element
+     */
+    public void init3D(String[] scalars, ArrayList<String[]> vectors, String[] cell_data, 
+					    Element element)
+    {
+		
+	    //number of cells in the theta direction
+	    resolution = InputParser.getInt("resolution", element, 45);
+	    
+	    /*call main open function*/
+	    init2D(scalars, vectors, cell_data,element);	
+
+	    /*set output type - after init2D*/
+	    output_type=OutputType.THREED;
+    }
+
     /** Outputs data along a specified I or J index in a single mesh
      *
      * @param scalars
@@ -268,11 +290,18 @@ public abstract class Writer
 	{
 	    case FIELD: write2D(animation);break;
 	    case ONED: write1D(animation);break;
+	    case THREED: write3D(animation);break;
 	    case BOUNDARIES: writeBoundaries(animation);break;
 	    case PARTICLES: writeParticles(animation);break;
 	    case TRACE: Log.warning("write not supported for TRACE");break;		
 	}	
     }
+
+    /** Saves axisymmetric data as a revolved solid
+     *
+     * @param animation
+     */
+    protected abstract void write3D(boolean animation);
 
     /**
      *

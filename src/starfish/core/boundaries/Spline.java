@@ -190,6 +190,7 @@ public class Spline
 		    x2[0] = Double.parseDouble(str);	/*may throw exception*/
 		    x2[1] = sc.nextDouble();	
 
+		    //TODO: tranformation not working properly
 		    /*perform transformation on x2, x1 is already transformed*/
 		    x2 = T.mult(x2);
 		

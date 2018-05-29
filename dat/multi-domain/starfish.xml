@@ -66,20 +66,29 @@
 <!-- run simulation -->
 <starfish randomize="false" max_processors="2" />
 
+<!-- output -->
 <output type="2D" file_name="results/field.vts" format="vtk">
 <scalars>nodevol, phi, rho, p, nd.ar+, nd-ave.ar+, t.ar+,dsmc-count, mcc-count, mpc.ar+</scalars>
 <vectors>[efi, efj], [u-ave.ar+,v-ave.ar+]</vectors>
 </output>
 
+<!-- 2D data revolved around the axis -->
+<output type="3D" file_name="results/field3d.vtu" format="vtk">
+<scalars>nodevol, phi, rho, p, nd.ar+, nd-ave.ar+, t.ar+,dsmc-count, mcc-count, mpc.ar+</scalars>
+<vectors>[efi, efj], [u-ave.ar+,v-ave.ar+]</vectors>
+<resolution>45</resolution>
+</output>
+
+<!-- surface -->
 <output type="boundaries" file_name="results/boundaries.vtp" format="vtk">
 <variables>deprate.ar+, flux-normal.ar+</variables>
 </output>
 
+<!-- particle positions and velocities for a scatter plot -->
 <output type="particles" file_name="results/particles.vtp" format="vtk">
 <count>1000</count>
 <material>ar+</material>
 <rotate>true</rotate>
 </output>
-
 
 </simulation>

@@ -74,6 +74,16 @@ public class TecplotWriter extends Writer
     @Override
     public void close() {pw.close();}
 	
+    /** placeholder for a 3D writer
+     *
+     * @param animation
+     */
+    @Override
+    public void write3D(boolean animation)
+    {
+	throw new UnsupportedOperationException("not yet implemented");
+    }
+    
     /**
      *
      * @param animation

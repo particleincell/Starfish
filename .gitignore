@@ -73,4 +73,5 @@ dat/**/*.png
 *.bin
 *.pvd
 *.csv
-nbproject/private/*
+nbproject/private
+**/results

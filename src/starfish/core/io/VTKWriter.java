@@ -13,6 +13,7 @@ import java.util.Iterator;
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Mesh;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
@@ -26,11 +27,12 @@ public class VTKWriter extends Writer
 	super(file_name);
     }
     
-    /**saves 2D data in VTK ASCII forma
-     * @param animation if true, will open new file for each save*/
     @Override
-    public void write2D(boolean animation)
+    public void write3D(boolean animation)
     {
+	if (Starfish.getDomainType()==DomainType.XY)
+	    Log.warning("Write3D is not (yet) supported for DomainType XY");
+	
 	int part = 0;	
 	for (Mesh mesh:Starfish.getMeshList())
 	{
@@ -50,22 +52,229 @@ public class VTKWriter extends Writer
 	    PrintWriter pw = open(name);
 	    
 	    pw.println("<?xml version=\"1.0\"?>");
-	    pw.println("<VTKFile type=\"StructuredGrid\">");
-	    pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni-1,mesh.nj-1);
-	
-	    pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n",mesh.ni-1,mesh.nj-1);
 
+	    pw.println("<VTKFile type=\"UnstructuredGrid\">");
+	    pw.println("<UnstructuredGrid>");
+	    pw.printf("<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n", 
+		    mesh.n_nodes*(resolution),
+		    mesh.n_cells*(resolution-1));
+	    	    
 	    pw.println("<Points>");
 	    pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
-	    for (int j=0;j<mesh.nj;j++)
-		for (int i=0;i<mesh.ni;i++)
-		{
-		    double x[] = mesh.pos(i,j);			
-		    pw.printf("%g %g 0 ", x[0], x[1]);
-		}
+	    
+	    for (int m=0;m<resolution;m++)
+	    {
+		//first and last slice is duplicated to simplify cell writing, hopefully
+		//Paraview can deal with this fine
+		double theta = m*Math.PI/(resolution-1);
+		for (int j=0;j<mesh.nj;j++)
+		    for (int i=0;i<mesh.ni;i++)
+		    {
+			double x[] = mesh.pos(i,j);			
+			if (Starfish.getDomainType()==DomainType.RZ)
+			    pw.printf("%g %g %g ", Math.cos(theta)*x[0], x[1], Math.sin(theta)*x[0]);
+			else
+			    pw.printf("%g %g %g ", x[0], Math.cos(theta)*x[1], Math.sin(theta)*x[1]);
+			pw.println();
+		    }
+	    }
 	    pw.println("\n</DataArray>");
 	    pw.println("</Points>");
+	    
+	    pw.println("<Cells>");
+	    pw.println("<DataArray type=\"Int32\" Name=\"connectivity\">");
+	    for (int m=0;m<resolution-1;m++)
+	    {
+		for (int j=0;j<mesh.nj-1;j++)
+		    for (int i=0;i<mesh.ni-1;i++)
+		    {
+			int d1 = m*mesh.n_nodes;
+			int d2 = (m+1)*mesh.n_nodes;
+			pw.printf("%d %d %d %d ", d1+mesh.IJtoN(i, j), d1+mesh.IJtoN(i+1,j),
+			    		      d1+mesh.IJtoN(i+1, j+1), d1+mesh.IJtoN(i, j+1));
+			pw.printf("%d %d %d %d ", d2+mesh.IJtoN(i, j), d2+mesh.IJtoN(i+1,j),
+			    		      d2+mesh.IJtoN(i+1, j+1), d2+mesh.IJtoN(i, j+1));
+		    }
+	    }
+	    pw.println("\n</DataArray>");
 
+	    pw.println("<DataArray type=\"Int32\" Name=\"offsets\">");
+	    for (int c=0;c<(resolution-1)*mesh.n_cells;c++)
+		pw.printf("%d ",(c+1)*8);		    
+	    pw.println("\n</DataArray>");
+	    
+	    pw.println("<DataArray type=\"Int32\" Name=\"types\">");
+	    for (int c=0;c<(resolution-1)*mesh.n_cells;c++)
+		pw.printf("12 ");   //VTK_HEXAHEDRON
+	    pw.println("\n</DataArray>");
+	    
+	    pw.println("</Cells>");
+
+	    /*hard coded for now until I get some more robust way to output cell and vector data*/
+	    pw.println("<CellData>");
+	    pw.println("<DataArray Name=\"CellVol\" type=\"Float32\" NumberOfComponents=\"1\" format=\"ascii\">");
+	    for (int m=0;m<resolution-1;m++)
+		for (int j=0;j<mesh.nj-1;j++)
+		    for (int i=0;i<mesh.ni-1;i++)
+			pw.printf("%g ",mesh.cellVol(i, j));
+	    pw.println("\n</DataArray>");
+
+	    pw.println("<DataArray Name=\"CellId\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
+	    for (int c=0;c<(resolution-1)*mesh.n_cells;c++)
+		pw.printf("%d ",c);
+	    pw.println("\n</DataArray>");
+
+	    for (String var:cell_data)
+	    {
+		double data[][] = Starfish.domain_module.getField(mesh, var).getData();
+
+		pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+		for (int m=0;m<resolution-1;m++)
+		    for (int j=0;j<mesh.nj-1;j++)
+			for (int i=0;i<mesh.ni-1;i++)
+			    pw.printf("%g ",(data[i][j]));
+		pw.println("\n</DataArray>");
+	    }	
+	    pw.println("</CellData>");
+
+	    pw.println("<PointData>");
+	    pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
+	    for (int m=0;m<resolution;m++)
+		for (int j=0;j<mesh.nj;j++)
+		    for (int i=0;i<mesh.ni;i++)
+			pw.printf("%d ",mesh.getNode(i,j).type.value());
+	    pw.println("\n</DataArray>");
+
+	    for (String var:scalars)
+	    {
+		/*make sure we have this variable*/
+	      //  if (!Starfish.output_module.validateVar(var)) continue;
+		double data[][] = Starfish.domain_module.getField(mesh, var).getData();
+
+		pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+		for (int m=0;m<resolution;m++)
+		    for (int j=0;j<mesh.nj;j++)
+		        for (int i=0;i<mesh.ni;i++)
+			    pw.printf("%g ",(data[i][j]));
+		pw.println("\n</DataArray>");
+	    }
+
+	    for (String[] vars:vectors)
+	    {
+		/*make sure we have this variable*/
+	      //  if (!Starfish.output_module.validateVar(var)) continue;
+		double data1[][] = Starfish.domain_module.getField(mesh, vars[0]).getData();
+		double data2[][] = Starfish.domain_module.getField(mesh, vars[1]).getData();
+
+		pw.println("<DataArray Name=\""+vars[0]+"\" type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
+		for (int m=0;m<resolution;m++)
+		    for (int j=0;j<mesh.nj;j++)
+			for (int i=0;i<mesh.ni;i++)
+			    pw.printf("%g %g 0 ",data1[i][j], data2[i][j]);
+		pw.println("\n</DataArray>");
+	    }
+
+	    pw.println("</PointData>");	
+	 	 
+	    pw.println("</Piece>");
+	
+	    pw.println("</UnstructuredGrid>");
+	    pw.println("</VTKFile>");
+	    /*save output file*/
+	    pw.close();
+	    
+	    part++;
+	}
+	
+	/*write the collection file*/
+	writeCollection(animation);
+
+    }
+	
+    /**saves 2D data in VTK ASCII format, supports .vts, .vtr, and .vtp
+     * @param animation if true, will open new file for each save*/
+    protected enum VTK_Type {RECT, STRUCT, POLY};
+
+    @Override
+    public void write2D(boolean animation)
+    {
+	
+	int part = 0;	
+	for (Mesh mesh:Starfish.getMeshList())
+	{
+	    //split out extension from the file name
+	    
+	    String substr[] = splitFileName(file_name);
+	    String name = substr[0]+"_"+mesh.getName();
+	    if (animation)
+		name += String.format("_%06d", Starfish.getIt());
+	    name += substr[1];    
+	    
+	    VTK_Type vtk_type;
+	    
+	    if (substr[1].equalsIgnoreCase(".vts")) vtk_type = VTK_Type.STRUCT;
+	    else if (substr[1].equalsIgnoreCase(".vtr")) vtk_type = VTK_Type.RECT;
+	    else {Log.warning("Unrecognized VTK data type "+substr[1]+", assuming VTS");vtk_type=VTK_Type.STRUCT;}
+	    	    
+	    //add to collection but remove path since relative to pvd file
+	    substr = splitFileName(name);
+	    //collection.add(new CollectionData(time_step,part,substr[3]+substr[1]));
+	    collection.add(new CollectionData(Starfish.getIt(),part,substr[3]+substr[1]));
+	    	    
+	    PrintWriter pw = open(name);
+	    
+	    pw.println("<?xml version=\"1.0\"?>");
+	    
+	    String close_tag="";
+	    
+	    if (vtk_type==VTK_Type.STRUCT)
+	    {
+		pw.println("<VTKFile type=\"StructuredGrid\">");
+		pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni-1,mesh.nj-1);
+		pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n",mesh.ni-1,mesh.nj-1);
+		close_tag = "</StructuredGrid>";
+	    }
+	    else if (vtk_type==VTK_Type.RECT)
+	    {
+		pw.println("<VTKFile type=\"RectilinearGrid\">");
+	    	pw.printf("<RectilinearGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni-1,mesh.nj-1);
+		pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n",mesh.ni-1,mesh.nj-1);
+		close_tag = "</RectilinearGrid>";
+	    }
+	    
+	    if (vtk_type==VTK_Type.STRUCT)
+	    {
+		pw.println("<Points>");
+		pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
+		for (int j=0;j<mesh.nj;j++)
+		    for (int i=0;i<mesh.ni;i++)
+		{
+			double x[] = mesh.pos(i,j);			
+			pw.printf("%g %g 0 ", x[0], x[1]);
+		    }
+		pw.println("\n</DataArray>");
+		pw.println("</Points>");
+	    }	    
+	    else if (vtk_type==VTK_Type.RECT)
+	    {
+		pw.println("<Coordinates>");
+		pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+		for (int i=0;i<mesh.ni;i++)
+		    	pw.printf("%g ",mesh.pos1(i, 0));			
+		pw.println("\n</DataArray>");
+		
+		pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+		for (int j=0;j<mesh.nj;j++)
+		    	pw.printf("%g ",mesh.pos2(0, j));			
+		pw.println("\n</DataArray>");
+		
+		pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+		pw.printf("0");
+		pw.println("\n</DataArray>");
+		
+		pw.println("</Coordinates>");
+	    }
+	    
 	    /*hard coded for now until I get some more robust way to output cell and vector data*/
 	    pw.println("<CellData>");
 	    pw.println("<DataArray Name=\"CellVol\" type=\"Float32\" NumberOfComponents=\"1\" format=\"ascii\">");
@@ -124,7 +333,7 @@ public class VTKWriter extends Writer
 	 	 
 	    pw.println("</Piece>");
 	
-	    pw.println("</StructuredGrid>");
+	    pw.println(close_tag);
 	    pw.println("</VTKFile>");
 	    /*save output file*/
 	    pw.close();
