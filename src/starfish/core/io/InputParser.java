@@ -352,8 +352,8 @@ public class InputParser implements Iterable
 
      /**
      * @param node_name
-     * @param element *  @return values from a field such as {@code <node_name>[aa, bb], [cc, dd]</node_name>} as string list     
-     * @return      
+     * @param element *  
+     * @return values from a field such as {@code <node_name>[aa, bb], [cc, dd]</node_name>} as string list     
      */
     public static ArrayList<String[]> getListOfPairs(String node_name, Element element)
     {
@@ -422,6 +422,27 @@ public class InputParser implements Iterable
 	    return default_value;
 	
 	return list;
+    }
+    
+    /**
+     * @return values from a field such as {@code <key>[x1,y1], [x2,y2]</key>} as a list of doubles     
+     */
+    public static ArrayList<double[]> getDoublePairs(String key, Element element)
+    {
+	ArrayList<String[]> s_list = getListOfPairs(key, element);
+	
+	ArrayList<double[]> d_list = new ArrayList<double[]>();
+	
+	for (String s[] : s_list)
+	{
+	    double d[] = new double[s.length];
+	    
+	    for (int i=0;i<s.length;i++)
+		d[i] = Double.parseDouble(s[i]);
+	    d_list.add(d);
+	}
+	return d_list;
+	
     }
 
     @Override

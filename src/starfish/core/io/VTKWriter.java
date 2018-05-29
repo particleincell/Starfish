@@ -66,7 +66,7 @@ public class VTKWriter extends Writer
 	    {
 		//first and last slice is duplicated to simplify cell writing, hopefully
 		//Paraview can deal with this fine
-		double theta = m*Math.PI/(resolution-1);
+		double theta = m*2*Math.PI/(resolution-1);
 		for (int j=0;j<mesh.nj;j++)
 		    for (int i=0;i<mesh.ni;i++)
 		    {

@@ -937,7 +937,13 @@ public class KineticMaterial extends Material
 	    getVAve(mesh).binaryRead(in);
 	    getWAve(mesh).binaryRead(in);	    
 
-		
+	    /*set pressure*/
+	    Field2D p = getP(mesh);
+	    Field2D nd_ave = getDenAve(mesh);
+	    Field2D T = getT(mesh);
+	    for (int i=0;i<md.mesh.ni;i++)
+	    for (int j=0;j<md.mesh.nj;j++)
+		p.data[i][j] = nd_ave.at(i,j)*Constants.K*T.at(i,j);		
 	}		
     }
 

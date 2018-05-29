@@ -43,9 +43,12 @@ public class PoissonSolver extends PotentialSolver
 	linear_mode = InputParser.getBoolean("linear", element, false);
 	if (!linear_mode)
 	{
-	    den0=InputParser.getDouble("n0", element);
+	    den0=InputParser.getDouble("n0", element, -1);
+	    den0_pos = InputParser.getDoublePairs("n0_pos", element);
 	    kTe0=InputParser.getDouble("Te0", element);
 	    phi0=InputParser.getDouble("phi0", element);
+	    
+	    
 	     /*log*/
 	    Log.log("Added NONLINEAR POISSON solver");
 	    Log.log("> n0: " + den0 + " (#/m^3)");
@@ -54,6 +57,7 @@ public class PoissonSolver extends PotentialSolver
 	}
 	else
 	{
+	    //these are only used to compute the debye length
 	    den0=InputParser.getDouble("n0", element,1e15);
 	    kTe0=InputParser.getDouble("Te0", element,1);
 	    /*log*/
@@ -81,6 +85,9 @@ public class PoissonSolver extends PotentialSolver
     @Override
     public void update() 
     {
+	//re-evalute den0 if sampling from points
+	updateDen0();
+	
 	for (MeshData md:mesh_data)
 	{
 	    Mesh mesh = md.mesh;

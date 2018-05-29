@@ -40,6 +40,12 @@ public class QNSolver extends PotentialSolver
     @Override
     public void update() 
     {
+	//re-evalute den0 if sampling from points
+	updateDen0();
+	
+	//floor needed since dividing by den0
+	if (den0<1e4) den0=1e4;
+	
 	for (Mesh mesh:Starfish.getMeshList())
 	{
 	    int ni = mesh.ni;

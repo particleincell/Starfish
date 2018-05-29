@@ -8,6 +8,7 @@ package starfish.core.solver;
 
 import starfish.core.common.Vector;
 import java.util.ArrayList;
+import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.Field2D;
@@ -61,6 +62,22 @@ public abstract class Solver
      *
      */
     public double den0 = 1e15;  /* reference values of ion density along bottom edge */
+    
+    public ArrayList<double[]> den0_pos = null;	/*positions for sampling reference density */
+    
+    /** updates den0 if sampling positions are specified*/
+    public void updateDen0()
+    {
+	if (den0_pos==null || den0_pos.isEmpty()) return;
+	
+	FieldCollection2D rho_fc = Starfish.domain_module.getRho();
+	double rho = 0;
+	for (double[] pos : den0_pos)
+	    rho+=rho_fc.eval(pos);
+	
+	den0 = rho/(den0_pos.size()*Constants.QE);	
+	System.out.println(den0);
+    }
 
     /**
      *
