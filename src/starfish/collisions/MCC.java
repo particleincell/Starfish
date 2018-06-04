@@ -38,8 +38,9 @@ public class MCC extends VolumeInteraction
     Material target;
     Material product;
     int frequency;
+    double max_T;
 
-    MCC(String source, String target, String product, Sigma sigma, MCCModel model, int frequency) 
+    MCC(String source, String target, String product, Sigma sigma, MCCModel model, int frequency, double max_T) 
     {	
 	/*make sure we have a kinetic source*/
 	if (!(Starfish.getMaterial(source) instanceof KineticMaterial))
@@ -50,6 +51,7 @@ public class MCC extends VolumeInteraction
 	this.product = Starfish.getMaterial(product);
 	this.model = model;
 	this.frequency = frequency;
+	this.max_T = max_T;
     	
 	//initialize sigma parameters as needed
 	sigma.init(this.source, this.target);
@@ -146,8 +148,8 @@ public class MCC extends VolumeInteraction
 	    if (den_a<=0) continue;
 
 	    /*create random target particle according to target T and stream velocity*/
-	    double target_vel[] = target.sampleMaxwellianVelocity(mesh,part.lc, 50);
-	    //double target_vel[] = target.sampleVelocity(mesh,part.lc);
+	   // double target_vel[] = model.sampleTargetVelocity(target, mesh, part.lc);
+	   double target_vel[] = target.sampleVelocity(mesh, part.lc);
 
 	    double g_vec[] = new double[3];
 	    for (int i=0;i<3;i++) g_vec[i] = target_vel[i] - part.vel[i];				
@@ -161,7 +163,8 @@ public class MCC extends VolumeInteraction
 		    continue;		/*no collision*/
 
 	    Particle virt_part = new Particle(part);
-	    virt_part.vel = target_vel;
+	    //virt_part.vel = target_vel;
+	    virt_part.vel = target.sampleMaxwellianVelocity(mesh, part.lc, 0, max_T);
 	    virt_part.mass = target.mass;
 
 	    /*otherwise, perform collision*/
@@ -266,8 +269,11 @@ public class MCC extends VolumeInteraction
 	    /*number of time steps between dsmc computations*/
 	    int frequency = InputParser.getInt("frequency", element, 1);
 	    if (frequency<1) frequency=1;
+	    
+	    //no limit by default
+	    double max_T = InputParser.getDouble("max_target_temp",element, -1);
 
-	    Starfish.interactions_module.addInteraction(new MCC(source,target,product,sigma,model,frequency));		
+	    Starfish.interactions_module.addInteraction(new MCC(source,target,product,sigma,model,frequency,max_T));		
         }
     };
 

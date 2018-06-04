@@ -34,6 +34,7 @@ public class PoissonSolver extends PotentialSolver
     double eps;	    /*permittivity*/
     enum Method {DIRECT, GS, PCG, MULTIGRID};
     Method method;
+    int skip;
 	
     /**
      * @param element
@@ -76,6 +77,8 @@ public class PoissonSolver extends PotentialSolver
 	else Log.error("Unknown method "+sm);
 	Log.log("> method: "+sm);
 	   
+	//frequency
+	skip = InputParser.getInt("skip",element,1);
 	
 	/*output debye length*/
 	double lambda_d = Math.sqrt(eps*kTe0/(Constants.QE*den0));
@@ -85,6 +88,9 @@ public class PoissonSolver extends PotentialSolver
     @Override
     public void update() 
     {
+	//is it time to update?
+	if (Starfish.getIt()%skip!=0) return;
+	
 	//re-evalute den0 if sampling from points
 	updateDen0();
 	

@@ -29,6 +29,7 @@ public  class RestartModule extends CommandModule
     boolean save_restart;
 	
     int it_last_save;
+    int it_last_load=-1;
 	
     @Override
     public void init()
@@ -107,6 +108,8 @@ public  class RestartModule extends CommandModule
 	/*update number of times steps*/
 	if (nt_add>0)
 	    Starfish.time_module.setNumIt(Starfish.getIt()+nt_add);
+	
+	it_last_load = Starfish.getIt();
     }
 
     /**saves restart data
@@ -116,6 +119,9 @@ public  class RestartModule extends CommandModule
     */
     protected void saveRestartData() throws IOException  
     {
+	//prevent saving immediately after loading
+	if (Starfish.getIt()==it_last_load) return;
+	
 	DataOutputStream out=null;
 	out = new DataOutputStream(new FileOutputStream("restart.bin"));
 	

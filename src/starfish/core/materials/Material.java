@@ -809,16 +809,22 @@ public abstract class Material
      *
      * @param mesh
      * @param lc
-     * @param T_min
+     * @param T_min minimum temperature 
+     * @param T_max maximum temperature or -1 if no limit
      * @return
      */
 
-    public double[] sampleMaxwellianVelocity(Mesh mesh, double[] lc, double T_min)
+    public double[] sampleMaxwellianVelocity(Mesh mesh, double[] lc, double T_min, double T_max)
     {
+	//stream velocity
 	double vel[] = sampleVelocity(mesh, lc);
 	
+	//add thermal component
 	double T = getT(mesh).gather(lc);
 	if (T<T_min) T=T_min;
+	if (T<0) T=0;	    //can't have negative temperature	
+	if (T_max>0 && T>T_max) T=T_max;
+	
 	double v_th = Utils.computeVth(T, getMass());
 	double v_max[] = Utils.SampleMaxw3D(v_th);
 	for (int i=0;i<3;i++) vel[i] += v_max[i];

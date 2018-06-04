@@ -76,7 +76,7 @@ public abstract class Solver
 	    rho+=rho_fc.eval(pos);
 	
 	den0 = rho/(den0_pos.size()*Constants.QE);	
-	System.out.println(den0);
+	Log.log("Reference plasma density: "+den0);
     }
 
     /**

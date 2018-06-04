@@ -27,7 +27,6 @@ import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.MeshBoundaryData;
 import starfish.core.domain.Mesh.Face;
 import starfish.core.domain.Mesh.Node;
-import starfish.core.domain.Mesh.NodeType;
 import starfish.core.domain.UniformMesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.MaterialsModule.MaterialParser;

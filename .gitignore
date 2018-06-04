@@ -75,3 +75,5 @@ dat/**/*.png
 *.csv
 nbproject/private
 **/results
+nbproject/private/private.properties
+*.properties
