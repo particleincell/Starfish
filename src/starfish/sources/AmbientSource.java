@@ -79,7 +79,9 @@ public class AmbientSource extends Source
 	/*use iterative method to figure out which cells the spline passes through*/
 	/*TODO: move this to Spline*/
 	
-	final double t_tol = 0;
+	//need some non-zero value to prevent injecting at corners which then causes particles inside solids
+	final double t_tol = 1e-6;  
+	
 	double dt = 1e-3;
 	/*don't start at t=0 to avoid getting outside cell if starting on cell boundary*/
 	Cell last_cell=null;
