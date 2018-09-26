@@ -1,3 +1,6 @@
+[![GitHub forks](https://img.shields.io/github/forks/particleincell/Starfish-LE.svg)](https://github.com/particleincell/Starfish-LE/network)
+[![Twitter](https://img.shields.io/twitter/url/https/github.com/particleincell/Starfish-LE.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fparticleincell%2FStarfish-LE)
+
 # Starfish-LE
 ![Starfish logo](starfish.png)
 
