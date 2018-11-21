@@ -46,7 +46,7 @@ public class VolumeSource extends Source
      *
      */
     protected double num_rem;		/*number of particles to sample in current cell*/
-    double spwt0;
+    public double spwt0;
 
     /**
      *
@@ -78,7 +78,7 @@ public class VolumeSource extends Source
 
     public VolumeSource(String name, Material source_mat)
     {
-	super(name, source_mat);
+	super(name, source_mat, null);
 
 	dn = new FieldCollection2D(Starfish.getMeshList(),null);
 	temp = new FieldCollection2D(Starfish.getMeshList(),null);
@@ -137,13 +137,6 @@ public class VolumeSource extends Source
 	    return null;
 		    
 	return part;
-    }
-
-    @Override
-    public boolean hasParticles()
-    {
-	if (num_rem>=spwt0) return true;
-	return false;
     }
     
     @Override

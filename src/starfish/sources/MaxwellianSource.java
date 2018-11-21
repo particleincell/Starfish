@@ -38,39 +38,42 @@ public class MaxwellianSource extends Source
      * @param start_it
      * @param end_it
      */
-    public MaxwellianSource(String name, Material source_mat, Boundary boundary,
-	    double mdot, double v_drift, double temp, int start_it, int end_it)
+    public MaxwellianSource(String name, Material source_mat, Boundary boundary, Element element)
     {
-	super(name, source_mat, boundary, mdot,start_it,end_it);
+	super(name, source_mat, boundary, element);
+
+	mdot0 = Double.parseDouble(InputParser.getValue("mdot", element));
+
+	/*drift velocity and temperature*/
+	v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));
+	double temp = Double.parseDouble(InputParser.getValue("temperature", element));
+	circuit_model = InputParser.getBoolean("circuit_model", element, false);
 
 	/*calculate density*/
 	double A = boundary.area();
-	den0 = mdot / (A * v_drift * source_mat.getMass());
-
-	this.v_drift = v_drift;
-
+	den0 = mdot0 / (A * v_drift * source_mat.getMass());
 	v_th = Utils.computeVth(temp, source_mat.getMass());	
 	
 	Starfish.Log.log("Added MAXWELLIAN source '" + name + "'");
-	Starfish.Log.log("> mdot   = " + mdot + "(kg/s)");
+	Starfish.Log.log("> mdot   = " + mdot0 + "(kg/s)");
 	Starfish.Log.log(String.format("> den0 = %.5g (#/m^3)",den0));
-	Starfish.Log.log(String.format("> flux = %.5g (kg/s/m^2)",mdot/A));
+	Starfish.Log.log(String.format("> flux = %.5g (kg/s/m^2)",mdot0/A));
 	Starfish.Log.log("> spline  = " + boundary.getName());
 	Starfish.Log.log("> temp  = " + temp);
 	Starfish.Log.log("> v_drift  = " + v_drift);
 	Starfish.Log.log("> v_th  = " + v_th);
 	Starfish.Log.log("> start_it  = " + start_it);
-	Starfish.Log.log("> end_it  = " + end_it);
+	Starfish.Log.log("> end_it  = " + stop_it);
     }
 
     @Override
     public Particle sampleParticle()
     {
 	Particle part = new Particle((KineticMaterial) source_mat);
-	double t = spline.randomT();
+	double t = boundary.randomT();
 	
-	double x[] = spline.pos(t);
-	double n[] = spline.normal(t);
+	double x[] = boundary.pos(t);
+	double n[] = boundary.normal(t);
 
 	/*copy values*/
 	part.pos[0] = x[0];
@@ -124,19 +127,7 @@ public class MaxwellianSource extends Source
 	@Override
 	public void makeSource(Element element, String name, Boundary boundary, Material material)
 	{
-	    double mdot = Double.parseDouble(InputParser.getValue("mdot", element));
-
-	    /*drift velocity and temperature*/
-	    double v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));
-	    double temp = Double.parseDouble(InputParser.getValue("temperature", element));
-	    int start_it = InputParser.getInt("start_it",element,0);
-	    int end_it = InputParser.getInt("end_it",element,-1);
-	    	    
-	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, mdot, v_drift, temp, start_it, end_it);
-	    
-	    /*use this source with the circuit model?*/
-    	    source.circuit_model = InputParser.getBoolean("circuit_model", element, false);
-	    
+	    MaxwellianSource source = new MaxwellianSource(name, material, boundary, element);
 	    boundary.addSource(source);
 
 	    

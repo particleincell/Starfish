@@ -13,6 +13,7 @@ import org.w3c.dom.Element;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.common.Utils;
 import starfish.core.common.Vector;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
@@ -39,26 +40,44 @@ public class MCC extends VolumeInteraction
     Material product;
     int frequency;
     double max_T;
+    double ionization_energy;	    //in eV
 
-    MCC(String source, String target, String product, Sigma sigma, MCCModel model, int frequency, double max_T) 
+    MCC(Element element) 
     {	
+	/*parse data*/
+	String source_name = InputParser.getValue("source", element);
+	String product_name = InputParser.getValue("product",element,source_name);
+	String target_name = InputParser.getValue("target",element);
+	String model_name = InputParser.getValue("model", element);
+
+	sigma = InteractionsModule.parseSigma(element);
+	model = MCC.getModel(model_name);
+	    
+	/*number of time steps between mcc computations*/
+	frequency = InputParser.getInt("frequency", element, 1);
+	if (frequency<1) frequency=1;
+	    
+	//no limit by default
+	max_T = InputParser.getDouble("max_target_temp",element, -1);
+	    
+	/*get ionization energy*/
+	if (model instanceof MCC.ModelIonization)
+	{
+	    ionization_energy = InputParser.getDouble("ionization_energy", element);
+	}
+	
 	/*make sure we have a kinetic source*/
-	if (!(Starfish.getMaterial(source) instanceof KineticMaterial))
-		Log.error("MCC source material "+source+" must be kinetic");
+	if (!(Starfish.getMaterial(source_name) instanceof KineticMaterial))
+		Log.error("MCC source material "+source_name+" must be kinetic");
 		
-	this.source = (KineticMaterial) Starfish.getMaterial(source);
-	this.target = Starfish.getMaterial(target);
-	this.product = Starfish.getMaterial(product);
-	this.model = model;
-	this.frequency = frequency;
-	this.max_T = max_T;
-    	
+	this.source = (KineticMaterial) Starfish.getMaterial(source_name);
+	this.target = Starfish.getMaterial(target_name);
+	this.product = Starfish.getMaterial(product_name);
+	
 	//initialize sigma parameters as needed
 	sigma.init(this.source, this.target);
 	    
-	this.sigma = sigma;
-	
-		/*figure out how many other DSMC pairs are defined*/
+	/*figure out how many other MCC pairs are defined to add the appropriate fields*/
 	ArrayList<VolumeInteraction> vints = Starfish.interactions_module.getInteractionsList();
 	int id = 1;
 	for (VolumeInteraction vint : vints)
@@ -88,6 +107,8 @@ public class MCC extends VolumeInteraction
 	    return new ModelMEX();
 	else if (type.equalsIgnoreCase("CEX"))
 	    return new ModelCEX();
+	else if (type.equalsIgnoreCase("IONIZATION"))
+	    return new ModelIonization();
 	throw new UnsupportedOperationException("Collision model "+type+" undefined");
     }
 
@@ -157,7 +178,8 @@ public class MCC extends VolumeInteraction
 
 	    /*collision probability*/
 	    /*TODO: implement multiple interactions*/
-	    double P = 1-Math.exp(-sigma.eval(g)*g*dt*den_a);
+	    double sig = sigma.eval(g,part.mass);
+	    double P = 1-Math.exp(-sig*g*dt*den_a);
 
 	    if (P<Starfish.rnd())
 		    continue;		/*no collision*/
@@ -168,7 +190,7 @@ public class MCC extends VolumeInteraction
 	    virt_part.mass = target.mass;
 
 	    /*otherwise, perform collision*/
-	    model.perform(part,virt_part);
+	    model.perform(part,virt_part, this);
 	    
 	    int i = (int) part.lc[0];
 	    int j = (int) part.lc[1];
@@ -189,16 +211,16 @@ public class MCC extends VolumeInteraction
     static abstract class MCCModel 
     {
 	/**returns cross-section for the given relative velocity*/
-	public abstract void perform(Particle source, Particle target);
+	public abstract void perform(Particle source, Particle target, MCC mcc);
 	protected double c[];
-		
-	protected MCCModel () { /*pass parameters*/}
+	
+	protected MCCModel() {}
     }
 	
     static class ModelMEX extends MCCModel
     {
 	@Override
-	public void perform(Particle source, Particle target) 
+	public void perform(Particle source, Particle target, MCC mcc) 
 	{			
 	    //elastic model from DSMC
 	    double vr_cp[] = new double[3];	//post collision relative velocity
@@ -243,12 +265,59 @@ public class MCC extends VolumeInteraction
     static class ModelCEX extends MCCModel
     {
 	@Override
-	public void perform(Particle part, Particle target) 
+	public void perform(Particle part, Particle target, MCC mcc) 
 	{
 	    /*simply replace velocities*/
 	    part.vel[0] = target.vel[0];
 	    part.vel[1] = target.vel[1];
 	    part.vel[2] = target.vel[2];			
+	}
+    }
+    
+     /*
+    Ionization model assumes that the source is an electron and target is a neutral.
+    The product specified in the input file is the ion to generate. The code will also create an additional electron.
+    
+    */
+    static class ModelIonization extends MCCModel
+    {
+	@Override
+	public void perform(Particle source, Particle target, MCC mcc) 
+	{
+	    /*reduce initial energy*/
+	    double e1 = 0.5*source.mass*Vector.dot3(source.vel,source.vel)/Constants.QE;
+	    double e2 = e1 - mcc.ionization_energy;
+	    if (e2<0) return;	//sanity check, should not happen
+	    
+	    //speed reduced by the ionization energy
+	    double speed2 = Math.sqrt(e2*Constants.QE*2/source.mass);
+	    	    
+	    /*give the source electron isotropic direction*/
+	    source.vel = Utils.isotropicVel(speed2);
+
+	    //assume the new electron and ion are created at the neutral temperature
+	    double target_temp = mcc.target.getTempCollection().eval(source.pos,300);
+	    
+	    //sampling sometimes return negative values (??), so need a floor, 100K seems like a good number
+	    if (target_temp<100)
+		target_temp = 100;
+	    	    
+	    /*create new ion and electron*/
+	    double vel2[] = Utils.SampleMaxw3D(Utils.computeVth(target_temp, source.mass));
+	    mcc.source.getParticleListSource().addParticle(new Particle(source.pos, vel2, source.spwt, mcc.source));
+	    	    
+	    if (mcc.product instanceof KineticMaterial)
+	    {
+		KineticMaterial prod = (KineticMaterial)mcc.product;
+		int mp_gen = (int)(mcc.source.getSpwt0()/prod.getSpwt0()+Starfish.rnd());
+		for (int i=0;i<mp_gen;i++)
+		{
+		    double vel3[] = Utils.SampleMaxw3D(Utils.computeVth(target_temp, prod.mass));
+		    prod.addParticle(source.pos, vel3);
+		}
+	    	
+	    }
+	    
 	}
     }
     
@@ -258,23 +327,9 @@ public class MCC extends VolumeInteraction
 	@Override
 	public void getInteraction(Element element)
 	{
-	    String source = InputParser.getValue("source", element);
-	    String product = InputParser.getValue("product",element,source);
-	    String target = InputParser.getValue("target",element);
-	    String model_name = InputParser.getValue("model", element);
-
-	    Sigma sigma = InteractionsModule.parseSigma(element);
-	    MCCModel model = MCC.getModel(model_name);
-	    
-	    /*number of time steps between dsmc computations*/
-	    int frequency = InputParser.getInt("frequency", element, 1);
-	    if (frequency<1) frequency=1;
-	    
-	    //no limit by default
-	    double max_T = InputParser.getDouble("max_target_temp",element, -1);
-
-	    Starfish.interactions_module.addInteraction(new MCC(source,target,product,sigma,model,frequency,max_T));		
+	    Starfish.interactions_module.addInteraction(new MCC(element));		
         }
     };
-
+    
+   
 }

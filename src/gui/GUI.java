@@ -1,6 +1,5 @@
 package gui;
 
-import gui.DomainUniformModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.FileInputStream;

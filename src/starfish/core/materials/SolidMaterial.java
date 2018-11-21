@@ -11,7 +11,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
-import starfish.core.io.InputParser;
 import starfish.core.materials.MaterialsModule.MaterialParser;
 
 /** solid material, does not change in density*/
@@ -21,11 +20,11 @@ public class SolidMaterial extends Material
     /**
      *
      * @param name
-     * @param mass
      */
-    public SolidMaterial(String name, double mass)
+    public SolidMaterial(String name, Element element)
     {
-	super(name,mass,0, true);
+	super(name,element);
+	Starfish.Log.log("Added SOLID material '"+name+"'");	    
     }
 	
     @Override
@@ -38,18 +37,12 @@ public class SolidMaterial extends Material
      *
      */
     public static MaterialParser SolidMaterialParser = new MaterialParser() {
-    @Override
-    public  Material addMaterial(String name, Element element)
-    {
-	double molwt = Double.parseDouble(InputParser.getValue("molwt", element));
-	    
-	    Material material = new SolidMaterial(name,molwt);
-	    
-	    /*log*/
-	    Starfish.Log.log("Added SOLID material '"+name+"'");
-	    Starfish.Log.log("> molwt  = "+molwt);
-	    return material;
-    }
+	@Override
+	public  Material addMaterial(String name, Element element)
+	{
+
+		return new SolidMaterial(name,element);
+	}
     }; 
     
     /**

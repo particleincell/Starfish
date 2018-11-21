@@ -309,7 +309,7 @@ public class InputParser implements Iterable
 	try {
 	    return Double.parseDouble(getValueInternal(key,element));
 	}
-	catch (Exception e)
+	catch (NumberFormatException e)
 	{
 	    Log.error(String.format("Could not convert value of <%s> to double",key));
 	    return -1;

@@ -272,8 +272,8 @@ public class Vector
 	return Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);		
     }
 
-    /** computes dot product of a 2D vecto
-     * @param v1r
+    /** computes dot product of a 2D vector
+     * @param v1
      * @param v2
      * @return */
     public static double dot3(double v1[], double v2[]) 
@@ -465,5 +465,15 @@ public class Vector
 	    if (v[i]<val) val=v[i];
 	
 	return val;
+    }
+
+    /**@param v vector to check
+     * @return true if all vector components are finite*/
+    public static boolean isFinite(double[] v)
+    {
+	for (int i=0;i<v.length;i++)
+	    if (!Double.isFinite(v[i]))
+		return false;
+	return true;
     }
 }

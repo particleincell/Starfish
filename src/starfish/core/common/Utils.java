@@ -83,14 +83,12 @@ public class Utils
 	}
     }
 
-    /*returns velocity corresponding to a diffuse reflection from surface per Bird's alg*/
-
     /**
      *
      * @param mag
      * @param norm
      * @param tang1
-     * @return
+     * @return returns velocity corresponding to a diffuse reflection from surface per Bird's alg
      */
 
     public static double[] diffuseReflVel(double mag, double norm[], double tang1[])
@@ -211,6 +209,22 @@ public class Utils
     public static class LinearList
     {
 
+	public LinearList()
+	{
+	    /*empty constructor*/
+	}
+	
+	public LinearList(ArrayList<double []> data)
+	{
+	    
+	    for (double[] d : data)
+	    {
+		if (d.length!=2)
+		    Log.error("Wrong array length in LinearList");
+		insert(d[0],d[1]);
+	    }
+	}
+	
 	/**
 	 *
 	 */

@@ -24,6 +24,7 @@ public class InteractionsModule extends CommandModule
 	/*register sigmas*/
 	registerSigma("CONST", Sigma.sigmaConstFactory);
 	registerSigma("INV", Sigma.sigmaInvFactory);
+	registerSigma("TABLE", Sigma.sigmaTableFactory);
 	
 	/*register interactions*/
 	registerInteraction("SURFACE_HIT",SurfaceInteraction.surfaceHitFactory);
@@ -129,10 +130,10 @@ public class InteractionsModule extends CommandModule
     static public Sigma parseSigma(Element element)
     {
 	String sigma_name = InputParser.getValue("sigma", element);
-	double coeffs[] = InputParser.getDoubleList("sigma_coeffs", element);
+	double coeffs[] = InputParser.getDoubleList("sigma_coeffs", element, new double[0]);
 
 	/*make the cross-section*/
-	return getSigma(sigma_name,coeffs);
+	return getSigma(sigma_name,coeffs,element);
     }
     
     static HashMap<String,Sigma.SigmaFactory> sigma_list = new HashMap<String,Sigma.SigmaFactory>();
@@ -151,13 +152,14 @@ public class InteractionsModule extends CommandModule
     /**
      *
      * @param type
-     * @param c
+     * @param coeffs
      * @return
      */
-    public static Sigma getSigma(String type, double c[])
+    public static Sigma getSigma(String type, double coeffs[], Element element)
     {
 	Sigma.SigmaFactory fac = sigma_list.get(type.toUpperCase());
-	if (fac!= null) return fac.makeSigma(c);
+	
+	if (fac!= null) return fac.makeSigma(coeffs,element);
 	
 	throw new UnsupportedOperationException("Collision cross-section "+type+" undefined");
     }

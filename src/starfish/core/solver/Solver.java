@@ -290,8 +290,7 @@ public abstract class Solver
 	for (i = 0; i < ni; i++)
 	    for (j = 0; j < nj; j++)
 	    {
-		setNodeFVMCoefficients(md, i, j);
-		    
+		setNodeFVMCoefficients(md, i, j);		    
 	    }
 	
 //	for (int u=0;u<ni*nj;u++)
@@ -476,6 +475,8 @@ public abstract class Solver
 	    }
 	    
 	}   //for md
+	
+
     }
     
     /**
@@ -534,7 +535,8 @@ public abstract class Solver
 	
 	if ( (j==0 && md.mesh.boundaryType(Face.BOTTOM, i)!=DomainBoundaryType.MESH) ||
 	     (j==nj-1 && md.mesh.boundaryType(Face.TOP, i)!=DomainBoundaryType.MESH))
-		{md.A.copyRow(md.Gj,u); return;}
+		{md.A.copyRow(md.Gj,u); 
+		return;}
 
 	/*not a fixed or boundary node*/
 	
@@ -724,7 +726,7 @@ public abstract class Solver
 	    
 	    if (x1==null || x2==null)
 	    {
-		    lcs = md.mesh.controlVolumeLCs(im, jm, 0.5);
+		    lcs = md.mesh.controlVolumeLCs(i0, j0, 0.5);
 	    }
 	
 	    /* compute n*dl = (dy/dl,-dx/dl)*dl=(dy,-dx)	*/	

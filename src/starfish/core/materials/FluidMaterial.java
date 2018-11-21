@@ -6,6 +6,7 @@
  * *****************************************************/
 package starfish.core.materials;
 
+import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
 import starfish.core.domain.Mesh;
 
@@ -17,15 +18,11 @@ public abstract class FluidMaterial extends Material
     /**
      *
      * @param name
-     * @param mass
-     * @param charge
-     * @param frozen
+
      */
-
-
-    public FluidMaterial(String name, double mass, double charge, boolean frozen)
+    public FluidMaterial(String name, Element element)
     {
-	super(name, mass, charge, frozen);
+	super(name, element);
     }
 
     @Override

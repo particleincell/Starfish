@@ -62,19 +62,7 @@ public class Boundary extends Spline
     {
 	/*set boundaries for segments*/
 	for (int i=0;i<numSegments();i++)
-	    this.getSegment(i).setParentInfo(this,i);
-	   
-	/*allocate memory for particle list sources, 
-	* need to allocate for each material since we are indexing by material index*/
-	particle_list_source = new ParticleListSource[Starfish.getMaterialsList().size()];
-	   
-	/*allocate only for flying mats*/
-	for (Material mat:Starfish.getMaterialsList())
-	{
-	    ParticleListSource source = new ParticleListSource(mat, this);
-	    addSource(source);
-	    particle_list_source[mat.getIndex()] = source;
-	}
+	    this.getSegment(i).setParentInfo(this,i);	   
     }
 
     /*sets boundary temperature*/
@@ -83,9 +71,12 @@ public class Boundary extends Spline
 	this.temp = temp;    	
     }
 
-    /**return thermal velocit
+    /**@return boundary temperature*/
+    public double getTemp() {return temp;}
+    
+    /**return thermal velocity
      * @param material
-     * @return y*/
+     * @return thermal velocity of the given material using surface temperature*/
     public double getVth(Material material) {
 	return Math.sqrt(2*Constants.K*temp/material.getMass());
     }
@@ -138,16 +129,12 @@ public class Boundary extends Spline
      */
     public void addSource(Source source){source_list.add(source);}
  
-    /** list of particle list sources*/
-    protected ParticleListSource particle_list_source[];
-
     /**
      *
      * @param mat_index
      * @return
      */
-    public ParticleListSource getParticleListSource(int mat_index) {return particle_list_source[mat_index];}
-			
+    			
     /*variables*/
 
     /**

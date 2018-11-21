@@ -168,7 +168,8 @@ public class BoundaryModule extends CommandModule
 	}
 		
 	/*also try to grab temperature*/
-	double temp = InputParser.getDouble("temp", element, 273.15);
+	double temp = InputParser.getDouble("temperature",element,273.15);
+	temp = InputParser.getDouble("temp", element, temp);	    //for backward compatibility
 	
 	/*make new boundary*/
 	Boundary boundary = new Boundary(name, boundary_type, value, material);

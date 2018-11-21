@@ -37,19 +37,30 @@ import starfish.core.domain.Mesh.DomainBoundaryType;
 public class KineticMaterial extends Material
 {
 
-    /**
-     *
-     * @param name
-     * @param mass
-     * @param charge
-     * @param spwt0
-     * @param frozen
-     */
-    public KineticMaterial(String name, double mass, double charge, double spwt0, boolean frozen)
-    {
-	super(name, mass, charge, frozen);
+    public double diam;
+    public double ref_temp;
+    public double visc_temp_index;
+    public double vss_alpha;
 
-	this.spwt0 = spwt0;	
+    public KineticMaterial(String name, Element element)
+    {
+	super(name, element);
+
+	/*kinetic material also need spwt*/
+	spwt0 = InputParser.getDouble("spwt", element);
+	    
+	/*try to get DSMC data*/
+	ref_temp = InputParser.getDouble("ref_temp", element,275);
+	visc_temp_index = InputParser.getDouble("visc_temp_index",element,0.85);
+	vss_alpha = InputParser.getDouble("vss_alpha",element,1);
+	diam = InputParser.getDouble("diam",element,5e-10);
+	
+	/*log*/
+	Log.log("Added KINETIC material '"+name+"'");
+	Log.log("> charge   = "+charge);
+	Log.log("> mass = "+String.format("%.4g (kg)",mass));
+	Log.log("> spwt = "+spwt0);
+	
     }
     /*specific weight*/
 
@@ -268,7 +279,7 @@ public class KineticMaterial extends Material
 	    {
 		Particle part = iterator.next();
 
-		if (part.id==574 && Starfish.getIt()==28)
+		if (!Vector.isFinite(part.vel) || !Vector.isFinite(part.pos))
 		    part=part;
 		
 		/*increment particle time and velocity*/
@@ -298,6 +309,8 @@ public class KineticMaterial extends Material
 		int bounces = 0;
 		boolean alive = true;
 		
+		if (!Vector.isFinite(part.vel) || !Vector.isFinite(part.pos))
+		    part=part;
 		if (part.id==4180 && Starfish.getIt()==2093)
 		    part.id=part.id;
 
@@ -500,6 +513,10 @@ public class KineticMaterial extends Material
 		}
 	    }
 	}
+	
+	/*TODO: 11/2018: why is virtual being added in the first place?*/
+	if (seg_min!=null && seg_min.getBoundaryType()==BoundaryType.VIRTUAL)
+	    seg_min = null;
 	
 	/*perform intersection*/
 	if (seg_min!=null)
@@ -1117,6 +1134,9 @@ public class KineticMaterial extends Material
 	 * @param part*/
 	public void addParticle(Particle part)
 	{
+	    if (!Vector.isFinite(part.vel))
+		Log.error("Infinite vel");
+	    
 	    /*find particle block with fewest particles*/
 	    int block=0;
 	    int min_count=particle_block[block].particle_list.size();
@@ -1405,29 +1425,9 @@ public class KineticMaterial extends Material
 	@Override
 	public Material addMaterial(String name, Element element)
 	{
-	    /*charge*/
-	    double charge = InputParser.getDouble("charge", element);
-	    double molwt = InputParser.getDouble("molwt", element);
+	   
+	    Material material = new KineticMaterial(name,element);
 
-	    /*kinetic material also need spwt*/
-	    double spwt = InputParser.getDouble("spwt", element);
-	    
-	    boolean frozen = InputParser.getBoolean("frozen", element, false);
-
-	    Material material = new KineticMaterial(name,molwt,charge,spwt,frozen);
-
-	    /*try to get DSMC data*/
-	    material.ref_temp = InputParser.getDouble("ref_temp", element,275);
-	    material.visc_temp_index = InputParser.getDouble("visc_temp_index",element,0.85);
-	    material.vss_alpha = InputParser.getDouble("vss_alpha",element,1);
-	    material.diam = InputParser.getDouble("diam",element,5e-10);
-	
-	    /*log*/
-	    Log.log("Added KINETIC material '"+name+"'");
-	    Log.log("> charge   = "+charge);
-	    Log.log("> molwt  = "+molwt+ " (amu)");
-	    Log.log("> mass = "+String.format("%.4g (kg)",molwt*Constants.AMU));
-	    Log.log("> spwt = "+spwt);
 	    return material;
 	}
     };    

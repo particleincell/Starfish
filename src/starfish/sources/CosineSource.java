@@ -9,7 +9,6 @@ package starfish.sources;
 
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
-import starfish.core.boundaries.Spline;
 import starfish.core.common.Starfish;
 import starfish.core.common.Vector;
 import starfish.core.domain.Mesh;
@@ -30,28 +29,35 @@ public class CosineSource extends Source
      *
      * @param name
      * @param source_mat
-     * @param spline
-     * @param mdot
-     * @param v_drift
+     * @param boundary
+     * @param element
      */
-    public CosineSource (String name, Material source_mat, Spline spline, 
-		    double mdot, double v_drift)
+    public CosineSource (String name, Material source_mat, Boundary boundary, Element element)
     {
-	    super(name,source_mat,spline,mdot);
-		
+	    super(name,source_mat,boundary,element);
+		    /*mass flow rate*/
+	    double mdot = Double.parseDouble(InputParser.getValue("mdot", element));
+
+	    /*drift velocity*/
+	    v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));
 	    /*calculate density*/
-	    double A = spline.area();
+	    double A = boundary.area();
 	    den0 = mdot/(A*v_drift*source_mat.getMass());
 	
-	    this.v_drift = v_drift;
+	    /*log*/
+	    Starfish.Log.log("Added COSINE source '" + name + "'");
+	    Starfish.Log.log("> mdot = " + mdot + "(kg/s)");
+	    Starfish.Log.log("> flux = " + mdot/boundary.area() + "(kg/s/m^2)");
+	    Starfish.Log.log("> spline  = " + boundary.getName());	 
+	    Starfish.Log.log("> v_drift  = " + v_drift);		    
     }
 
     @Override
     public Particle sampleParticle()
     {
 	Particle part = new Particle((KineticMaterial)source_mat);
-	double t = spline.randomT();
-	double x[] = spline.pos(t);
+	double t = boundary.randomT();
+	double x[] = boundary.pos(t);
 	
 	/*copy values*/
 	part.pos[0] = x[0];
@@ -59,7 +65,7 @@ public class CosineSource extends Source
 	part.pos[2] = 0;
 	
 	/*velocity*/
-	part.vel = Vector.lambertianVector(spline.normal(t), spline.tangent(t));
+	part.vel = Vector.lambertianVector(boundary.normal(t), boundary.tangent(t));
 	
 	/*set velocity and scale by drift*/
 	for (int i=0;i<3;i++)
@@ -95,21 +101,9 @@ public class CosineSource extends Source
 	@Override
 	public void makeSource(Element element, String name, Boundary boundary, Material material)
 	{
-	    /*mass flow rate*/
-	    double mdot = Double.parseDouble(InputParser.getValue("mdot", element));
-
-	    /*drift velocity*/
-	    double v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));
-
-	    CosineSource source = new CosineSource(name, material, boundary, mdot, v_drift);
+	    CosineSource source = new CosineSource(name, material, boundary, element);
 	    boundary.addSource(source);
 
-	    /*log*/
-	    Starfish.Log.log("Added COSINE source '" + name + "'");
-	    Starfish.Log.log("> mdot = " + mdot + "(kg/s)");
-	    Starfish.Log.log("> flux = " + mdot/boundary.area() + "(kg/s/m^2)");
-	    Starfish.Log.log("> spline  = " + boundary.getName());
-	    Starfish.Log.log("> v_drift  = " + v_drift);
 	}
     };
     

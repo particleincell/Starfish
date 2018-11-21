@@ -16,7 +16,7 @@ import starfish.core.materials.Material;
 /**
  * Source which can accumulate a list of particles which it then samples
  */
-public class ParticleListSource extends Source
+public class ParticleListSource extends VolumeSource
 {
 
     ArrayList<Particle> particle_list = new ArrayList<Particle>();
@@ -24,11 +24,10 @@ public class ParticleListSource extends Source
     /**
      *
      * @param source_mat
-     * @param boundary
      */
-    public ParticleListSource(Material source_mat, Boundary boundary)
+    public ParticleListSource(Material source_mat)
     {
-	super("PartList " + source_mat.getName() + ":" + boundary.getName(), source_mat, boundary, 0);
+	super("PartList " + source_mat.getName(), source_mat);
     }
 
     @Override
@@ -70,11 +69,10 @@ public class ParticleListSource extends Source
      *
      * @param pos
      * @param vel
-     * @param orig_mat_index
+     * @param orig_mat
      */
-    public void spawnParticles(double[] pos, double[] vel, int orig_mat_index)
+    public void spawnParticles(double[] pos, double[] vel, KineticMaterial orig_mat)
     {
-	KineticMaterial orig_mat = (KineticMaterial) Starfish.getMaterial(orig_mat_index);
 	double spwt_orig = orig_mat.getSpwt0();
 	double spwt_source = ((KineticMaterial) source_mat).getSpwt0();
 	double ratio = spwt_orig / spwt_source;

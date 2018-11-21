@@ -9,7 +9,6 @@ package starfish.sources;
 
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
-import starfish.core.boundaries.Spline;
 import starfish.core.common.Starfish;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
@@ -33,25 +32,33 @@ public class UniformSource extends Source
      * @param mdot
      * @param v_drift
      */
-    public UniformSource (String name, Material source_mat, Spline spline, 
-		    double mdot, double v_drift)
+    public UniformSource (String name, Material source_mat, Boundary boundary, Element element)
     {
-	    super(name,source_mat,spline,mdot);
+	    super(name,source_mat,boundary,element);
+	    
+	    /*mass flow rate*/
+	    mdot0 = Double.parseDouble(InputParser.getValue("mdot", element));
+
+	    /*drift velocity*/
+	    v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));  /*log*/
+	    Starfish.Log.log("Added UNIFORM source '" + name + "'");
+	    Starfish.Log.log("> mdot   = " + mdot0 + "(kg/s)");
+	    Starfish.Log.log("> flux = " + mdot0/boundary.area() + "(kg/s/m^2)");
+	    Starfish.Log.log("> spline  = " + boundary.getName());
+	    Starfish.Log.log("> v_drift  = " + v_drift);
 		
 	    /*calculate density*/
-	    double A = spline.area();
-	    den0 = mdot/(A*v_drift*source_mat.getMass());
-	
-	    this.v_drift = v_drift;
+	    double A = boundary.area();
+	    den0 = mdot0/(A*v_drift*source_mat.getMass());	
     }
      
     @Override
     public Particle sampleParticle()
     {
 	Particle part = new Particle((KineticMaterial)source_mat);
-	double t = spline.randomT();
-	double x[] = spline.pos(t);
-	double n[] = spline.normal(t);
+	double t = boundary.randomT();
+	double x[] = boundary.pos(t);
+	double n[] = boundary.normal(t);
 	
 	/*copy values*/
 	part.pos[0] = x[0];
@@ -90,21 +97,8 @@ public class UniformSource extends Source
 	@Override
 	public void makeSource(Element element, String name, Boundary boundary, Material material)
 	{
-	    /*mass flow rate*/
-	    double mdot = Double.parseDouble(InputParser.getValue("mdot", element));
-
-	    /*drift velocity*/
-	    double v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));
-
-	    UniformSource source = new UniformSource(name, material, boundary, mdot, v_drift);
+	    UniformSource source = new UniformSource(name, material, boundary, element);
 	    boundary.addSource(source);
-
-	    /*log*/
-	    Starfish.Log.log("Added UNIFORM source '" + name + "'");
-	    Starfish.Log.log("> mdot   = " + mdot + "(kg/s)");
-	    Starfish.Log.log("> flux = " + mdot/boundary.area() + "(kg/s/m^2)");
-	    Starfish.Log.log("> spline  = " + boundary.getName());
-	    Starfish.Log.log("> v_drift  = " + v_drift);
 	}
     };
     

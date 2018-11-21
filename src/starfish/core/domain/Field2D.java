@@ -266,7 +266,7 @@ public class Field2D
 	}
 	
 	if (Double.isNaN(dj) || Double.isNaN(di) || Double.isNaN(val))
-	    System.out.printf("Nan in scatter");
+	    System.out.println("Nan in scatter");
 	
 	data[i][j] += (1-di)*(1-dj)*val;
 	data[i+1][j] += di*(1-dj)*val;

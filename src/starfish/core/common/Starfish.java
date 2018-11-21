@@ -4,7 +4,7 @@ package starfish.core.common;
  * Starfish is a general 2D plasma/fluid hybrid Cartesian/axi-symmetric code
  * Copyright (c) 2012-2018, Particle In Cell Consulting LLC
  * 
- * Version 0.19 LE (academic or research light version), Development Version
+ * Version 0.20, Development Version
  * Contact Info: info@particleincell.com
  * 
  * The most recent version can be downloaded from:
@@ -29,8 +29,12 @@ package starfish.core.common;
  *    prior approval of the copyright holder.
  */
 
+import gui.GUI;
+import java.awt.GraphicsEnvironment;
+import java.io.Console;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.*;
+import javax.swing.SwingUtilities;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.BoundaryModule;
@@ -56,10 +60,6 @@ import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
 import starfish.core.source.SourceModule;
 
-/**
- *
- * @author Lubos Brieda
- */
 public final class Starfish extends CommandModule implements UncaughtExceptionHandler
 {    	
     /**simulation main loop*/
@@ -121,12 +121,21 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	logger_module = new LoggerModule();	
 	modules.put("log",logger_module);
 	
-	/*
+    Console console = System.console();
+    if (console != null) {
+        console.format("Running from command line");
+    } else if (!GraphicsEnvironment.isHeadless()) {
+      //  JOptionPane.showMessage(null, "Running in Windowed system");
+    } else {
+        // Put it in the log
+    }
+
+/*
 	SwingUtilities.invokeLater(new Runnable() {
 	public void run() {
 	    GUI.createAndShowGUI(args);
 	}});
-	  */  
+*/	    
 	PrintHeader();
 			
 	/*register modules*/
@@ -290,7 +299,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     static public double rnd2Ex() {double r; do {r=rnd2();} while (r==-1.0); return r;}  //(-1,1)
 	
     /*code version*/
-    static String VERSION = "v0.19.4 LE  (Development)";
+    static String VERSION = "v0.20 (Development)";
 
     /**
      *
@@ -355,6 +364,17 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
      * @return
      */
     public static Material getMaterial(int mat_index) {return materials_module.getMaterial(mat_index);}
+    
+    /**
+     * 
+     * @param mat_index material index
+     * @return material of the given index cast as KineticMaterial if instance of, otherwise null
+     */
+    public static KineticMaterial getKineticMaterial(int mat_index) {
+	Material mat = getMaterial(mat_index);
+	if (mat instanceof KineticMaterial) return (KineticMaterial) mat;
+	else return null;
+    }
 
     /**
      *

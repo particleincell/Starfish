@@ -16,7 +16,7 @@ import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
 import starfish.pic.ConstantEF;
-import starfish.pic.FluidElectronsMaterial;
+import starfish.core.materials.FluidElectronsMaterial;
 import starfish.pic.PoissonSolver;
 import starfish.pic.QNSolver;
 

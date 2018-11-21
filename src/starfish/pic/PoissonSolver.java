@@ -12,11 +12,12 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Vector;
-import starfish.core.domain.Field2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.DomainBoundaryType;
 import starfish.core.domain.Mesh.Face;
 import starfish.core.io.InputParser;
+import starfish.core.solver.LinearSolverADI;
+import starfish.core.solver.LinearSolverDirect1D;
 import starfish.core.solver.LinearSolverGS;
 import starfish.core.solver.LinearSolverLU;
 import starfish.core.solver.LinearSolverMG;
@@ -32,7 +33,7 @@ public class PoissonSolver extends PotentialSolver
 {
     boolean linear_mode;
     double eps;	    /*permittivity*/
-    enum Method {DIRECT, GS, PCG, MULTIGRID};
+    enum Method {DIRECT, GS, PCG, MULTIGRID, ADI};
     Method method;
     int skip;
 	
@@ -74,6 +75,8 @@ public class PoissonSolver extends PotentialSolver
 	else if (sm.equals("GS")) lin_solver = new LinearSolverGS();
 	else if (sm.equals("PCG")) lin_solver = new LinearSolverPCG();
 	else if (sm.equals("MULTIGRID")) lin_solver = new LinearSolverMG();
+	else if (sm.equals("ADI")) lin_solver = new LinearSolverADI();
+	else if (sm.equals("DIRECT1D")) lin_solver = new LinearSolverDirect1D();
 	else Log.error("Unknown method "+sm);
 	Log.log("> method: "+sm);
 	   

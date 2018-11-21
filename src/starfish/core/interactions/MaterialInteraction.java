@@ -9,6 +9,7 @@ package starfish.core.interactions;
 
 import starfish.core.boundaries.Segment;
 import starfish.core.common.Starfish;
+import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
 
 /** material interaction */
@@ -23,6 +24,10 @@ public class MaterialInteraction
     Material target_mat;
     Material source_mat;
     Material product_mat;
+    
+    KineticMaterial target_km_mat;
+    KineticMaterial source_km_mat;
+    KineticMaterial product_km_mat;
 
     /**constructor*/
     public MaterialInteraction()
@@ -34,8 +39,8 @@ public class MaterialInteraction
 	surface_impact_handler = SurfaceInteraction.getSurfaceImpactModel("ABSORB");
     }
 
-    /**sets probabilit
-     * @param proby*/
+    /**sets probability
+     * @param prob*/
     public void setProbability(double prob) 
     {
 	probability = prob;
@@ -89,7 +94,11 @@ public class MaterialInteraction
      *
      * @param mat_index
      */
-    public void setTargetMatIndex(int mat_index) {target_mat_index=mat_index;target_mat=Starfish.getMaterial(mat_index);}
+    public void setTargetMatIndex(int mat_index) {
+	target_mat_index=mat_index;
+	target_mat=Starfish.getMaterial(mat_index);
+	target_km_mat=Starfish.getKineticMaterial(mat_index);	
+    }
 
     /**
      *
@@ -101,7 +110,11 @@ public class MaterialInteraction
      *
      * @param mat_index
      */
-    public void setSourceMatIndex(int mat_index) {source_mat_index=mat_index;source_mat=Starfish.getMaterial(mat_index);}
+    public void setSourceMatIndex(int mat_index) {
+	source_mat_index=mat_index;
+	source_mat=Starfish.getMaterial(mat_index);
+	source_km_mat=Starfish.getKineticMaterial(mat_index);
+    }
 
     /**
      *
@@ -113,7 +126,11 @@ public class MaterialInteraction
      *
      * @param mat_index
      */
-    public void setProductMatIndex(int mat_index) {product_mat_index=mat_index;product_mat=Starfish.getMaterial(mat_index);}
+    public void setProductMatIndex(int mat_index) {
+	product_mat_index=mat_index;
+	product_mat=Starfish.getMaterial(mat_index);
+	product_km_mat=Starfish.getKineticMaterial(mat_index);
+    }
 
     /**
      *

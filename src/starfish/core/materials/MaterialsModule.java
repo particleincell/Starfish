@@ -7,7 +7,6 @@
 
 package starfish.core.materials;
 
-import starfish.pic.FluidElectronsMaterial;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,8 +35,8 @@ public class MaterialsModule extends CommandModule
      */
     public ArrayList<Material> getMaterialsList() {return materials_list;}
 	
-    /**adds a material to the lis
-     * @param materialt*/
+    /**adds a material to the list
+     * @param material*/
     protected void AddMaterial(Material material) 
     {
 	materials_list.add(material);
@@ -63,7 +62,8 @@ public class MaterialsModule extends CommandModule
     public Material getMaterial(int mat_index) {return materials_list.get(mat_index);}
 
     /**
-     * @param mat *  @return true if material mat is defined*/
+     * @param mat *  @return true if material mat is defined
+     * @return */
     public boolean hasMaterial(String mat) 
     {
 	try {return getMaterial(mat)!=null;}
@@ -79,10 +79,12 @@ public class MaterialsModule extends CommandModule
 	/*register material types*/
 	registerMaterialType("SOLID",SolidMaterial.SolidMaterialParser);
 	registerMaterialType("KINETIC",KineticMaterial.KineticMaterialParser);
+	registerMaterialType("FLUID-DIFFUSION",FluidDiffusionMaterial.FluidDiffusionMaterialParser);
+
     }
 
-    /** registers a new material type parse
-     * @param type_namer
+    /** registers a new material type parser
+     * @param type_name
      * @param parser*/
     static public void registerMaterialType(String type_name, MaterialParser parser)
     {
@@ -127,13 +129,10 @@ public class MaterialsModule extends CommandModule
 	return den;
     }
     
-    /*gets total ion velocity*/
-
     /**
      *
-     * @return
+     * @return ion current density field collection i-component, ji=q*n*u
      */
-
     public FieldCollection2D getIonJi()
     {
 	FieldCollection2D ji = new FieldCollection2D(Starfish.getMeshList(),null);
@@ -149,7 +148,7 @@ public class MaterialsModule extends CommandModule
 
     /**
      *
-     * @return
+     * @return ion current density field collection i-component, jj=q*n*v
      */
     public FieldCollection2D getIonJj()
     {
@@ -230,7 +229,6 @@ public class MaterialsModule extends CommandModule
 	/*do nothing*/
     }
 
-    boolean has_started= false;
     @Override
     /*initialize all materials*/
     public void start() 

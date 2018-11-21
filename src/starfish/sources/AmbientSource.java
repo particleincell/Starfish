@@ -29,43 +29,77 @@ import starfish.core.source.SourceModule;
  */
 public class AmbientSource extends Source
 {
-    final double v_th;			/*thermal velocity*/
-    final double v_drift[] = new double[3];
+    double v_th;			/*thermal velocity*/
+    double v_drift[] = new double[3];
     enum EnforceType {DENSITY, PARTIAL_PRESSURE, TOTAL_PRESSURE};
-    final EnforceType enforce;
-    final double density;
-    final double pressure;
-    final double p_fraction;
-    final double temperature;
+    EnforceType enforce;
+    double density;
+    double pressure;
+    double p_fraction;
+    double temperature;
     
     /**
      *
      * @param name
      * @param source_mat
-     * @param spline
-     * @param enforce
-     * @param temp
-     * @param density
-     * @param v_drift
-     * @param p_fraction
+     * @param boundary
+     * @param element
      */
-    public AmbientSource(String name, Material source_mat, Spline spline, 
-	    EnforceType enforce, double temp, double density,
-	    double v_drift[], double p_fraction)
+    public AmbientSource(String name, Material source_mat, Boundary boundary, Element element)
     {
-	super(name, source_mat, spline, 0);
+	super(name, source_mat, boundary, element);
 	
-	this.density = density;
-	this.temperature = temp;
-	this.pressure = density*Constants.K*temp;
-	this.p_fraction = p_fraction;
+	/*drift velocity and temperature*/
+	double def[] = new double[3];
+	def[0]=def[1]=def[2]=0;
+	v_drift = InputParser.getDoubleList("drift_velocity", element,def);
+	if (v_drift.length!=3)
+	    Log.error("Ambient Source Syntax: <drift_velocity>vx,vy,vz</drift_velocity>");
+	    
+	//temperature
+	temperature = InputParser.getDouble("temperature", element);
+	    
+	/*what are we enforcing?*/
+	String val = InputParser.getValue("enforce", element,"TOTAL_PRESSURE").toUpperCase();
+	enforce=EnforceType.TOTAL_PRESSURE;
+	if (val.equals("DENSITY")) enforce=EnforceType.DENSITY;
+	else if (val.equals("TOTAL_PRESSURE") || val.equals("PRESSURE")) enforce=EnforceType.TOTAL_PRESSURE;
+	else if (val.equals("PARTIAL_PRESSURE")) enforce = EnforceType.PARTIAL_PRESSURE;
+    
+	density=0;
+	p_fraction = 1.0;
+	double p_total = 0;
+
+	if (enforce==EnforceType.DENSITY)
+	{
+	    density = InputParser.getDouble("density", element);
+	    Starfish.Log.log("> density = " + density + " (#/m^3)");
+	}
+	else if (enforce==EnforceType.TOTAL_PRESSURE)
+	{
+	    p_total = InputParser.getDouble("total_pressure", element);
+	    density = p_total/(Constants.K*temperature);
+	    Starfish.Log.log("> total pressure  = " + p_total + " (Pa)");
+	}
+	else if (enforce==EnforceType.PARTIAL_PRESSURE)
+	{
+	    p_total = InputParser.getDouble("total_pressure", element);
+	    double p_partial = InputParser.getDouble("partial_pressure", element);
+	    if (p_partial>p_total)
+		Log.error("Source "+name+" partial pressure > total pressure, check inputs");
+	    p_fraction = p_partial/p_total;	  
+	    Starfish.Log.log("> partial pressure  = " + p_partial + " (Pa)");
+	    Starfish.Log.log("> total pressure  = " + p_total + " (Pa)");
+	}
 	
-	this.enforce = enforce;
-	
-	this.v_drift[0] = v_drift[0];
-	this.v_drift[1] = v_drift[1];
-	this.v_drift[2] = v_drift[2];
-	v_th = Utils.computeVth(temp, source_mat.getMass());
+	pressure = p_total;
+	v_th = Utils.computeVth(temperature, source_mat.getMass());
+	Starfish.Log.log("Added AMBIENT source '" + name + "'");
+	Starfish.Log.log("> spline  = " + boundary.getName());
+	Starfish.Log.log("> enforcing "+enforce.name());
+	Starfish.Log.log("> drift velocity  = <" + v_drift[0]+","+v_drift[1]+","+v_drift[2] + "> (m/s)");
+	Starfish.Log.log("> temperature  = " + temperature + " (K)");
+
     }
 
     /**
@@ -87,10 +121,10 @@ public class AmbientSource extends Source
 	Cell last_cell=null;
 	
 	/*excluding max to avoid setting neighbor cells*/
-	for (double t=t_tol;t<spline.numSegments()-t_tol;t+=dt)
+	for (double t=t_tol;t<boundary.numSegments()-t_tol;t+=dt)
 	{   
-	    double x[] = spline.pos(t);
-	    double normal[] = spline.normal(t);
+	    double x[] = boundary.pos(t);
+	    double normal[] = boundary.normal(t);
 	    
 	    Mesh mesh = Starfish.domain_module.getMesh(x);
 	    if (mesh == null)
@@ -114,7 +148,7 @@ public class AmbientSource extends Source
 		(last_cell.i!=ic[0] || last_cell.j!=ic[1]))
 	    {
 		/*add cell*/
-		last_cell = new Cell(ic[0],ic[1],mesh,spline,t);
+		last_cell = new Cell(ic[0],ic[1],mesh,boundary,t);
 		cells.add(last_cell);
 		Log.debug("Adding ambient cell "+ic[0]+" "+ic[1]);
 	    }
@@ -180,7 +214,7 @@ public class AmbientSource extends Source
 	    t = cell.t1+0.5*(cell.t2-cell.t1);
 	    if (c==cells.size()-1) t=cell.t1;
 	    
-	    double lc[] = cell.mesh.XtoL(spline.pos(t));
+	    double lc[] = cell.mesh.XtoL(boundary.pos(t));
 	       
 	    /*compute partial pressure, total pressure, and average temperature*/	    	
 	    for (Material mat:Starfish.getMaterialsList())
@@ -260,8 +294,8 @@ public class AmbientSource extends Source
 	/*this returns external point*/
 	double t = randomT(cell.t1, cell.t2);
 	double x[] = cell.spline.pos(t);
-	double norm[] = spline.normal(t);
-	double tang[] = spline.tangent(t);
+	double norm[] = boundary.normal(t);
+	double tang[] = boundary.tangent(t);
 	
 	/*copy values*/
 	part.pos[0] = x[0];
@@ -300,7 +334,7 @@ public class AmbientSource extends Source
 		
 	double t=-1;
 	double A;
-	double Atot = spline.stripArea(t1, t2);
+	double Atot = boundary.stripArea(t1, t2);
 	double dt = t2-t1;
 	
 	double rp, rm;
@@ -318,13 +352,13 @@ public class AmbientSource extends Source
 	    /*r compoment of position*/
 	    if (type==DomainModule.DomainType.RZ)
 	    {
-		rp = spline.pos(tp)[0];
-		rm = spline.pos(tm)[0]; 
+		rp = boundary.pos(tp)[0];
+		rm = boundary.pos(tm)[0]; 
 	    }
 	    else if (Starfish.getDomainType()==DomainModule.DomainType.ZR)
 	    {
-		rp = spline.pos(tp)[1];
-		rm = spline.pos(tm)[1]; 
+		rp = boundary.pos(tp)[1];
+		rm = boundary.pos(tm)[1]; 
 	    }
 	    else throw new UnsupportedOperationException("Unknown domain type in RandomT");
 			 
@@ -374,58 +408,8 @@ public class AmbientSource extends Source
 	@Override
 	public void makeSource(Element element, String name, Boundary boundary, Material material)
 	{
-	    /*drift velocity and temperature*/
-	    double def[] = new double[3];
-	    def[0]=def[1]=def[2]=0;
-	    double v_drift[] = InputParser.getDoubleList("drift_velocity", element,def);
-	    if (v_drift.length!=3)
-		Log.error("Ambient Source Syntax: <drift_velocity>vx,vy,vz</drift_velocity>");
-	    
-	    //temperature
-	    double temp = InputParser.getDouble("temperature", element);
-	    
-	    /*what are we enforcing?*/
-	    String val = InputParser.getValue("enforce", element,"TOTAL_PRESSURE").toUpperCase();
-	    EnforceType enforce=EnforceType.TOTAL_PRESSURE;
-	    if (val.equals("DENSITY")) enforce=EnforceType.DENSITY;
-	    else if (val.equals("TOTAL_PRESSURE") || val.equals("PRESSURE")) enforce=EnforceType.TOTAL_PRESSURE;
-	    else if (val.equals("PARTIAL_PRESSURE")) enforce = EnforceType.PARTIAL_PRESSURE;
-
-	    Starfish.Log.log("Added AMBIENT source '" + name + "'");
-	    Starfish.Log.log("> spline  = " + boundary.getName());
-	    Starfish.Log.log("> enforcing "+enforce.name());
-	    Starfish.Log.log("> drift velocity  = <" + v_drift[0]+","+v_drift[1]+","+v_drift[2] + "> (m/s)");
-	    Starfish.Log.log("> temperature  = " + temp + " (K)");
-
-	    
-	    double density=0;
-	    double p_fraction = 1.0;
-
-	    if (enforce==EnforceType.DENSITY)
-	    {
-		density = InputParser.getDouble("density", element);
-		Starfish.Log.log("> density = " + density + " (#/m^3)");
-	    }
-	    else if (enforce==EnforceType.TOTAL_PRESSURE)
-	    {
-		double p_total = InputParser.getDouble("total_pressure", element);
-		density = p_total/(Constants.K*temp);
-		Starfish.Log.log("> total pressure  = " + p_total + " (Pa)");
-	    }
-	    else if (enforce==EnforceType.PARTIAL_PRESSURE)
-	    {
-		double p_total = InputParser.getDouble("total_pressure", element);
-		double p_partial = InputParser.getDouble("partial_pressure", element);
-		if (p_partial>p_total)
-		    Log.error("Source "+name+" partial pressure > total pressure, check inputs");
-		p_fraction = p_partial/p_total;	  
-		Starfish.Log.log("> partial pressure  = " + p_partial + " (Pa)");
-		Starfish.Log.log("> total pressure  = " + p_total + " (Pa)");
-	    }
-	    
 	    /*create new source*/
-	    AmbientSource source = new AmbientSource(name, material, boundary, 
-						    enforce,temp,density,v_drift,p_fraction);    
+	    AmbientSource source = new AmbientSource(name, material, boundary, element);    
 	    boundary.addSource(source);
 	}
 	

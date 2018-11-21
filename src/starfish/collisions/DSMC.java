@@ -312,8 +312,9 @@ public class DSMC extends VolumeInteraction
 
 	    double cr_mag = mag(cr_vec);
 
-		/*eval cross section*/
-	    double sigma_cr = cr_mag*sigma.eval(cr_mag);
+	    double mr = part1.mass*part2.mass/(part1.mass+part2.mass);	//reduced mass
+	    /*eval cross section*/
+	    double sigma_cr = cr_mag*sigma.eval(cr_mag, mr);
 		
 	    if (sigma_cr>sig_cr_max)
 		sig_cr_max=sigma_cr;

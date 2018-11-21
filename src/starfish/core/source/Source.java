@@ -6,9 +6,11 @@
  * *****************************************************/
 package starfish.core.source;
 
-import starfish.core.boundaries.Spline;
+import org.w3c.dom.Element;
+import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.io.InputParser;
 import starfish.core.materials.FluidMaterial;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
@@ -20,28 +22,16 @@ public abstract class Source
 {
     /*variables*/
 
-    /**
-     *
-     */
 
     protected Material source_mat;
 
-    /**
-     *
-     */
     protected double mdot0;
 
-    /**
-     *
-     */
-    protected Spline spline;
+    protected Boundary boundary;
 
-    /**
-     *
-     */
     protected String name;
-    int start_it;
-    int end_it;
+    public int start_it;
+    public int stop_it;
     
     /*temporary implementation of a circuit model*/
 
@@ -59,57 +49,24 @@ public abstract class Source
      * @param spline
      * @param mdot
      */   
-    public Source(String name, Material source_mat, Spline spline, double mdot, int start_it){
-	    this(name, source_mat, spline, mdot, start_it,-1);
+    public Source(String name, Material source_mat, Boundary boundary, Element element)
+    {
+	this(name,source_mat,boundary);
+	start_it = InputParser.getInt("start_it", element, 0);
+	stop_it = InputParser.getInt("stop_it",element, -1);
+	/*for backwards compatibility*/
+	stop_it = InputParser.getInt("end_it",element,stop_it);
     }
-
     /**
-     *
-     * @param name
-     * @param source_mat
-     * @param spline
-     * @param mdot
-     * @param start_it
-     * @param end_it
+     * constructor without xml element
      */
-    public Source(String name, Material source_mat, Spline spline, double mdot, int start_it, int end_it)
+    public Source(String name, Material source_mat, Boundary boundary)
     {
 	this.source_mat = source_mat;
-	this.mdot0 = mdot;
-	this.spline = spline;
-	this.name = name; 
-	this.start_it = start_it;
-	this.end_it = end_it;
-    }
-
-    /**
-     * constructor for sources not associated with a spline
-     * @param name
-     * @param source_mat
-     */
-    public Source(String name, Material source_mat)
-    {
-	this(name,source_mat,null,0);
+	this.boundary = boundary;
+	this.name = name; 	
     }
     
-    /**
-     * constructor without start-it
-     * @param name
-     * @param source_mat
-     * @param mdot
-     * @param spline
-     */
-    public Source(String name, Material source_mat, Spline spline, double mdot)
-    {
-	this(name,source_mat,spline,mdot,0);
-    }
-
-    /*called by simulation after add*/
-
-    /**
-     *
-     */
-
     public void start()
     {
 	/*do nothing*/
@@ -139,8 +96,8 @@ public abstract class Source
 	return false;
     }
 
-    
-    double mdot(double time)
+    /*returns mass flow rate at the given time, to be overridden as needed*/
+    public double mdot(double time)
     {
 //	int p=(int)(time/400e-6);
 //	double t=(time-p*400e-6)/1e-6;	/*in us*/
@@ -149,8 +106,8 @@ public abstract class Source
     }
     
     /**
-     * default function to reset particle sample size, needs to be called prior
-     * to sampling source
+     * default function to reset particle sample size, called prior to sampling source
+     * this can be overridden, but the default hook should be update()
      */
     public void regenerate()
     {

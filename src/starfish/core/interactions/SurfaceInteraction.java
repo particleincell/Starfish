@@ -172,13 +172,11 @@ public class SurfaceInteraction
 	    for (int i=0;i<3;i++)
 		vel[i]=v_mag*dir_diff[i];
 	    
-	    /*if we are producing a new material, kill the source and
-	    * create new one*/
-	    if (mat_int.product_mat_index !=
-		mat_int.source_mat_index)
+	    /*if we are producing a new material, kill the source and create new one*/
+	    if (mat_int.source_mat != mat_int.product_mat && mat_int.product_km_mat!=null)
 	    {
-		ParticleListSource source = boundary.getParticleListSource(mat_int.product_mat_index);
-		source.spawnParticles(segment.pos(t_int),vel,mat_int.source_mat_index);
+		ParticleListSource source = mat_int.product_mat.getParticleListSource();
+		source.spawnParticles(segment.pos(t_int),vel,mat_int.source_km_mat);
 		return false;
 	    }
 

@@ -329,6 +329,35 @@ public abstract class Mesh
 	    for (j=0;j<nj;j++)
 		computeInterfaceNodeVol(i,j);
 	
+	/*set Dirichlet flag on mesh boundaries*/
+	for (i=0;i<ni;i++)
+	{
+	    if (boundaryData(Face.BOTTOM,i).type==DomainBoundaryType.DIRICHLET)
+	    {
+		node[i][0].type = NodeType.DIRICHLET;
+		node[i][0].bc_value = boundaryData(Face.BOTTOM,i).bc_value;
+	    }
+	    if (boundaryData(Face.TOP,i).type==DomainBoundaryType.DIRICHLET)
+	    {
+		node[i][nj-1].type = NodeType.DIRICHLET;
+		node[i][nj-1].bc_value = boundaryData(Face.TOP,i).bc_value;
+	    }
+	}
+	
+	for (j=0;j<nj;j++)
+	{
+	    if (boundaryData(Face.LEFT,j).type==DomainBoundaryType.DIRICHLET)
+	    {
+		node[0][j].type = NodeType.DIRICHLET;
+		node[0][j].bc_value = boundaryData(Face.LEFT,j).bc_value;
+	    }
+	    if (boundaryData(Face.RIGHT,j).type==DomainBoundaryType.DIRICHLET)
+	    {
+		node[ni-1][j].type = NodeType.DIRICHLET;
+		node[ni-1][j].bc_value = boundaryData(Face.RIGHT,j).bc_value;
+	    }
+	}
+	
     }
    
     /**sets neighbors boundary cells*/
@@ -592,7 +621,7 @@ public abstract class Mesh
 		case 0: i=i0-delta;j=j0-delta;break;	//bottom left
 		case 1: i=i0+delta;j=j0-delta;break;	//bottom right
 		case 2: i=i0+delta;j=j0+delta;break;		//top right
-		case 3: i=i0-delta;j=j0-delta;break;		//top left
+		case 3: i=i0-delta;j=j0+delta;break;		//top left
 	    }
 	    
 	    //first check for mesh boundaries
@@ -887,10 +916,11 @@ public abstract class Mesh
      * @param include_ghosts if true will include ghost node positions on mesh boundaries
      * @return volume for node i,j
      */
+    final double XY_depth = 1;	//this is the z-dimension of XY cells used for cell volume calculation
     public double nodeVol(double i0,double j0, boolean include_ghosts)
     {
 	if (domain_type==DomainType.XY)
-		return 1e-3*area(i0,j0);    //TODO: need better way to set domain width to simplify comparison of RZ to XY
+		return XY_depth*area(i0,j0);    //TODO: need better way to set domain width to simplify comparison of RZ to XY
 	
 	/*axisymmetric mesh*/
 	

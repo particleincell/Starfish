@@ -5,7 +5,7 @@
  * Starfish.java and the LICENSE file
  * *****************************************************/
 
-package starfish.pic;
+package starfish.core.materials;
 
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
@@ -24,16 +24,18 @@ public class FluidElectronsMaterial extends Material
      */
     public FluidElectronsMaterial(int index, String name) 
     {
-	super(name, Constants.ME/Constants.AMU, -1, false);
+	super(name);
+	charge = -Constants.QE;
+	mass = Constants.ME;
+	frozen = false;
+	
     }
 
     @Override
     public void init()
     {
 	super.init();
-	//this.getDenCollection().setValue(Starfish.solver_module.getSolver().den0);
-	this.getDenCollection().setValue(2e16);
-	
+	this.getDenCollection().setValue(Starfish.solver_module.getSolver().den0);
 	this.getTempCollection().setValue(Starfish.solver_module.getSolver().kTe0/Constants.KtoEV);
     }
 	

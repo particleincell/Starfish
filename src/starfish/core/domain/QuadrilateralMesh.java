@@ -57,6 +57,10 @@ public class QuadrilateralMesh extends Mesh
 	setPos(ipos,jpos);
     }
 	
+    public QuadrilateralMesh (int ni, int nj, double ipos[][], double jpos[][], String name, DomainType domain_type)
+    {
+	this(new int[]{ni,nj}, ipos, jpos,name,domain_type); 
+    }
     /**
      * Constructor
      * @param name mesh name
@@ -87,9 +91,6 @@ public class QuadrilateralMesh extends Mesh
 	    System.arraycopy(ipos[i],0, IPOS[i], 0, nj);
 	    System.arraycopy(jpos[i],0, JPOS[i], 0, nj);	    
 	}
-
-	/*compute positions of ghost nodes*/
-	computeGhostNodePositions();
 	
 	/*allocate memory for coefficients*/
 	alpha = new double[ni-1][nj-1][4];
@@ -359,13 +360,6 @@ public class QuadrilateralMesh extends Mesh
     public double[] faceNormal(Face face, double[] pos)
     {
 	throw new UnsupportedOperationException("Not supported yet."); 
-    }
-
-    /*computes positions of ghost nodes by interpolating internal nodes*/
-    private void computeGhostNodePositions()
-    {
-	Log.error("Not yet implemented!");
-	
     }
 
 }

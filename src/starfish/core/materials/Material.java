@@ -10,6 +10,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.Field1D;
 import starfish.core.boundaries.FieldCollection1D;
@@ -25,6 +26,8 @@ import starfish.core.domain.FieldManager2D;
 import starfish.core.domain.Mesh;
 import starfish.core.interactions.MaterialInteraction;
 import starfish.core.common.Vector;
+import starfish.core.io.InputParser;
+import starfish.core.source.ParticleListSource;
 
 /**
  * Basic definition of a material
@@ -32,63 +35,44 @@ import starfish.core.common.Vector;
 public abstract class Material
 {
 
-    /**
-     *
-     */
     public int mat_index;	/*material index*/
 
-    /**
-     *
-     */
     public double mass;		/*molecular weight in kg*/
-
-    /**
-     *
-     */
-    public double density;		/*density in kg/m^3*/
-
-    /**
-     *
-     */
-    public double charge;
-
-    /**
-     *
-     */
+    public double density;	    /*density in kg/m^3*/
+    public double charge;	    /*charge in C*/ 
+    public double work_function;    /*material work function in J*/
+    public double p_vap_coeffs[];   /*vaporization pressure coefficients, log10(P) = A + B/T + C*log10(T) */
     public double q_over_m;
-    
-    /*data for DSMC*/
-
-    /**
-     *
-     */
-
-    public double diam;
-
-    /**
-     *
-     */
-    public double ref_temp;
-
-    /**
-     *
-     */
-    public double visc_temp_index;
-
-    /**
-     *
-     */
-    public double vss_alpha;
-    
-    /**
-     *
-     */
-    public String name;		/*material name*/
-    
-    /**
-     *
-     */
+    public String name;		/*material name*/ 
     public boolean frozen;	//update will be skipped if true
+    ParticleListSource particle_list_source;	//storage for particles to create later
+    
+     /**
+     * Constructor
+     * @param name  material name
+     * @param element XML element containing material definition
+     */
+    public Material(String name, Element element)
+    {
+	this(name);
+	charge = InputParser.getDouble("charge", element)*Constants.QE;
+	mass = InputParser.getDouble("molwt", element)*Constants.AMU;
+	frozen = InputParser.getBoolean("frozen", element, false);
+	work_function = InputParser.getDouble("work_function",element, 0.0)*Constants.EVtoJ;
+	double def[] = {0.0, 0.0, 0.0};
+	p_vap_coeffs = InputParser.getDoubleList("p_vap_coeffs", element, def);
+    }
+    
+    /**
+     * Constructor for materials not built from XML data
+     * @param name 
+     */
+    public Material(String name)
+    {
+	this.name = name;
+	mat_index = Starfish.getMaterialsList().size();
+    }
+
 
     /**
      *
@@ -99,6 +83,16 @@ public abstract class Material
 	return name;
     }
 
+    public double getWorkFunction()
+    {
+	return work_function;
+    }
+
+    /**
+     * @return reference to the active particle list source
+     */
+    public ParticleListSource getParticleListSource() {return particle_list_source;}
+    
     /**
      *
      */
@@ -200,35 +194,7 @@ public abstract class Material
 	return total_momentum;
     }
 
-    /**
-     *
-     * @param name
-     * @param mass
-     */
-    public Material(String name, double mass)
-    {
-	this(name, mass, 0, false);
-    }
-
-    /**
-     *
-     * @param name
-     * @param mass
-     * @param charge
-     * @param frozen
-     */
-    public Material(String name, double mass, double charge, boolean frozen)
-    {
-	this.mat_index = Starfish.getMaterialsList().size();
-	this.name = name;
-	this.mass = mass * Constants.AMU;  /*from AMU to kg*/
-	this.frozen = frozen;
-
-	/*save properties*/
-	this.charge = charge * Constants.QE;	    /*from e to C*/
-	this.q_over_m = this.charge / this.mass;
-    }
-    
+  
     /**
      *
      */
@@ -447,6 +413,15 @@ public abstract class Material
     {
 	return field_manager2d.getFieldCollection("p");
     }
+    
+    /**
+     * 
+     * @return filed collection storing number density delta "dn" for chemical reactions
+     */
+    public FieldCollection2D getDeltaNCollection()
+    {
+	return field_manager2d.getFieldCollection("delta_n");
+    }
 
     /**
      *
@@ -548,6 +523,16 @@ public abstract class Material
 	return getPressureCollection().getField(mesh);
     }
 
+    /**
+     * 
+     * @param mesh mesh for the data
+     * @return chemical reaction "delta n"
+     */
+    public Field2D getDeltaN(Mesh mesh)
+    {
+	return getDeltaNCollection().getField(mesh);
+    }
+    
     /**
      *
      * @return
@@ -681,7 +666,9 @@ public abstract class Material
      */
     public void init()
     {
-
+	/*compute additional data*/
+	this.q_over_m = this.charge / this.mass;
+	
 	/*create a new field manager*/
 	field_manager2d = new FieldManager2D(Starfish.getMeshList());
 	field_manager1d = new FieldManager1D(Starfish.getBoundaryList());
@@ -691,6 +678,9 @@ public abstract class Material
 	field_manager2d.add("u", "m/s", init_vals.u,null);
 	field_manager2d.add("v", "m/s", init_vals.v,null);
 	field_manager2d.add("w", "m/s", init_vals.v,null);
+	
+	/*fields capturing changes in mass (and eventually momentum and energy) from chem. reactions*/
+	field_manager2d.add("delta_n","#/m^3/s",0,null);
 	
 	/*average data*/
 	field_manager2d.add("u-ave","m/s",null);
@@ -713,6 +703,10 @@ public abstract class Material
 	    Field2D den = getDen(mesh);
 	    den.add(init_vals.nd_back);
 	}
+	
+	/*generate particle list source*/
+	particle_list_source = new ParticleListSource(this);
+	Starfish.source_module.addVolumeSource(particle_list_source);
     }
 
     void addSurfaceMomentum(Boundary boundary, double spline_t, double vel[], double spwt)

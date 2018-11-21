@@ -5,10 +5,10 @@
  * Starfish.java and the LICENSE file
  * *****************************************************/
 
-/** \page sources Sources
+/** sources Sources
  * 
  * Sources contain
- * \subpage MaxwellianSource
+ * 
  * 
  */
 package starfish.core.source;
@@ -30,7 +30,10 @@ import starfish.core.io.LoggerModule.Level;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
 import starfish.sources.CosineSource;
+import starfish.sources.ThermionicEmissionSource;
 import starfish.sources.UniformSource;
+import starfish.sources.VaporizationSource;
+import starfish.sources.VolumeMaxwellianSource;
 
 /** Handles &lt; source\ &gt; command */
 public class SourceModule extends CommandModule
@@ -53,9 +56,12 @@ public class SourceModule extends CommandModule
 	registerSurfaceSource("MAXWELLIAN",MaxwellianSource.maxwellianSourceFactory);
 	registerSurfaceSource("AMBIENT",AmbientSource.ambientSourceFactory);
 	registerSurfaceSource("COSINE",CosineSource.cosineSourceFactory);
-	
+	registerSurfaceSource("THERMIONIC",ThermionicEmissionSource.thermionicEmissionSource);
+	registerSurfaceSource("VAPORIZATION",VaporizationSource.vaporizationSource);
+		
 	/*volume sources*/
 	registerVolumeSource("PRELOAD",VolumePreloadSource.preloadSourceFactory);
+	registerVolumeSource("MAXWELLIAN",VolumeMaxwellianSource.volumeMaxwellianSourceFactory);
     }
 
     @Override
@@ -208,9 +214,6 @@ public class SourceModule extends CommandModule
 	{
 	    Log.error("Unknown flying material for source " + name);
 	}
-
-	/*get boundary for boundary source*/
-	String boundary_name = null;
 	
 	/*create source*/
 	VolumeSourceFactory fac = volume_source_factories.get(type.toUpperCase());
@@ -235,7 +238,7 @@ public class SourceModule extends CommandModule
 		
 		//if (source instanceof ParticleListSource) continue;
 		if (Starfish.getIt()<source.start_it ||
-		    source.end_it>=0 && Starfish.getIt()>source.end_it) continue;
+		    source.stop_it>=0 && Starfish.getIt()>source.stop_it) continue;
 		
 		//circuit to model to inject electrons lost to the wall
 		int num_mp_delta = 0;
