@@ -76,8 +76,10 @@ public class MaterialSolidModel extends DefaultTableModel {
      * @param rowData
      */
     public void addRowChangeStarfish(Object[] rowData) {
+	/*
 		SolidMaterial material = new SolidMaterial(rowData[0].toString(), Double.valueOf(rowData[1].toString()));
 		Starfish.materials_module.getMaterialsList().add(material);
+	*/
 		super.addRow(rowData);
 	}
 	

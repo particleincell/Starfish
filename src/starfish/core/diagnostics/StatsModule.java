@@ -59,7 +59,7 @@ public class StatsModule extends CommandModule
 		pw.printf(",mp.%s",mat.name);
 	    }
 	}
-	pw.printf(",Ib");
+
 	pw.printf("\n");
     }
 

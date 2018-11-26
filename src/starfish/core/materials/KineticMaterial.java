@@ -41,7 +41,11 @@ public class KineticMaterial extends Material
     public double ref_temp;
     public double visc_temp_index;
     public double vss_alpha;
-
+   
+    int particle_merge_skip;	    //number of time steps between particle merges, on -1 to disable
+    int vel_grid_dims[];	    //number of velocity bins in (u,v,w) spanning the min/max of each
+    int last_sort_to_cell_it;	    //time step of the last sort to cells
+    
     public KineticMaterial(String name, Element element)
     {
 	super(name, element);
@@ -54,6 +58,15 @@ public class KineticMaterial extends Material
 	visc_temp_index = InputParser.getDouble("visc_temp_index",element,0.85);
 	vss_alpha = InputParser.getDouble("vss_alpha",element,1);
 	diam = InputParser.getDouble("diam",element,5e-10);
+	
+	/*support for particle merging*/
+	particle_merge_skip = InputParser.getInt("particle_merge_skip", element,-1);
+	if (particle_merge_skip>0)
+	{
+	    vel_grid_dims = InputParser.getIntList("vel_grid_dims", element); 
+	    if (vel_grid_dims.length!=3)
+		Log.error("vel_grid_dims must specify 3 integers");
+	}
 	
 	/*log*/
 	Log.log("Added KINETIC material '"+name+"'");
@@ -125,8 +138,7 @@ public class KineticMaterial extends Material
     
     @Override
     public void updateFields()
-    {
-	
+    {	
 	/*sampling before pushing particles to include contribution from sources*/
 	/*reset sampling when we reach steady state*/
 	if (Starfish.steady_state() && !steady_state)
@@ -160,6 +172,14 @@ public class KineticMaterial extends Material
 	}	
 	if (count>0) Log.warning("Failed to transfer all particles between domains!");
 		
+	/*merge particles if needed, this also sorts particles to cells*/
+	if (particle_merge_skip>0 &&  Starfish.getIt()%particle_merge_skip == 0)
+	{
+	    Log.log("Performing particle merge");
+	    for (MeshData md:mesh_data)
+		mergeParticles(md);
+	}
+	
 	/*update densities and velocities*/
 	for (MeshData md : mesh_data)
 	{
@@ -278,9 +298,14 @@ public class KineticMaterial extends Material
 	    while (iterator.hasNext())
 	    {
 		Particle part = iterator.next();
+		
+		/*trim any dead particles*/
+		if (part.spwt<=0) 
+		{
+		    iterator.remove();
+		    continue;
+		}
 
-		if (!Vector.isFinite(part.vel) || !Vector.isFinite(part.pos))
-		    part=part;
 		
 		/*increment particle time and velocity*/
 		if (!particle_transfer)
@@ -795,6 +820,15 @@ public class KineticMaterial extends Material
 	return addParticle(md, new Particle(pos, vel, spwt0, this));
     }
 
+    /**
+     * Kills particle by setting its weight to zero, will be actually removed on subsequent pass
+     * @param part particle to remove
+     */
+    public void removeParticle(Particle part)
+    {
+	part.spwt = 0;
+    }
+    
     private void UpdateVelocityBoris(Particle part, double[] E, double[] B)
     {
 	double v_minus[] = new double[3];
@@ -886,6 +920,7 @@ public class KineticMaterial extends Material
 		out.writeDouble(part.spwt);
 		out.writeDouble(part.mass);
 		out.writeInt(part.born_it);
+		out.writeLong(part.id);		
 	    }
 	    
 	    /*next save fields*/
@@ -938,6 +973,7 @@ public class KineticMaterial extends Material
 		part.spwt = in.readDouble();
 		part.mass = in.readDouble();
 		part.born_it = in.readInt();
+		part.id = in.readLong();
 
 		addParticle(md,part);
 	    }
@@ -963,6 +999,190 @@ public class KineticMaterial extends Material
 	}		
     }
 
+    /**uses the algorithm from Justin Fox' dissertation to merge particles
+     * @param md mesh to apply the merge to
+     * 
+     */
+    void mergeParticles(MeshData md)
+    {
+	/*first sort particles to physical cells*/
+	sortParticlesToCells(md);
+	for (int i=0;i<md.mesh.ni;i++)
+	    for (int j=0;j<md.mesh.nj;j++)
+	    {
+		/*don't sort if less than 10 particles*/
+		if (md.cell_data[i][j].parts_in_cell.size()>=10)
+		    mergeParticlesInCell(md,i,j);
+	    }
+	
+	//invalidate sort since now have new particles
+	last_sort_to_cell_it = -1;
+		
+    }
+    
+    /**performs the actual merge in a single physical cell
+     * 
+     * @param md mesh to apply the merge to
+     * @param i cell i-index
+     * @param j cell j-index
+     */
+    void mergeParticlesInCell(MeshData md, int i, int j)
+    {
+	/*create velocity grid*/
+	Mesh mesh = md.mesh;
+
+	/*don't do anything if we have fewer than 10 particles*/
+	LinkedList<Particle> parts_in_cell = md.cell_data[i][j].parts_in_cell;
+	
+	double vel_min[] = new double[3];
+	double vel_max[] = new double[3];
+
+	/*initialize limits to first particle*/
+	Particle part0 = parts_in_cell.get(0);
+	for (int d=0;d<3;d++)
+	{
+	    vel_min[d] = part0.vel[d];
+	    vel_max[d] = part0.vel[d];
+	}
+	
+	/*allocate velocity grid*/
+	int nu = vel_grid_dims[0];  //to save on typing
+	int nv = vel_grid_dims[1];
+	int nw = vel_grid_dims[2];
+	
+	CellData vel_cell_data[][][] = new CellData[nu][nv][nw];
+	for (int iu=0;iu<nu;iu++)
+	    for (int iv=0;iv<nv;iv++)
+		for (int iw=0;iw<nw;iw++)
+		{
+		    vel_cell_data[iu][iv][iw] = new CellData();
+		}
+	
+	/*get velocity limits*/
+	for (Particle part:parts_in_cell)
+	{
+	    for (int d=0;d<3;d++)
+	    {
+		if (part.vel[d]<vel_min[d])
+		    vel_min[d] = part.vel[d];
+		if (part.vel[d]>vel_max[d])
+		    vel_max[d] = part.vel[d];
+	    }
+	}
+	double du[] = new double[3];
+	for (int d=0;d<3;d++)
+	    du[d] = (vel_max[d]-vel_min[d])/vel_grid_dims[d];
+
+	/*sort particles to velocity grid*/
+	for (Particle part:parts_in_cell)
+	{
+	    int ui[] = new int[3];
+	    for (int d=0;d<3;d++)
+	    {
+		ui[d] = (int)((part.vel[d]-vel_min[d])/du[d]);
+		if (ui[d]<0) ui[d] = 0;
+		if (ui[d]>=vel_grid_dims[d]) ui[d]=vel_grid_dims[d]-1;
+	    }
+	   
+	    vel_cell_data[ui[0]][ui[1]][ui[2]].parts_in_cell.add(part);
+	}
+	
+	/*now loop through velocity grid, replacing particles*/
+	for (int iu=0;iu<nu;iu++)
+	    for (int iv=0;iv<nv;iv++)
+		for(int iw=0;iw<nw;iw++)
+		{
+		   LinkedList<Particle> vel_parts_in_cell = vel_cell_data[iu][iv][iw].parts_in_cell;
+		   if (vel_parts_in_cell.size()<=2) continue; //need at least two particles
+		    
+		    /*compute total weight, average velocity, and variance per Fox' disseration*/
+		    double n0 = 0;  //total weight;
+		    double p0[] = new double[3];    //average velocity
+		    double t0[] = new double[3];    //variance
+		    double x0[] = new double[3];    //average position
+		    
+		    /*first compute n0 and accumulate data for p0 and t0*/
+		    for (Particle part:vel_parts_in_cell)
+		    {
+		    	n0 += part.spwt;
+			for (int d=0;d<3;d++)
+			{
+			    p0[d] += part.spwt*part.vel[d];
+			    t0[d] += part.spwt*part.vel[d]*part.vel[d];
+			    x0[d] += part.spwt*part.pos[d];
+			}
+		    }
+		    
+		    /*finish computations, based on my AdvPIC Lesson 2 slides*/
+		    for(int d=0;d<3;d++)
+		    {
+			p0[d] /= n0;	    //average velocity
+			t0[d] = t0[d]/n0 - p0[d]*p0[d];
+			x0[d] /= n0;	    //average position;
+		    }
+
+		    /*add two new particles corresponding to the vel cell population*/
+		    double w = 0.5*n0;	    //each particle gets half weight;
+		    double vel1[] = new double[3];
+		    double vel2[] = new double[3];
+		    for (int d=0;d<3;d++)
+		    {
+			vel1[d] = p0[d] + Math.sqrt(t0[d]);
+			vel2[d] = p0[d] - Math.sqrt(t0[d]);
+		    }
+		    Particle part1 = new Particle(x0, vel1, w, this);
+		    Particle part2 = new Particle(x0, vel2, w, this);
+		    
+		    this.addParticle(part1);
+		    this.addParticle(part2);
+		    
+		    /*destroy old particles in the vel cell*/
+		    for (Particle part:vel_parts_in_cell)
+			removeParticle(part);
+		}
+	
+	
+	
+    }
+    
+    /** sorts particles to cell
+     * 
+     * @param md mesh to apply to 
+     */
+    public void sortParticlesToCells(MeshData md)
+    {
+	Mesh mesh = md.mesh;
+	last_sort_to_cell_it = Starfish.getIt();
+	
+	/*allocate data structure on first call*/
+	if (md.cell_data==null)
+	{
+	    md.cell_data = new CellData[mesh.ni][mesh.nj];
+	    for (int i=0;i<mesh.ni;i++)
+		for (int j=0;j<mesh.nj;j++)
+		    md.cell_data[i][j] = new CellData();
+	}
+
+	/*cleanup*/
+	for (int i=0;i<md.mesh.ni-1;i++)
+	    for (int j=0;j<mesh.nj-1;j++)
+	    {
+		md.cell_data[i][j].parts_in_cell.clear();
+	    }
+	
+	/*sort particles into cell*/
+	Iterator<Particle> src_iterator = getIterator(mesh);
+	while (src_iterator.hasNext())
+	{
+	    Particle part = src_iterator.next();
+	    int i=(int)part.lc[0];
+	    int j=(int)part.lc[1];
+	    if (i>=mesh.ni-1 || j>=mesh.nj-1) continue;	//boundary source can create particles on mesh edge
+	    md.cell_data[i][j].parts_in_cell.add(part);
+	   
+	}
+    }
+    
     /**returns particle with i
      * @param id
      * @return d*/
@@ -1091,6 +1311,12 @@ public class KineticMaterial extends Material
     }
 
 
+    /*list of particles in each cell*/
+    public class CellData	    //class to avoid generic array creation
+    {
+        LinkedList<Particle> parts_in_cell = new LinkedList<Particle>();
+    }
+	
     /**
      * particle data structure
      */
@@ -1126,6 +1352,8 @@ public class KineticMaterial extends Material
 	Mesh mesh;
 	Field2D Efi, Efj;
 	Field2D Bfi, Bfj;
+	
+	CellData[][] cell_data;
 	
 	ParticleBlock particle_block[];
 	ParticleBlock transfer_block[];	/*particles transferred into this mesh from a neighboring one during the transfer*/
