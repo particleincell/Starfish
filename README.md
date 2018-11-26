@@ -1,7 +1,7 @@
 [![GitHub forks](https://img.shields.io/github/forks/particleincell/Starfish-LE.svg)](https://github.com/particleincell/Starfish-LE/network)
 [![Twitter Follow](https://img.shields.io/twitter/follow/espadrine.svg?style=social&label=Follow)](https://twitter.com/particleincell)
 
-# Starfish-LE
+# Starfish
 ![Starfish logo](starfish.png)
 
 [Starfish](https://www.particleincell.com/starfish) is a 2D (Cartesian or axisymmetric) code for simulating a wide range of plasma and gas problems.
