@@ -476,4 +476,15 @@ public class Vector
 		return false;
 	return true;
     }
+
+    /** sets all values to s
+     * 
+     * @param vec vector to set
+     * @param s scalar value
+     */
+    public static void set(double[] vec, double s)
+    {
+	for (int i=0;i<vec.length;i++)
+	    vec[i] = s;
+    }
 }

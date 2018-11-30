@@ -288,10 +288,10 @@ public class InputParser implements Iterable
      * @param default_value
      * @return
      */
-    public static int[] getIntegerList(String key, Element element, int[] default_value)
+    public static int[] getIntList(String key, Element element, int[] default_value)
     {
 	try {
-	    return getIntList(key,element);
+	    return InputParser.getIntList(key,element);
 	}
 	catch (NoSuchElementException e)
 	{

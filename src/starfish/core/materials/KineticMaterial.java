@@ -147,23 +147,16 @@ public class KineticMaterial extends Material
 		clearSamples(md);
 	    steady_state=true;
 	}
-
-	total_momentum = 0;
+	
 	/*first loop through all particles*/
-	for (MeshData md : mesh_data)
-	{
-	    moveParticles(md, false);
-	}
-
+	moveParticles(false);
+	
 	/*now move transferred particle*/
 	//some number of loops so we don't run forever
 	int count=0;
 	for (int loop=0;loop<10;loop++)
 	{
-	    for (MeshData md : mesh_data)
-	    {	    
-		moveParticles(md, true);
-	    }
+	    moveParticles(true);
 	    
 	    //count number of remaining particles waiting to transfer, ideally none
 	    count=0;
@@ -188,9 +181,6 @@ public class KineticMaterial extends Material
 	
 	/*update velocity moments, num_samples moved out for multi-domain cases*/	
 	updateGasProperties();
-	
-	/*scale momentum by mass*/
-	total_momentum *= mass;
 	
 	/*apply boundaries*/
 	updateBoundaries();
@@ -235,18 +225,60 @@ public class KineticMaterial extends Material
     }
 
     /*updates field on a single mesh*/
-    void moveParticles(MeshData md, boolean particle_transfer)
+    void moveParticles(boolean particle_transfer)
     {	
-	for (int block=0;block<md.particle_block.length;block++)
+	/*allocate iterators*/
+	ArrayList<ParticleMover> movers = new ArrayList();
+	
+	for (MeshData md:mesh_data)
 	{
-	    Iterator<Particle> iterator;
+	    for (int block=0;block<md.particle_block.length;block++)
+	    {
+		Iterator<Particle> iterator;
 	    
-	    if (!particle_transfer) iterator=md.getIterator(block);
-	    else iterator=md.getTransferIterator(block);
+		if (!particle_transfer) iterator=md.getIterator(block);
+		else iterator=md.getTransferIterator(block);
 	    
-	    ParticleMover mover = new ParticleMover(md,iterator,particle_transfer,"PartMover"+block);  
-	    mover.run();
-	}	
+		/*don't bother adding empty blocks*/
+		if (iterator.hasNext())
+		{
+		    ParticleMover mover = new ParticleMover(md,iterator,particle_transfer,"PartMover"+block);  
+		    movers.add(mover);
+		}
+	   }
+	}
+	
+	/*move particles*/
+	for (ParticleMover mover:movers)	    
+	    mover.start();
+	
+	/*wait to finish*/	
+	try
+	{
+	    for (ParticleMover mover:movers)	    
+		mover.join();
+	} catch (InterruptedException ex)
+	{
+	    Log.warning("Particle Mover thread interruption");
+	}
+	
+	/*add up totals*/
+	if (!particle_transfer)
+	{
+	    mass_sum = 0;
+	    Vector.set(momentum_sum,0);
+	    energy_sum = 0;
+
+	    for (ParticleMover mover:movers)
+	    {
+		mass_sum += mover.N_sum*mass;
+		momentum_sum[0] += mover.P_sum[0]*mass;
+		momentum_sum[1] += mover.P_sum[1]*mass;
+		momentum_sum[2] += mover.P_sum[2]*mass;
+		energy_sum += mover.E_sum*mass;
+	    }
+	}
+	
     }
 
     /*returns a particle iterator that iterates over all blocks*/
@@ -269,7 +301,10 @@ public class KineticMaterial extends Material
 	protected MeshData md;
 	protected Iterator<Particle> iterator;
 	protected boolean particle_transfer;
-
+	double N_sum;	    //total number of physical particles
+	double P_sum[] = new double[3];	    //total momentum
+	double E_sum;	    //total energy
+	
 	private ParticleMover(MeshData md, Iterator<Particle> iterator, boolean particle_transfer, String thread_name)
 	{
 	    super(thread_name);
@@ -277,6 +312,9 @@ public class KineticMaterial extends Material
 	    this.md=md;
 	    this.iterator = iterator;
 	    this.particle_transfer=particle_transfer;
+	    N_sum = 0;	    //clear sums
+	    Vector.set(P_sum, 0);
+	    E_sum = 0;
 	}
 	
 	@Override
@@ -333,12 +371,7 @@ public class KineticMaterial extends Material
 	    
 		int bounces = 0;
 		boolean alive = true;
-		
-		if (!Vector.isFinite(part.vel) || !Vector.isFinite(part.pos))
-		    part=part;
-		if (part.id==4180 && Starfish.getIt()==2093)
-		    part.id=part.id;
-
+				
 		/*iterate while we have time remaining*/
 		while (part.dt > 0 && bounces++ < max_bounces)
 		{
@@ -393,26 +426,33 @@ public class KineticMaterial extends Material
 
 		} /*dt*/
 	    
+		/*compute total mass, momentum, energy for this block of particles
+		  note, here I am also including particles eventually going to the transfer
+		  bin. If we ever need particle counts on a mesh-by-mesh basis, we may
+		  need to perform this calculation post-transfer.*/
+		if (alive) 
+		{
+		    /*save momentum for diagnostics, will be multiplied by mass in updatefields*/
+		    N_sum += part.spwt;
+		    P_sum[0] += part.spwt*part.vel[0];
+		    P_sum[1] += part.spwt*part.vel[1];
+		    P_sum[2] += part.spwt*part.vel[2];
+		    E_sum += part.spwt*Vector.mag3(part.vel);		    
+		}
+		
 		/*TODO: bottleneck since only one thread can access at once*/
-		/*scatter data*/
-		if (alive)
+		if (alive && particle_transfer)
 		{		
 		    synchronized(this){
 
-		    /*also add to the main list if transfer*/
-		    if (particle_transfer)
-		    {
 			md.addParticle(part);
-			iterator.remove();
-		    }
-
-		    /*save momentum for diagnostics, will be multiplied by mass in updatefields*/
-		    total_momentum += part.spwt * Vector.mag2(part.vel);
+			iterator.remove();			
 		    }
 		}
+				
 	    }	/*end of particle loop*/
 	}
-
+	
 	private void rotateToRZ(Particle part)
 	{    
 	    /*movement in R plane*/
@@ -1433,7 +1473,6 @@ public class KineticMaterial extends Material
      */
     public class ParticleBlock
     {
-
 	/**
 	 *
 	 */

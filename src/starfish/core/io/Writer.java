@@ -284,7 +284,7 @@ public abstract class Writer
     {
 	/*update average data, this is needed mainly to capture anything if not yet at steady state,
 	 true parameter to force sampling even if not yet in steady state*/
-	Starfish.averaging_module.sample(true);
+	//Starfish.averaging_module.sample(true);
 	
 	switch (output_type)
 	{

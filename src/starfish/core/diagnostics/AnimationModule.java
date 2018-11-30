@@ -18,60 +18,57 @@ import starfish.core.io.Writer;
 /** animation support */
 public class AnimationModule extends CommandModule 
 {
-    class AnimData
+    public class Animation implements DiagnosticsModule.Diagnostic
     {
 	int start_it=0;
 	int frequency=0;
 	ArrayList<Writer> writer_list = new ArrayList<Writer>();
 	Element output_list[];
 	boolean first_time = true;
-    }
 	
-    ArrayList<AnimData> anim_data = new ArrayList<AnimData>();
+	public Animation(Element element)
+	{
+	    start_it = InputParser.getInt("start_it", element);
+	    frequency = InputParser.getInt("frequency", element);		
+	    output_list = InputParser.getChildren("output", element);    
+	}
 	
+	/*writes out new animation file*/
+	@Override
+	public void sample(boolean force) 
+	{
+	    int it = Starfish.getIt();
+
+	    if (force || (it>= start_it && (it-start_it)%frequency==0))
+	    {
+		if (first_time)
+		{
+		    for (Element output:output_list)
+			writer_list.add(OutputModule.createWriter(output));
+		    first_time=false;
+		}
+
+		    for (Writer writer:writer_list)
+			writer.write(true);
+	    }
+	}	
+
+	/*closes files*/
+	@Override
+	public void exit()
+	{
+	    for (Writer writer:writer_list)
+		writer.close();
+	}
+    };	//animation
+
+    	
     @Override
     public void process(Element element) 
     {
-	/*create new data*/
-	AnimData data = new AnimData();
-		
-	data.start_it = InputParser.getInt("start_it", element);
-	data.frequency = InputParser.getInt("frequency", element);
-		
-	 data.output_list = InputParser.getChildren("output", element);
-	 anim_data.add(data);
-    }
-
-    /**
-     *
-     */
-    public void save() 
-    {
-	int it = Starfish.getIt();
-		
-	for (AnimData data:anim_data)
-	{
-	    if (it>= data.start_it && (it-data.start_it)%data.frequency==0)
-	    {
-		if (data.first_time)
-		{
-		    for (Element output:data.output_list)
-			data.writer_list.add(OutputModule.createWriter(output));
-		    data.first_time=false;
-		}
-		
-		for (Writer writer:data.writer_list)
-		    writer.write(true);
-	    }
-	}		
-    }
-
-    @Override 
-    public void exit()
-    {
-	for (AnimData data:anim_data)
-	    for (Writer writer:data.writer_list)
-		writer.close();
+	/*create new animation*/
+	Animation anim = new Animation(element);
+	Starfish.diagnostics_module.addDiagnostic(anim);
     }
 	
 }

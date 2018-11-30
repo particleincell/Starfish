@@ -75,8 +75,8 @@ public class DomainModule extends CommandModule
 	}
 	
 	/*also check for average, now only for non-species data*/	
-	if (base.toLowerCase().matches("(.*)-ave"))
-	    return Starfish.averaging_module.getFieldCollection(var_name);
+//	if (base.toLowerCase().matches("(.*)-ave"))
+//	    return Starfish.averaging_module.getFieldCollection(var_name);
 	
 	return field_manager.getFieldCollection(var_name);
     }
@@ -96,8 +96,8 @@ public class DomainModule extends CommandModule
      */
     public void addMesh(Mesh mesh) {mesh_list.add(mesh);}
 	
-    /**returns the mesh containing the point x or nul
-     * @param xl
+    /**returns the mesh containing the point x or null
+     * @param s
      * @return */
     public Mesh getMesh(double x[])
     {

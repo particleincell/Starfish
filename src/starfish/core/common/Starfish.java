@@ -29,18 +29,18 @@ package starfish.core.common;
  *    prior approval of the copyright holder.
  */
 
-import gui.GUI;
 import java.awt.GraphicsEnvironment;
 import java.io.Console;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.*;
-import javax.swing.SwingUtilities;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.BoundaryModule;
 import starfish.core.diagnostics.AnimationModule;
 import starfish.core.diagnostics.AveragingModule;
-import starfish.core.diagnostics.ParticleTraceModule;
+import starfish.core.diagnostics.DiagnosticsModule;
+import starfish.core.diagnostics.ParticleTracer;
+import starfish.core.diagnostics.SampleVDFModule;
 import starfish.core.diagnostics.StatsModule;
 import starfish.core.domain.DomainModule;
 import starfish.core.domain.Field2D;
@@ -89,11 +89,8 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	    /*save restart data*/
 	    restart_module.save();
 
-	    /*save animations*/
-	    animation_module.save();
-
-	    /*save average data*/
-	    averaging_module.sample();
+	    /*process all diagnostics*/
+	    diagnostics_module.sampleAll(false);	    
 	    
 	    /*screen and file output*/
 	    stats_module.printStats();	    
@@ -102,12 +99,9 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	    time_module.advance();	 
 	}/*end of main loop*/
 		
-	/*save average data*/
-	averaging_module.sample();
-			
 	/*check if we have reached the steady state*/
 	if (!time_module.steady_state)
-	    Log.warning("The simulation failed to reach steady state!");	
+	    Log.warning("The simulation failed to reach steady state!");
     }
 
     /**
@@ -243,22 +237,14 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     /**
      *
      */
-    public static AnimationModule animation_module;
-
-    /**
-     *
-     */
-    public static AveragingModule averaging_module;
-
-    /**
-     *
-     */
-    public static ParticleTraceModule particle_trace_module;
+    public static ParticleTracer particle_trace_module;
 
     /**
      *
      */
     public static StatsModule stats_module;
+    
+    public static DiagnosticsModule diagnostics_module;
 
     /*iterable list of registered modules, using LinkedHashMap to get predictable ordering*/
     static LinkedHashMap<String,CommandModule> modules = new LinkedHashMap<String,CommandModule>();
@@ -532,20 +518,24 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	modules.put("starfish", this);
 
 	/*particle tracing*/
-	particle_trace_module = new ParticleTraceModule();
+	particle_trace_module = new ParticleTracer();
 	modules.put("particle_trace", particle_trace_module);
 
 	/*animation*/
-	animation_module = new AnimationModule();
-	modules.put("animation", animation_module);
+	modules.put("animation", new AnimationModule());
 
 	/*averaging*/
-	averaging_module = new AveragingModule();
-	modules.put("averaging", averaging_module);
+	modules.put("averaging", new AveragingModule());
+	
+	/*SampleVDF*/
+	modules.put("sample_vdf", new SampleVDFModule());
 	
 	/*screen and file output*/
 	stats_module = new StatsModule();
 	modules.put("stats", stats_module);
+	
+	/*diagnostics module is not actually a runnable module, only used as a container*/
+	diagnostics_module = new DiagnosticsModule();
 	
     }
 	

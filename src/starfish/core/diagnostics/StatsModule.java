@@ -54,10 +54,12 @@ public class StatsModule extends CommandModule
 	pw.printf("it,time");	
 	for (Material mat:getMaterialsList())
 	{
+	    pw.printf(",mass.%s,mom.%s.x,mom.%s.y,mom.%s.z,energy.%s",
+		    mat.name, mat.name, mat.name, mat.name, mat.name);
+	    
+	    //add number of macroparticles for kinetic materials
 	    if (mat instanceof KineticMaterial)
-	    {
-		pw.printf(",mp.%s",mat.name);
-	    }
+	    	pw.printf(",mp.%s",mat.name);	    
 	}
 
 	pw.printf("\n");
@@ -101,18 +103,21 @@ public class StatsModule extends CommandModule
      */
     protected int lines = 0;
 
-    /**
-     *
+    /** 
+     * writes files to a log file
      */
     protected void saveStats()
     {
 	pw.printf("%d,%g",getIt(),Starfish.time_module.getTime());	
 	for (Material mat:getMaterialsList())
 	{
+	     pw.printf(",%g,%g,%g,%g,%g",
+		    mat.getMassSum(),mat.getMomentumSum()[0],mat.getMomentumSum()[1],
+		    mat.getMomentumSum()[2],mat.getEnergySum());
 	    if (mat instanceof KineticMaterial)
 	    {
 		KineticMaterial km = (KineticMaterial)mat;
-		pw.printf(",%g",km.getSpwt0()*km.getNp());
+		pw.printf(",%d",km.getNp());
 	    }
 	}
 	pw.printf("\n");

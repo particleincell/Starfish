@@ -22,7 +22,7 @@ import starfish.core.materials.KineticMaterial.Particle;
 import starfish.core.materials.Material;
 
 /**Particle trace command, launched by particle_trace*/
-public class ParticleTraceModule extends CommandModule
+public class ParticleTracer extends CommandModule
 {
     @Override
     public void init() { /*do nothing*/ }

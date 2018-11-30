@@ -113,9 +113,15 @@ public class TimeModule extends CommandModule
 	if (it<num_it) return true;
 	return false;
     }
+    
+    /*support for determining if the simulation has finished*/
+    boolean finished = false;
+    public boolean hasFinished() {return finished;}
+    @Override
+    public void finish() {finished=true;}
 	
     /**advances time to next time step*/
-    protected double momentum_old=0;
+    protected double energy_old=0;
 
     /**
      *
@@ -138,15 +144,14 @@ public class TimeModule extends CommandModule
 	    }
 	    else
 	    {
-		double momentum_new = 0;
+		double energy_new = 0;
 			
 		/*iterate over all materials*/
 		for (Material mat: Starfish.getMaterialsList())
-		    momentum_new += mat.getTotalMomentum();
+		    energy_new += mat.getEnergySum();
 		
-		/*The achievable tolerance depends on number of particles, 
-		 * hard to reach anything less than 1e-3 with under 10,000 particles*/
-		if (Math.abs((momentum_new-momentum_old)/momentum_new)<1e-3)
+		/*right now using change in total energy to set steady state*/
+		if (Math.abs((energy_new-energy_old)/energy_new)<1e-3)
 		    ss_countdown--;
 		else
 		    ss_countdown=5;
@@ -154,7 +159,7 @@ public class TimeModule extends CommandModule
 		if (ss_countdown<=0)
 		    steady_state=true;
 				
-		momentum_old=momentum_new;
+		energy_old=energy_new;
 	    }
 			
 	    if (steady_state)

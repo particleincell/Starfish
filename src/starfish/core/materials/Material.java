@@ -183,18 +183,18 @@ public abstract class Material
     /**
      *
      */
-    protected double total_momentum;
+    double mass_sum = 0;
+    double momentum_sum[] = new double[3];
+    double energy_sum = 0;
 
     /**
      *
      * @return
      */
-    public double getTotalMomentum()
-    {
-	return total_momentum;
-    }
+    public double getMassSum()  {return mass_sum;}
+    public double[] getMomentumSum() {return momentum_sum;}
+    public double getEnergySum() {return energy_sum;}
 
-  
     /**
      *
      */
