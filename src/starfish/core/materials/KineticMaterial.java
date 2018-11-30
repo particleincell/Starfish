@@ -37,11 +37,6 @@ import starfish.core.domain.Mesh.DomainBoundaryType;
 public class KineticMaterial extends Material
 {
 
-    public double diam;
-    public double ref_temp;
-    public double visc_temp_index;
-    public double vss_alpha;
-   
     int particle_merge_skip;	    //number of time steps between particle merges, on -1 to disable
     int vel_grid_dims[];	    //number of velocity bins in (u,v,w) spanning the min/max of each
     int last_sort_to_cell_it;	    //time step of the last sort to cells
@@ -53,11 +48,7 @@ public class KineticMaterial extends Material
 	/*kinetic material also need spwt*/
 	spwt0 = InputParser.getDouble("spwt", element);
 	    
-	/*try to get DSMC data*/
-	ref_temp = InputParser.getDouble("ref_temp", element,275);
-	visc_temp_index = InputParser.getDouble("visc_temp_index",element,0.85);
-	vss_alpha = InputParser.getDouble("vss_alpha",element,1);
-	diam = InputParser.getDouble("diam",element,5e-10);
+
 	
 	/*support for particle merging*/
 	particle_merge_skip = InputParser.getInt("particle_merge_skip", element,-1);
@@ -167,7 +158,7 @@ public class KineticMaterial extends Material
 	/*merge particles if needed, this also sorts particles to cells*/
 	if (particle_merge_skip>0 &&  Starfish.getIt()%particle_merge_skip == 0)
 	{
-	    Log.log("Performing particle merge");
+	    Log.log("Performing particle merge on material "+name);
 	    for (MeshData md:mesh_data)
 		mergeParticles(md);
 	}
@@ -978,12 +969,12 @@ public class KineticMaterial extends Material
     
         /*saves restart data*/
 
-    /**
-     *
+    /**	reads data from restart file
+     *	TODO: currently this will crash if mesh size has changed due to the read
+     *  of the sums
      * @param in
      * @throws IOException
      */
-
     @Override
     public void loadRestartData(DataInputStream in) throws IOException
     {

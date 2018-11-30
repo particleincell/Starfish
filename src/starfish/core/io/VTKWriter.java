@@ -387,146 +387,298 @@ public class VTKWriter extends Writer
 	pw.close();	
     }
     
-    /**
+     private String file_name_1d;    
+     private int time_data_it0;	    //time step of created file
+   
+     /**
      * Saves data along a single I/J grid line on a single mesh
+     * Data can be saved as individual files or as a single
+     * "time data" 2D mesh, with y-axis being time
      */
     @Override
     public void write1D(boolean animation) 
     {
+	
+	/*first fill the time data array with the latest data*/
+	set1Ddata(time_data_current_line);
+		
+	/*TODO: add collection support*/
+	
+	/*set file name, done using a class variable so we can overwrite prior time data*/
+	if (file_name_1d == null || !animation || (animation && time_data_current_line == 0))
+	{
+	    String substr[] = splitFileName(file_name);
+	    file_name_1d = substr[0];
+	    time_data_it0 = Starfish.getIt();
+	    if (animation)
+		    file_name_1d += String.format("_%06d", time_data_it0);
+	    file_name_1d += substr[1]; 
+	    
+	}
+	
+	/*write if not doing animation, or if we have filled our time data
+	for proper 1D output, number of lines is 1 so we output every time*/
+	if (!animation || (animation && 
+		(time_data_current_line%time_data_write_skip==0 ||
+		 time_data_current_line == time_data_lines-1)))
+	{
+	    PrintWriter pw = open(file_name_1d);
+	    Mesh mesh = output_mesh;
+
+
+	    pw.println("<?xml version=\"1.0\"?>");
+	    pw.println("<VTKFile type=\"StructuredGrid\">");
+	    if (dim==Dim.I)
+	    {
+		pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", time_data_lines-1, mesh.nj-1);	
+	    }
+	    if (dim==Dim.J)
+	    {	    
+		pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni-1, time_data_lines-1);	    
+	    }	
+	    else
+		Log.error("Unsupported dimension in write1D");
+
+	    pw.println("<Points>");
+	    pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
+	    if (dim == Dim.I)
+	    {
+		for (int l=0;l<time_data_lines;l++)
+		    for (int j=0;j<mesh.nj;j++)
+		    {
+			double x[] = mesh.pos(index,j);		
+			/*replace non-varying dimension with time*/
+			if (time_data_lines>1) x[0] = Starfish.getTime(time_data_it0+l);
+			pw.printf("%g %g 0 ", x[0], x[1]);
+		    }		
+	    }
+	    else
+	    {
+		for (int l=0;l<time_data_lines;l++)
+		    for (int i=0;i<mesh.ni;i++)
+		    {
+			double x[] = mesh.pos(i,index);			
+			if (time_data_lines>1) x[1] = Starfish.getTime(time_data_it0+l);
+			pw.printf("%g %g 0 ", x[0], x[1]);
+		    }	    
+	    }
+
+	    pw.println("\n</DataArray>");
+	    pw.println("</Points>");
+	    
+	    int var = 0;
+	    int nk;
+	    if (dim == Dim.I)
+		nk = mesh.nj;
+	    else
+		nk = mesh.ni;
+	    
+	    /*cell data*/
+	    pw.println("<CellData>");
+	    for (String var_name:cell_data)
+	    {
+		pw.println("<DataArray Name=\""+var_name+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+		for (int l=0;l<time_data_lines;l++)
+		    for (int k=0;k<nk-1;k++)
+			pw.printf("%g ",time_data[l][var][k]);		
+		pw.println("\n</DataArray>");
+		var++;
+	    }	
+	    pw.println("</CellData>");
+
+	    /*point data*/
+	    pw.println("<PointData>");
+
+	    /*node type - don't bother averaging this one*/
+	    pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
+	    for (int l=0;l<time_data_lines;l++)
+		for (int k=0;k<nk;k++)
+		{
+		    if (dim == Dim.I)
+			pw.printf("%d ",mesh.getNode(index,k).type.value());
+		    else
+			pw.printf("%d ",mesh.getNode(k,index).type.value());	   
+		}
+	    pw.println("\n</DataArray>");
+		
+	    /*actual scalars*/
+	    for (String var_name:scalars)
+	    {
+		pw.println("<DataArray Name=\""+var_name+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+		for (int l=0;l<time_data_lines;l++)
+		    for (int k=0;k<nk;k++)
+			pw.printf("%g ",time_data[l][var][k]);		
+		pw.println("\n</DataArray>");
+		var++;
+	    }	
+	    
+	    /*vectors*/
+	    for (String[] var_name:vectors)
+	    {
+		pw.println("<DataArray Name=\"("+var_name[0]+","+var_name[1]+")\" type=\"Float64\" NumberOfComponents=\"2\" format=\"ascii\">");
+		for (int l=0;l<time_data_lines;l++)
+		    for (int k=0;k<nk;k++)
+			pw.printf("%g %g ",time_data[l][var][k], time_data[l][var+1][k]);		
+		pw.println("\n</DataArray>");
+		var+=2;
+	    }	
+	  
+	    pw.println("</PointData>");	
+	    pw.println("</StructuredGrid>");
+	    pw.println("</VTKFile>");
+	    /*save output file*/
+	    pw.close();
+	}
+	
+	/*rewind - needs to be here since above loop checking current line*/
+	time_data_current_line++;
+	if (time_data_current_line>=time_data_lines)
+	    time_data_current_line = 0;	//rewind
+	
+    }
+    
+    /*fills one line in time data array*/
+    void set1Ddata(int l)
+    {
 	int part = 0;	
 	//split out extension from the file name
-	    
-	PrintWriter pw = open(file_name);
 	Mesh mesh = output_mesh;
-	
-	pw.println("<?xml version=\"1.0\"?>");
-	pw.println("<VTKFile type=\"StructuredGrid\">");
-	if (dim==Dim.I)
-	{
 	    
-	    pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 0 0 0\">\n", mesh.ni-1);
-	    pw.printf("<Piece Extent=\"0 %d 0 0 0 0\">\n",mesh.ni-1);
-	}
-	else if (dim==Dim.J)
-	{
-	    pw.printf("<StructuredGrid WholeExtent=\"0 0 0 %d 0 0\">\n", mesh.nj-1);
-	    pw.printf("<Piece Extent=\"0 0 0 %d 0 0\">\n",mesh.nj-1);
-	}
-	else
-	    Log.error("Unsupported dimension in write1D");
-	
-	pw.println("<Points>");
-	pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
-	if (dim == Dim.I)
-	{
-	    for (int j=0;j<mesh.nj;j++)
-	    {
-		double x[] = mesh.pos(index,j);			
-		pw.printf("%g %g 0 ", x[0], x[1]);
-	    }
-	}
-	else
-	{
-	    for (int i=0;i<mesh.ni;i++)
-	    {
-		double x[] = mesh.pos(i,index);			
-		pw.printf("%g %g 0 ", x[0], x[1]);
-	    }	    
-	}
-	
-	pw.println("\n</DataArray>");
-	pw.println("</Points>");
+	int var = 0;
 
-	/*cell data*/
-	pw.println("<CellData>");
+	
+	double line[][] = time_data[l];
 	   
-	for (String var:cell_data)
+	for (String var_name:cell_data)
 	{
-	    double data[][] = Starfish.domain_module.getField(mesh, var).getData();
+	    double data[][] = Starfish.domain_module.getField(mesh, var_name).getData();
 
-	    pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
 	    if (dim == Dim.I)
 	    {
 		for (int j=0;j<mesh.nj-1;j++)
-		    pw.printf("%g ",(data[index][j]));
+		{
+		    double val = data[index][j];
+		    
+		    if (ave1d)
+		    {
+			val = 0;
+			for (int i=0;i<mesh.ni-1;i++)
+			    val += data[i][j];
+			val /= (mesh.ni-1);
+		    }
+		    line[var][j] = val;
+		}
 	    }
 	    else 
 	    {
 		for (int i=0;i<mesh.ni-1;i++)
-		    pw.printf("%g ",(data[i][index]));
+		{
+		    double val = data[i][index];
+		    if (ave1d)
+		    {
+			val = 0;
+			for (int j=0;j<mesh.nj-1;j++)
+			    val += data[i][j];
+			val /= (mesh.nj-1);
+		    }
+		    line[var][i] = val;
+		}
 	    }
-	    pw.println("\n</DataArray>");
+	    var++;
 	}	
-	pw.println("</CellData>");
-
+	
 	/*point data*/
-	pw.println("<PointData>");
-	pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
-	if (dim == Dim.I)
-	{
-	    for	(int j=0;j<mesh.nj;j++)
-		pw.printf("%d ",mesh.getNode(index,j).type.value());
-	}
-	else
-	{
-	    for	(int i=0;i<mesh.ni;i++)
-		pw.printf("%d ",mesh.getNode(i,index).type.value());	    
-	}
-	pw.println("\n</DataArray>");
-
-	for (String var:scalars)
+	for (String var_name:scalars)
 	{
 	    /*make sure we have this variable*/
-	  //  if (!Starfish.output_module.validateVar(var)) continue;
-	    double data[][] = Starfish.domain_module.getField(mesh, var).getData();
-
-	    pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
+	    double data[][] = Starfish.domain_module.getField(mesh, var_name).getData();
 	    if (dim == Dim.I)
 	    {
 		for (int j=0;j<mesh.nj;j++)
-		    pw.printf("%g ",(data[index][j]));
+		{
+		    double val = data[index][j];
+		    if (ave1d)
+		    {
+			val = 0;
+			for (int i=0;i<mesh.ni;i++)
+			    val += data[i][j];
+			val /= mesh.ni;
+		    }
+		    line[var][j] = val;
+		}
 	    }
 	    else
 	    {
 		for (int i=0;i<mesh.ni;i++)
-		    pw.printf("%g ",(data[i][index]));
+		{
+		    double val = data[i][index];
+		    if (ave1d)
+		    {
+			val = 0;
+			for (int j=0;j<mesh.nj;j++)
+			    val += data[i][j];
+			val /= mesh.nj;
+		    }
+		    line[var][i] = val;
+		}
 	    }
 	    	
-	    pw.println("\n</DataArray>");
+	    var++;
 	}
 
 	for (String[] vars:vectors)
 	{
 	    /*make sure we have this variable*/
-	  //  if (!Starfish.output_module.validateVar(var)) continue;
 	    double data1[][] = Starfish.domain_module.getField(mesh, vars[0]).getData();
 	    double data2[][] = Starfish.domain_module.getField(mesh, vars[1]).getData();
 
-	    pw.println("<DataArray Name=\""+vars[0]+"\" type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
 	    if (dim == Dim.I)
 	    {
 		for (int j=0;j<mesh.nj;j++)
-		    pw.printf("%g %g 0 ",data1[index][j], data2[index][j]);
+		{
+		    double v1 = data1[index][j];
+		    double v2 = data2[index][j];
+		    if (ave1d)
+		    {
+			v1 = 0; v2 = 0;
+			for (int i=0;i<mesh.ni;i++)
+			{
+			    v1 += data1[i][j];
+			    v2 += data2[i][j];			    
+			}
+			v1 /= mesh.ni;
+			v2 /= mesh.ni;
+		    }
+		    line[var][j] = v1;
+		    line[var+1][j] = v2;
+		}
 	    }
 	    else
 	    {
 		for (int i=0;i<mesh.ni;i++)
-		    pw.printf("%g %g 0 ",data1[i][index], data2[i][index]);
+		{
+		    double v1 = data1[i][index];
+		    double v2 = data2[i][index];
+		    if (ave1d)
+		    {
+			v1 = 0; v2 = 0;
+			for (int j=0;j<mesh.nj;j++)
+			{
+			    v1 += data1[i][j];
+			    v2 += data2[i][j];			    
+			}
+			v1 /= mesh.nj;
+			v2 /= mesh.nj;
+		    }
+		    line[var][i]=v1;
+		    line[var+1][i]=v2;
+		}
 	    }
 
-	    pw.println("\n</DataArray>");
+	    var+=2;
 	}
-
-	pw.println("</PointData>");	
-
-	pw.println("</Piece>");
-
-	pw.println("</StructuredGrid>");
-	pw.println("</VTKFile>");
-	/*save output file*/
-	pw.close();
     }
-
+  
     /** Writes the "surface" file
      *
      */
@@ -739,7 +891,11 @@ public class VTKWriter extends Writer
         pw.flush();
     }
 
-    /** writes particle trace*/
+    /** writes particle trace
+     * @param particles
+     * @param time_steps
+     */
+    @Override
     public void writeTrace(ArrayList<Particle> particles, ArrayList<Integer>time_steps)
     {
 	PrintWriter pw = open(file_name);

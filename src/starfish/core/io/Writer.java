@@ -34,9 +34,19 @@ public abstract class Writer
     ArrayList <String[]> vectors;
     String cell_data[];	    //cell centered variables
     Mesh output_mesh;
-    Dim dim;
+    
+    /*for 1D output*/
+    Dim dim;		//dimension
+    int index;		//node index
+    boolean ave1d;	//average 1D data in perp direction
+    int time_data_lines;    //number of entries in a single time file
+    int time_data_write_skip;	//number of samples between write outs
+    
+    /*support for time data*/
+    protected int time_data_current_line;
+    protected double[][][] time_data;	    //[time_line][variable][i/j]
+    
     int resolution;	//for three-D rotation
-    int index;
     String file_name;
     
     /*for particles*/
@@ -105,7 +115,10 @@ public abstract class Writer
     {
 	String mesh_name = InputParser.getValue("mesh",element);
 	String str_index = InputParser.getValue("index",element);
-	    
+	time_data_lines = InputParser.getInt("time_data_lines", element,1);	//number of time entries in a single time file
+	if (time_data_lines<1) time_data_lines = 1;
+	time_data_write_skip = InputParser.getInt("time_data_write_skip",element,5);	//number of samples between writes
+	
 	/*grab the mesh*/
 	output_mesh =Starfish.domain_module.getMesh(mesh_name);
 	if (output_mesh==null)
@@ -125,7 +138,29 @@ public abstract class Writer
 	    dim = Dim.J;
 	else Log.error("Unknown dimension "+pieces[0]);
     
-	this.index=Integer.parseInt(pieces[1]);		
+	/*allocate memory for time data*/
+	int num_vars = cell_data.length+scalars.length+vectors.size()*2;
+	int nk;
+	if (dim == Dim.I) nk=output_mesh.nj;
+	else nk = output_mesh.ni;
+	time_data = new double[time_data_lines][num_vars][nk];
+	
+	
+	/*check for averaging or set node index*/
+	if (pieces[1].toUpperCase().contains("AVE"))
+	{
+	    ave1d = true;
+	    if (dim==Dim.I)
+		index = (int)(0.5*output_mesh.ni);
+	    else
+		index = (int)(0.5*output_mesh.nj);
+	    index = 0;
+	}
+	else
+	{
+	    this.index=Integer.parseInt(pieces[1]);		
+	    ave1d = false;
+	}
 		
 	/*call main open function*/
 	init2D(scalars, vectors, cell_data,element);	
@@ -133,7 +168,7 @@ public abstract class Writer
 	/*set output type - after init2D*/
 	output_type=OutputType.ONED;
     }
-	    	
+    
     /** open function for 2D field data
      * @param scalars
      * @param vectors
@@ -313,6 +348,7 @@ public abstract class Writer
      *
      */
     protected abstract void write1D(boolean animation);
+ 
 
     /**
      *

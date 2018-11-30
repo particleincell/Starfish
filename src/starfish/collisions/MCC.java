@@ -289,11 +289,16 @@ public class MCC extends VolumeInteraction
 	    double e2 = e1 - mcc.ionization_energy;
 	    if (e2<0) return;	//sanity check, should not happen
 	    
+	    //randomly redistribute the remaining energy to the two electrons
+	    double e2a = Starfish.rnd()*e2;
+	    double e2b = e2 - e2a;
+	    
 	    //speed reduced by the ionization energy
-	    double speed2 = Math.sqrt(e2*Constants.QE*2/source.mass);
+	    double speed2a = Math.sqrt(e2a*Constants.QE*2/source.mass);
+	    double speed2b = Math.sqrt(e2b*Constants.QE*2/source.mass);
 	    	    
 	    /*give the source electron isotropic direction*/
-	    source.vel = Utils.isotropicVel(speed2);
+	    source.vel = Utils.isotropicVel(speed2a);
 
 	    //assume the new electron and ion are created at the neutral temperature
 	    double target_temp = mcc.target.getTempCollection().eval(source.pos,300);
@@ -303,9 +308,10 @@ public class MCC extends VolumeInteraction
 		target_temp = 100;
 	    	    
 	    /*create new ion and electron*/
-	    double vel2[] = Utils.SampleMaxw3D(Utils.computeVth(target_temp, source.mass));
-	    mcc.source.getParticleListSource().addParticle(new Particle(source.pos, vel2, source.spwt, mcc.source));
+	    double vel2b[] = Utils.isotropicVel(speed2a);
+	    mcc.source.getParticleListSource().addParticle(new Particle(source.pos, vel2b, source.spwt, mcc.source));
 	    	    
+	    /*TODO: need to destroy the targe particle, for now assuming den_target>>den_source*/
 	    if (mcc.product instanceof KineticMaterial)
 	    {
 		KineticMaterial prod = (KineticMaterial)mcc.product;

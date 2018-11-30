@@ -71,6 +71,13 @@ public class TimeModule extends CommandModule
      * @return
      */
     public double getTime() {return it*dt;}
+    
+    /**
+     * 
+     * @param it time step
+     * @return time for a given time step
+     */
+    public double getTime(int it) {return it*dt;}
 	
     /**
      *

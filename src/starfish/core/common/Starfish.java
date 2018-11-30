@@ -285,7 +285,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     static public double rnd2Ex() {double r; do {r=rnd2();} while (r==-1.0); return r;}  //(-1,1)
 	
     /*code version*/
-    static String VERSION = "v0.20 (Development)";
+    static String VERSION = "v0.20.1 (Development)";
 
     /**
      *
@@ -389,6 +389,11 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     /** @return Returns simulation time
      */
     public static double getTime() {return time_module.getTime();}
+    
+    /** @return Time corresponding to some time step 
+     * @param it time step
+     */
+    public static double getTime(int it) {return time_module.getTime(it);}
 
     /**
      *
