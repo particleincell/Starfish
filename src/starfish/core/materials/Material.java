@@ -602,6 +602,14 @@ public abstract class Material
      * must be overriden by non-static materials
      */
     public abstract void updateFields();
+    
+    /**
+     * hook to clear collected data
+     */
+    public void clearSamples()
+    {
+	/*do nothing by default*/
+    }
 
     /**
      *

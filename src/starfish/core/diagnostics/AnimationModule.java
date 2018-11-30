@@ -14,6 +14,7 @@ import starfish.core.common.Starfish;
 import starfish.core.io.InputParser;
 import starfish.core.io.OutputModule;
 import starfish.core.io.Writer;
+import starfish.core.materials.Material;
 
 /** animation support */
 public class AnimationModule extends CommandModule 
@@ -22,6 +23,7 @@ public class AnimationModule extends CommandModule
     {
 	int start_it=0;
 	int frequency=0;
+	boolean clear_samples;
 	ArrayList<Writer> writer_list = new ArrayList<Writer>();
 	Element output_list[];
 	boolean first_time = true;
@@ -30,7 +32,8 @@ public class AnimationModule extends CommandModule
 	{
 	    start_it = InputParser.getInt("start_it", element);
 	    frequency = InputParser.getInt("frequency", element);		
-	    output_list = InputParser.getChildren("output", element);    
+	    output_list = InputParser.getChildren("output", element);   
+	    clear_samples = InputParser.getBoolean("clear_samples",element,true);   /*resets collected data post write*/
 	}
 	
 	/*writes out new animation file*/
@@ -47,9 +50,19 @@ public class AnimationModule extends CommandModule
 			writer_list.add(OutputModule.createWriter(output));
 		    first_time=false;
 		}
-
-		    for (Writer writer:writer_list)
-			writer.write(true);
+		
+		for (Writer writer:writer_list)
+		{
+		    writer.write(true);						    
+		}
+		
+		if (clear_samples)
+		{
+		    /*reset collected velocity moments*/
+		    for (Material mat:Starfish.getMaterialsList())
+			mat.clearSamples();
+		}
+		    
 	    }
 	}	
 

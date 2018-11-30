@@ -143,8 +143,7 @@ public class KineticMaterial extends Material
 	/*reset sampling when we reach steady state*/
 	if (Starfish.steady_state() && !steady_state)
 	{
-	    for (MeshData md:mesh_data)
-		clearSamples(md);
+	    clearSamples();
 	    steady_state=true;
 	}
 	
@@ -1549,6 +1548,18 @@ public class KineticMaterial extends Material
 	return null;
     }
 
+    /** clears collected velocity moments    
+    */
+    @Override
+    public void clearSamples()
+    {
+	for (MeshData md:mesh_data)
+		clearSamples(md);
+	
+	num_samples = 0;
+	Log.log("Cleared samples in Material "+name);
+    }
+    
     int num_samples = 0;
     void clearSamples(MeshData md)
     {
@@ -1559,9 +1570,7 @@ public class KineticMaterial extends Material
 	field_manager2d.get(md.mesh, "uu-sum").clear();
 	field_manager2d.get(md.mesh, "vv-sum").clear();
 	field_manager2d.get(md.mesh, "ww-sum").clear();
-	field_manager2d.get(md.mesh, "mpc-sum").clear();
-	num_samples = 0;
-	Log.log("Cleared samples in Material "+name);
+	field_manager2d.get(md.mesh, "mpc-sum").clear();	
     }
     
     /** updates velocity samples and recomputes average density, temperature and pressure fields
@@ -1576,9 +1585,8 @@ public class KineticMaterial extends Material
 	
 	//compute temperature and average densities and velocities
 	if (first_time || Starfish.getIt()%10==0)
-	{
-	    for (MeshData md : mesh_data)
-		computeFields(md);
+	{	    
+		computeFields();
 	}
     }
     
@@ -1611,6 +1619,13 @@ public class KineticMaterial extends Material
 	    //mpc is cell data
 	    mpc_sum.add((int)part.lc[0], (int)part.lc[1], 1);
 	}
+    }
+    
+    /** uses collected sampled data to compute bulk gas properties*/
+    public void computeFields()
+    {
+	for (MeshData md : mesh_data)
+	    computeFields(md);
     }
     
     /**uses velocity samples to compute average density, velocity, and temperature*/
