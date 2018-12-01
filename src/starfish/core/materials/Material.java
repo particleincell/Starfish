@@ -61,7 +61,7 @@ public abstract class Material
     public Material(String name, Element element)
     {
 	this(name);
-	charge = InputParser.getDouble("charge", element)*Constants.QE;
+	charge = InputParser.getDouble("charge", element,0)*Constants.QE;
 	mass = InputParser.getDouble("molwt", element)*Constants.AMU;
 	frozen = InputParser.getBoolean("frozen", element, false);
 	work_function = InputParser.getDouble("work_function",element, 0.0)*Constants.EVtoJ;

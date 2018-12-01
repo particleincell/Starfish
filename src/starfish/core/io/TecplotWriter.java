@@ -31,11 +31,10 @@ public class TecplotWriter extends Writer
      *
      */
     protected PrintWriter pw = null;
-
+    
     public TecplotWriter(String file_name)
     {
-	super(file_name);
-	writeHeader();
+	super(file_name);	
     }
     
     final public void writeHeader() 
@@ -72,7 +71,7 @@ public class TecplotWriter extends Writer
     }
     
     @Override
-    public void close() {pw.close();}
+    public void close() {if (pw!=null) pw.close();}
 	
     /** placeholder for a 3D writer
      *
@@ -91,6 +90,9 @@ public class TecplotWriter extends Writer
     @Override
     public void write2D(boolean animation)
     {		
+	if (pw==null)
+	    writeHeader();
+	
 	/*output all meshes*/
 	for (int m=0;m<Starfish.getMeshList().size();m++)
 	{
@@ -137,53 +139,57 @@ public class TecplotWriter extends Writer
 		
 	    im=0;ip=output_mesh.ni;
 	    jm=0;jp=output_mesh.nj;
-		
-	if (dim==Dim.I)
-	{
-	    pw.printf("ZONE T=\"%s\" I=1 J=%d\n",output_mesh.getName(),output_mesh.nj);
-	    im=index;
-	    ip=im+1;
-	}
-	else if (dim==Dim.J)
-	{
-	    pw.printf("ZONE T=\"%s\" I=%d J=1\n",output_mesh.getName(),output_mesh.ni);
-	    jm=index;
-	    jp=jm+1;
-	}
-	else
-	    Log.error("index type must be either I or J");
+	    
+	    if (pw==null)
+	        writeHeader();
 
-	/*save fields*/
-	int nv=scalars.length;
-	Field2D field[] = new Field2D[nv];
-	for (int v=0;v<nv;v++)
-	    field[v] = Starfish.domain_module.getField(output_mesh, scalars[v]);
 
-	for (int j=jm;j<jp;j++)
-	    for (int i=im;i<ip;i++)
+	    if (dim==Dim.I)
 	    {
-		double x[] = output_mesh.pos(i,j);
+		pw.printf("ZONE T=\"%s\" I=1 J=%d\n",output_mesh.getName(),output_mesh.nj);
+		im=index;
+		ip=im+1;
+	    }
+	    else if (dim==Dim.J)
+	    {
+		pw.printf("ZONE T=\"%s\" I=%d J=1\n",output_mesh.getName(),output_mesh.ni);
+		jm=index;
+		jp=jm+1;
+	    }
+	    else
+		Log.error("index type must be either I or J");
 
-		int type=-1;
-		Node node = output_mesh.getNode(i,j);
-		if (node.type==NodeType.DIRICHLET ||
-		    node.type==NodeType.OPEN)
-		    type = node.type.ordinal();
+	    /*save fields*/
+	    int nv=scalars.length;
+	    Field2D field[] = new Field2D[nv];
+	    for (int v=0;v<nv;v++)
+		field[v] = Starfish.domain_module.getField(output_mesh, scalars[v]);
 
-		output_mesh.getNode(i,j).type.ordinal();
-
-		pw.printf("%g %g %d", x[0], x[1],type);
-
-		for (int v=0;v<nv;v++)
+	    for (int j=jm;j<jp;j++)
+		for (int i=im;i<ip;i++)
 		{
-		    pw.printf(" %g",field[v].at(i, j));
+		    double x[] = output_mesh.pos(i,j);
+
+		    int type=-1;
+		    Node node = output_mesh.getNode(i,j);
+		    if (node.type==NodeType.DIRICHLET ||
+			node.type==NodeType.OPEN)
+			type = node.type.ordinal();
+
+		    output_mesh.getNode(i,j).type.ordinal();
+
+		    pw.printf("%g %g %d", x[0], x[1],type);
+
+		    for (int v=0;v<nv;v++)
+		    {
+			pw.printf(" %g",field[v].at(i, j));
+		    }
+
+		    pw.println();
 		}
 
-		pw.println();
-	    }
-		
-	/*force output*/
-	pw.flush();
+	    /*force output*/
+	    pw.flush();
     }
 
     /**
@@ -194,6 +200,9 @@ public class TecplotWriter extends Writer
     {
 	final int NP_SMOOTH=20;		//number of pieces a smooth segment is divided into
 
+	if (pw==null)
+	    writeHeader();
+	
 	for (Boundary boundary:Starfish.getBoundaryList())
 	{
 	    int np = 0;
@@ -260,6 +269,9 @@ public class TecplotWriter extends Writer
     @Override
     protected void writeParticles(boolean animation)
     {
+	if (pw==null)
+	    writeHeader();
+	
 	for (Material mat: Starfish.getMaterialsList())
 	{
 	    if (!(mat instanceof KineticMaterial)) continue;
@@ -309,6 +321,8 @@ public class TecplotWriter extends Writer
     public void writeTrace(ArrayList<Particle> particles, ArrayList<Integer>time_steps)
     {
 	Log.error("writeTrace not yet defined for TECPLOT");
+	if (pw==null)
+	    writeHeader();	
     }
 
 }
