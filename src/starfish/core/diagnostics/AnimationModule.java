@@ -56,7 +56,8 @@ public class AnimationModule extends CommandModule
 		    writer.write(true);						    
 		}
 		
-		if (clear_samples)
+		/*stop clearing samples after steady state is reached*/
+		if (clear_samples && !Starfish.time_module.steady_state)
 		{
 		    /*reset collected velocity moments*/
 		    for (Material mat:Starfish.getMaterialsList())
