@@ -141,19 +141,6 @@ public class PoissonSolver extends PotentialSolver
 	for (MeshData md:mesh_data)
 	    Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
 	
-	/*testing hack*/
-	for (MeshData md:mesh_data)
-	{
-	    Mesh mesh = md.mesh;
-	    double f[][] = Starfish.domain_module.getPhi(mesh).getData();
-	    for (int i=0;i<mesh.ni;i++)
-		for(int j=0;j<mesh.nj;j++)
-		{
-		    double pos[] = mesh.pos(i,j);
-	//	    f[i][j] = pos[0]*pos[0]+pos[1]*pos[1];
-		    
-		}
-	}
     }
         
     

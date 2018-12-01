@@ -402,13 +402,6 @@ public abstract class Solver
 		  updateGhostVector in the linear solver*/
 		Matrix J = mesh_data[k].A.subtractDiag(P);
 	    
-		/*check values*/
-		for (int n=0;n<F.length;n++)
-		{
-		    if (Math.abs(F[n])>1e10 ||
-			Math.abs(P[n])>1e10  )
-			n=n;
-		}
 		/*solve Jy=F*/   	    
 		md_nl[k].A=J;
 		md_nl[k].b=F;

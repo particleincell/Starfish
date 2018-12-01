@@ -23,7 +23,7 @@
 <!-- run simulation -->
 <starfish />
         
-<!-- save results -->
+<!-- save results in Tecplot format-->
 <output type="2D" file_name="field.dat" format="tecplot">
 <scalars>phi, efi, efj, rho, nd.O+</scalars>
 </output>
@@ -35,5 +35,20 @@
 </output>
 
 <output type="boundaries" file_name="boundaries.dat" format="tecplot" />
+
+<!-- save results in VTK format-->
+<output type="2D" file_name="results/field.vts" format="vtk">
+<scalars>phi, rho, nd.O+</scalars>
+<vectors>[efi, efj]</vectors>
+</output>
+
+<output type="1D" file_name="profile.dat" format="vtk">
+<mesh>mesh1</mesh>
+<index>J=0</index>
+<scalars>phi, rho, nd.o+</scalars>
+<vectors>[efi, efj]</vectors>
+</output>
+
+<output type="boundaries" file_name="results/boundaries.vtp" format="vtk" />
 
 </simulation>

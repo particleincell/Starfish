@@ -166,7 +166,7 @@ public class VTKWriter extends Writer
 		double data1[][] = Starfish.domain_module.getField(mesh, vars[0]).getData();
 		double data2[][] = Starfish.domain_module.getField(mesh, vars[1]).getData();
 
-		pw.println("<DataArray Name=\""+vars[0]+"\" type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
+		pw.println("<DataArray Name=\"("+vars[0]+","+vars[1]+")\" type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
 		for (int m=0;m<resolution;m++)
 		    for (int j=0;j<mesh.nj;j++)
 			for (int i=0;i<mesh.ni;i++)
@@ -190,11 +190,11 @@ public class VTKWriter extends Writer
 	writeCollection(animation);
 
     }
+    
+    protected enum VTK_Type {RECT, STRUCT, POLY};
 	
     /**saves 2D data in VTK ASCII format, supports .vts, .vtr, and .vtp
      * @param animation if true, will open new file for each save*/
-    protected enum VTK_Type {RECT, STRUCT, POLY};
-
     @Override
     public void write2D(boolean animation)
     {
@@ -322,7 +322,7 @@ public class VTKWriter extends Writer
 		double data1[][] = Starfish.domain_module.getField(mesh, vars[0]).getData();
 		double data2[][] = Starfish.domain_module.getField(mesh, vars[1]).getData();
 
-		pw.println("<DataArray Name=\""+vars[0]+"\" type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
+		pw.println("<DataArray Name=\"("+vars[0]+","+vars[1]+")\" type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
 		for (int j=0;j<mesh.nj;j++)
 		    for (int i=0;i<mesh.ni;i++)
 			pw.printf("%g %g 0 ",data1[i][j], data2[i][j]);
