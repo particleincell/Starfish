@@ -189,8 +189,17 @@ public class MCC extends VolumeInteraction
 	    virt_part.vel = target.sampleMaxwellianVelocity(mesh, part.lc, 0, max_T);
 	    virt_part.mass = target.mass;
 
+	    /*save pre-collision energy*/
+	    double E1 = 0.5*source.mass*Vector.mag3(part.vel);
 	    /*otherwise, perform collision*/
 	    model.perform(part,virt_part, this);
+	    
+	    /*update target material energy term*/
+	    double E2 = 0.5*source.mass*Vector.mag3(part.vel);
+	    double vol = mesh.nodeVol(part.lc[0], part.lc[1]);
+	    /*compute power density rate J/m^3/s*/
+	    double dS = part.spwt*(E1-E2)/(dt*vol);	// J/s/m^3
+	    target.getS(mesh).scatter(part.lc, dS);
 	    
 	    int i = (int) part.lc[0];
 	    int j = (int) part.lc[1];

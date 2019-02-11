@@ -49,6 +49,7 @@ public class ChemicalReaction extends VolumeInteraction
     final int num_sources,num_products;
     String source_names[];
     String product_names[];
+    double energy_release;	    //amount of energy to add to products and remove from sources
     boolean initialized=false;
 
     /**
@@ -63,11 +64,12 @@ public class ChemicalReaction extends VolumeInteraction
      * @param product_names
      * @param rate_parser
      */
-    public ChemicalReaction(String source_names[], String product_names[], RateParser rate_parser)
+    public ChemicalReaction(String source_names[], String product_names[], RateParser rate_parser,double energy_release)
     {
 	this.source_names = source_names;
 	this.product_names = product_names;
 	this.rate_parser = rate_parser;
+	this.energy_release = energy_release;
 	
 	num_sources = source_names.length;
 	num_products = product_names.length;
@@ -227,28 +229,30 @@ public class ChemicalReaction extends VolumeInteraction
 	    for (int i=0;i<ni;i++)
 		for (int j=0;j<nj;j++)
 		{
-		    double dn = k[i][j] * dt;
-		    if (dn==0) continue;
+		    double dn_dt = k[i][j];
+		    if (dn_dt==0) continue;
 		    
 		    double prod_temp=0;
 		   
-		    /*max we can remove is k*dt*n so need n<1*/
-		    if (dn>1.0) 
-			dn=1.0;
-		    		    
 		    for (int s=0;s<num_sources;s++)
 		    {
-			dn*=den[s][i][j];
+			dn_dt*=den[s][i][j];
 			prod_temp+=temp[s][i][j]*source_mat[s].mass;
 		    }
 	
+		    double dn = dn_dt * dt;
+
 		    //clear tiny round off values
-		    if (dn<1) dn=0;
+		    if (dn<1) 
+			continue;
 		    
-		    /*set temperature*/
-		    /*TODO: take into account energy equation,etc..., just setting to target temp for now*/
+		    /*update energy density rate*/
+		    double W = dn_dt * energy_release;
+		    for (int s=0;s<num_sources;s++)
+			source_mat[s].getS(mesh).data[i][j] -= source_coeff[s]*W;
+		    
 		    for (int p=0;p<num_products;p++)
-			prod_source[p].getTemp(mesh).data[i][j]=prod_temp/tot_source_mass;
+			prod_mat[p].getS(mesh).data[i][j] += prod_coeff[p]*W;
 		    
 		    /*update rates*/
 		    for (int s=0;s<num_sources;s++)
@@ -327,10 +331,14 @@ public class ChemicalReaction extends VolumeInteraction
 	    Element el = InputParser.getChild("rate", element);
 	    if (el==null) Starfish.Log.error("Chemical reaction <rate> not specified.");
 	    
-	    RateParser rp = new RateParser(el);
+	    RateParser rp = new RateParser(el, sources, products);
+	    
+	    /*energy release, this does not yet fully work*/
+	    double energy_release = InputParser.getDouble("energy_release",element);
+	    energy_release *= Constants.EVtoJ;	
 	    
 	    /*TODO: create appropriate model*/
-	    Starfish.interactions_module.addInteraction(new ChemicalReaction(sources,products,rp));
+	    Starfish.interactions_module.addInteraction(new ChemicalReaction(sources,products,rp,energy_release));
 		
 	    /*log*/
 	    //sim.log(Level.LOG, "Added CHEMICAL_REACTION "+source_name+" + " +target_name + " -> "+product_name);

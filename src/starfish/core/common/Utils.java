@@ -225,6 +225,17 @@ public class Utils
 	    }
 	}
 	
+		
+	public LinearList(double x[], double y[])
+	{
+	    if (x.length!=y.length)
+		Log.error("x and y lists must have the same the length");
+	    
+	    for (int i=0;i<x.length;i++)
+	    {
+		insert(x[i],y[i]);
+	    }
+	}
 	/**
 	 *
 	 */
@@ -235,7 +246,7 @@ public class Utils
 	 * @param x
 	 * @param y
 	 */
-	public void insert(double x, double y)
+	final public void insert(double x, double y)
 	{
 	    data.add(new XYData(x,y));
 	    dirty = true;
@@ -243,6 +254,11 @@ public class Utils
 	
 	private boolean dirty = true;
 
+	/** @return True if empty list*/
+	public boolean isEmpty()
+	{
+	    return data.isEmpty();
+	}
 	/**
 	 *
 	 * @param x

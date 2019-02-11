@@ -169,13 +169,20 @@ public class VolumeMaxwellianSource extends VolumeSource
 		    for (int j=0;j<mesh.nj-1;j++)
 			vol+=mesh.cellVol(i, j);
 	    }
-	*/
-	
+	*/	
     }
     
     @Override
     public void regenerate()
     {
+	/*check for injection interval*/
+	if (Starfish.getIt()<start_it || Starfish.getIt()>end_it)
+	{
+	    num_mp = 0;
+	    num_rem = 0;
+	    return;
+	}
+	
 	if (source_mat instanceof KineticMaterial)
 	{
 	    KineticMaterial km = (KineticMaterial) source_mat;
@@ -189,6 +196,9 @@ public class VolumeMaxwellianSource extends VolumeSource
 	}		
     }
 
+    @Override
+    public boolean hasParticles() {return num_mp>0;}
+    
     @Override
     public KineticMaterial.Particle sampleParticle() 
     {

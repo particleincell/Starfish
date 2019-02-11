@@ -346,6 +346,14 @@ public abstract class Material
     }
 
     /**
+     * 
+     * @return energy equation loss term collection
+     */
+    public FieldCollection2D getSCollection()
+    {
+	return field_manager2d.getFieldCollection("S");
+    }
+    /**
      *
      * @return
      */
@@ -443,6 +451,16 @@ public abstract class Material
     public Field2D getDen(Mesh mesh)
     {
 	return getDenCollection().getField(mesh);
+    }
+    
+    /**
+     * 
+     * @param mesh
+     * @return Energy equation source term
+     */
+    public Field2D getS(Mesh mesh)
+    {
+	return getSCollection().getField(mesh);
     }
 
     /**
@@ -701,6 +719,9 @@ public abstract class Material
 	
 	/*fields capturing changes in mass (and eventually momentum and energy) from chem. reactions*/
 	field_manager2d.add("delta_n","#/m^3/s",0,null);
+	
+	/*energy loss/source term*/
+	field_manager2d.add("S","W/m^3",0,null);
 	
 	/*average data*/
 	field_manager2d.add("u-ave","m/s",null);

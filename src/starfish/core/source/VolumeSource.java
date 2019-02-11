@@ -88,6 +88,12 @@ public class VolumeSource extends Source
 	
     }
 
+    @Override 
+    public boolean hasParticles()
+    {
+	return num_rem>spwt0;
+    }
+    
     @Override
     public Particle sampleParticle() 
     {
@@ -148,7 +154,7 @@ public class VolumeSource extends Source
 	findNextCell(0,0);
     }
     
-    Field2D dn_f;
+    protected Field2D dn_f;
     
     /**finds next cell with a finite density change*/
     void findNextCell(int i0, int j0)

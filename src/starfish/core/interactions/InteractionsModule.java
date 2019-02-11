@@ -30,7 +30,8 @@ public class InteractionsModule extends CommandModule
 	registerInteraction("SURFACE_HIT",SurfaceInteraction.surfaceHitFactory);
 	registerInteraction("SURFACE_IMPACT",SurfaceInteraction.surfaceHitFactory);	
 	registerInteraction("CHEMISTRY",ChemicalReaction.chemicalReactionFactory);
-	
+	registerInteraction("ENERGY_TRANSFER",EnergyTransfer.energyTransferFactory);
+
 	/*register surface impact models*/
 	SurfaceInteraction.registerModels();
 	

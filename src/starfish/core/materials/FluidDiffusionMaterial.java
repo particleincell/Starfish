@@ -40,8 +40,8 @@ public class FluidDiffusionMaterial extends Material
     {
 	super.init();
 	Mesh mesh = Starfish.getMeshList().get(0);
-	getDen(mesh).fill(1e17);
-
+	Log.warning("FLUID-DIFFUSION CURRENTLY ONLY UPDATING 0D TEMPERATRE");
+	
 	/*check CFL*/
 	double dx = mesh.pos1(1, 0) - mesh.pos1(0, 0);
 	double dy = mesh.pos2(0, 1) - mesh.pos2(0, 0);
@@ -61,6 +61,12 @@ public class FluidDiffusionMaterial extends Material
     @Override
     public void updateFields()
     {
+	if (true)
+	{
+	    UpdateTemperature0D();
+	    return;
+	}
+	
 	int i, j;
 	int ni, nj;
 	double dt = Starfish.getDt();
@@ -302,4 +308,53 @@ public class FluidDiffusionMaterial extends Material
 	    return material;
         }
     };
+    
+    /*uses 0D simplification of the energy equation to update temperature, ignores divergence terms
+      d/dt (3/2*n*kT)=S
+    
+    TODO: the "S" term is generally non-linear, not exactly sure how to tie it in
+    in a general way
+    */
+    private void UpdateTemperature0D()
+    {
+	for (Mesh mesh:Starfish.getMeshList())
+	{
+	    double n[][] = getDen(mesh).data;
+	    double S[][] = getS(mesh).data;
+	    double T[][] = getT(mesh).data;
+	    for (int i=0;i<mesh.ni;i++)
+		for (int j=0;j<mesh.nj;j++)
+		{
+		 /*the integration is (nT)^(i+1) = (nT)^i + dt*2/(3*k)*S
+		    the problem is we don't have the old value of density
+		*/
+		    double den = n[i][j];
+		    den /= 1e5;
+		    
+		    double nT = den*T[i][j];
+		    
+		    if (S[i][j]!=0)
+			nT = nT;
+		    
+		    double dTn = Starfish.getDt()*2/(3*Constants.K)*S[i][j];
+		    double nT_new = nT + dTn;
+		   		
+		    if (dTn!=0)
+			nT_new=nT_new;
+		    
+		    if (den>0)
+			T[i][j] = nT_new/den;
+		    else 
+			T[i][j] = 0;
+		    
+		    /*make sure we stay within reasonable limits*/
+		    if (T[i][j]<0) T[i][j]=0;
+		    if (T[i][j]>1e12) 
+			T[i][j] = 1e12;	/*proton fusion reaction is 14e6 K*/
+		}
+	}
+	
+	/*clear S data*/
+	getSCollection().clear();
+    }
 }
