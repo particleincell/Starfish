@@ -79,7 +79,9 @@ public class MaterialsModule extends CommandModule
 	/*register material types*/
 	registerMaterialType("SOLID",SolidMaterial.SolidMaterialParser);
 	registerMaterialType("KINETIC",KineticMaterial.KineticMaterialParser);
-	registerMaterialType("FLUID-DIFFUSION",FluidDiffusionMaterial.FluidDiffusionMaterialParser);
+	registerMaterialType("FLUID_DIFFUSION",FluidDiffusionMaterial.FluidDiffusionMaterialParser);
+	registerMaterialType("FLUID_ELECTRONS",FluidElectronsMaterial.FluidElectronsMaterialParser);
+	
 
     }
 
@@ -235,14 +237,6 @@ public class MaterialsModule extends CommandModule
     {
 	if (has_started) return;
 	has_started= true;
-	/*add qn electrons if not added already*/
-	try{
-	    getMaterial("e-");
-	}
-	catch (NoSuchElementException e)
-	{
-	    AddMaterial(new FluidElectronsMaterial(materials_list.size(),"e-"));	
-	}
 
 	/*init materials*/
 	for (Material mat:materials_list)

@@ -6,7 +6,7 @@
 </boundary>
 
 <boundary name="inlet" type="virtual">
-<path>M -0.15,0.1 L -0.15, 0</path>
+<path>M -0.15,0.20 L -0.15, 0</path>
 </boundary>
 
 </boundaries>

@@ -20,6 +20,7 @@ import starfish.core.interactions.MaterialInteraction.SurfaceImpactHandler;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
 import starfish.core.common.Vector;
+import starfish.core.materials.KineticMaterial;
 import starfish.core.source.ParticleListSource;
 
 /** particle-surface interaction handler*/
@@ -165,19 +166,42 @@ public class SurfaceInteraction
 	    /*TODO: make user input.*/
 	    if (v_mag<1e-4)
 		return false;				
-				   		
-	    /*cosine emission*/		
-	    double dir_diff[] = Vector.lambertianVector(segment.normal(t_int),segment.tangent(t_int));
-	 
-	    for (int i=0;i<3;i++)
-		vel[i]=v_mag*dir_diff[i];
-	    
-	    /*if we are producing a new material, kill the source and create new one*/
+				   			    
+	    /*if we are producing a new material, kill the source and create new ones
+	    this used to call SpawnParticles but moved the code here so we can re-avaluate the Maxwellian
+	    */
 	    if (mat_int.source_mat != mat_int.product_mat && mat_int.product_km_mat!=null)
 	    {
 		ParticleListSource source = mat_int.product_mat.getParticleListSource();
-		source.spawnParticles(segment.pos(t_int),vel,mat_int.source_km_mat);
+		
+		double spwt_orig = mat_int.source_km_mat.getSpwt0();
+		double spwt_source = source.spwt0;
+	
+		double ratio = spwt_orig / spwt_source;
+
+		int count = (int) (ratio + Starfish.rnd());
+		double pos[] = segment.pos(t_int);
+		double normal[] = segment.normal(t_int);
+		double tang[] = segment.tangent(t_int);
+	
+		for (int i = 0; i < count; i++)
+		{
+		    /*cosine emission*/		
+		    double dir_diff[] = Vector.lambertianVector(normal, tang);
+		    v_diff = Utils.SampleMaxwSpeed(boundary.getVth(mat_int.product_mat));
+		    v_mag = v_refl + mat_int.c_accom*(v_diff-v_refl);
+		    vel = Vector.mult(dir_diff,v_mag);
+		    source.addParticle(new KineticMaterial.Particle(pos, vel, spwt_source, mat_int.source_km_mat));
+		}		
 		return false;
+	    }
+	    else
+	    {
+		/*cosine emission*/		
+		double dir_diff[] = Vector.lambertianVector(segment.normal(t_int),segment.tangent(t_int));
+	 
+		for (int i=0;i<3;i++)
+		    vel[i]=v_mag*dir_diff[i];
 	    }
 
 	    return true;

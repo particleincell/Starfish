@@ -795,7 +795,6 @@ public abstract class Solver
      */
     public abstract void updateGradientField();
 
-    
     /** evaluates gradient of flattened data "x" times scale and stores it into fi and fj
      *
      * @param x

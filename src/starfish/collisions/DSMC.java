@@ -79,7 +79,7 @@ public class DSMC extends VolumeInteraction
 	fc_real_sum = Starfish.domain_module.getFieldManager().add("dsmc-real-sum"+tag, "#",null);
 	fc_count_sum = Starfish.domain_module.getFieldManager().add("dsmc-count-sum"+tag, "#",null);
 	fc_count = Starfish.domain_module.getFieldManager().add("dsmc-count"+tag, "#",null);
-	fc_nu = Starfish.domain_module.getFieldManager().add("nu"+tag, "#/s",null);
+	fc_nu = Starfish.domain_module.getFieldManager().add("dsmc-nu"+tag, "#/s",null);
     }
 
     FieldCollection2D fc_count;	    	//number of collisions 

@@ -7,22 +7,22 @@
 <load>boundaries.xml</load>
 
 <!-- set potential solver -->
-<!--
-<solver type="constant-ef">
-<comps>0,-500</comps>
-</solver>
--->
 <solver type="poisson">
-<n0>1e11</n0>
+<method>gs</method>
+<n0>1e10</n0>
 <Te0>1.5</Te0>
 <phi0>0</phi0>
 <max_it>1e4</max_it>
 <nl_max_it>25</nl_max_it>
 <tol>1e-6</tol>
 <nl_tol>1e-4</nl_tol>
-<linear>false</linear>
-<initial_only>false</initial_only>
 </solver>
+
+<!--
+<solver type="constant-ef">
+<comps>0,-500</comps>
+</solver>
+-->
 
 <!-- set sources -->
 <sources>
@@ -30,7 +30,7 @@
 <type>uniform</type>
 <material>O+</material>
 <boundary>inlet</boundary>
-<mdot>1.860e-012</mdot>
+<mdot>3.72e-13</mdot>
 <v_drift>7000</v_drift>
 </boundary_source>
 </sources>
@@ -42,9 +42,9 @@
 </time>	
 
 <!-- save animation -->
-<animation start_it="1" frequency="20">
+<animation start_it="1" frequency="10">
 <output type="2D" file_name="results/field_ani.vts" format="vtk"> 
-<scalars>phi,rho, nd.O+</scalars>
+<scalars>phi,rho, nd.O+, t.o+</scalars>
 <vectors>[u.O+,v.O+]</vectors>
 </output>
 </animation>
@@ -52,33 +52,21 @@
 <!-- run simulation -->
 <starfish />
         
-<!-- save results in Tecplot format-->
-<output type="2D" file_name="field.dat" format="tecplot">
-<scalars>phi, efi, efj, rho, nd.O+, u.o+, v.o+</scalars>
-</output>
-
-<output type="1D" file_name="profile.dat" format="tecplot">
-<mesh>mesh1</mesh>
-<index>J=0</index>
-<scalars>phi, rho, nd.o+, u.o+, v.o+</scalars>
-</output>
-
-<output type="boundaries" file_name="boundaries.dat" format="tecplot" />
-
-<!-- save results in VTK format-->
+<!-- save mesh-based results in VTK format-->
 <output type="2D" file_name="results/field.vts" format="vtk">
 <scalars>phi, rho, nd.O+</scalars>
 <vectors>[efi, efj], [u.o+,v.o+]</vectors>
 </output>
 
-<output type="1D" file_name="profile.dat" format="vtk">
+<!-- save data along a single mesh grid line -->
+<output type="1D" file_name="results/profile.vts" format="vtk">
 <mesh>mesh1</mesh>
 <index>J=0</index>
 <scalars>phi, rho, nd.o+</scalars>
 <vectors>[efi, efj],[u.o+,v.o+]</vectors>
 </output>
 
+<!-- save geometry in VTK format -->
 <output type="boundaries" file_name="results/boundaries.vtp" format="vtk" />
-
 
 </simulation>

@@ -29,7 +29,6 @@ public class VolumeSource extends Source
     /**
      *
      */
-    protected FieldCollection2D temp;	/*temperature*/
     protected int i_sample,
 
     /**
@@ -66,7 +65,7 @@ public class VolumeSource extends Source
      * @param mesh
      * @return
      */
-    public Field2D getTemp(Mesh mesh) {return temp.getField(mesh);}
+    public Field2D getTemp(Mesh mesh) {return source_mat.getT(mesh);}
 
     /*constructor*/
 
@@ -81,7 +80,6 @@ public class VolumeSource extends Source
 	super(name, source_mat, null);
 
 	dn = new FieldCollection2D(Starfish.getMeshList(),null);
-	temp = new FieldCollection2D(Starfish.getMeshList(),null);
 	
 	if (source_mat instanceof KineticMaterial)
 	    spwt0 = ((KineticMaterial)source_mat).getSpwt0();

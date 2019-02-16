@@ -111,7 +111,7 @@ public abstract class Material
     protected class InitVals		/*initialization values*/
     {
 	double nd, nd_back;
-	double T;
+	double T = -1;
 	double u, v;
     };
     
@@ -602,9 +602,10 @@ public abstract class Material
 	    } else if (pieces[0].equalsIgnoreCase("T"))
 	    {
 		init_vals.T = value;
-	    } else
+	    } 
+	    else
 	    {
-		Log.warning("Unrecognized init variable " + pieces[0] + ", valid options are nd,nd_back,u,v,T");
+		Log.warning("Unrecognized init variable " + pieces[0] + ", valid options are nd,nd_back,u,v,T,T_min");
 	    }
 	}
     }

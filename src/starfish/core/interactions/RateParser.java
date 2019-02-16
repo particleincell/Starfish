@@ -31,16 +31,18 @@ public class RateParser
     double c[];		//parser coefficients
     double d[];		//secondary coefficients
     double mult;
-    ArrayList<Material> sources = new ArrayList();
-    ArrayList<Material> products = new ArrayList();
+    Material sources[];
+    Material products[];
+    ArrayList<Double> sources_coeffs = new ArrayList();	    //coefficients for the sources 
+    ArrayList<Double> products_coeffs = new ArrayList();    //coeficients for products
     
     /**
      *
      * @param el	XML element
-     * @param sources	list of source material names for generality
-     * @param products	list of product material names for generality
+     * @param sources	list of source materials for generality
+     * @param products	list of product materials for generality
      */
-    public RateParser (Element el, String[] sources, String[] products)
+    public RateParser (Element el, Material[] sources, Material[] products)
     {
 	String type = InputParser.getValue("type", el);
 	c = InputParser.getDoubleList("coeffs", el);
@@ -57,17 +59,8 @@ public class RateParser
 	wrapper = WrapperType.valueOf(dep_var_type.toUpperCase());
 	
 	/*save sources and products*/
-	for (String name:sources)
-	{
-	    Material mat = Starfish.getMaterial(name);
-	    this.sources.add(mat);
-	}
-	
-	for (String name:products)
-	{
-	    Material mat = Starfish.getMaterial(name);
-	    this.products.add(mat);
-	}
+	this.sources = sources.clone();
+	this.products = products.clone();
     }    
     
     public RateParser()

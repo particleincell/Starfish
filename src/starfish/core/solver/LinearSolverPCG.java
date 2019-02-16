@@ -89,6 +89,7 @@ public class LinearSolverPCG implements LinearSolver
 		    double norm_l = Vector.norm(r[i]);
 		    if (norm_l>norm) norm=norm_l;
 		}
+		
 	    }
 	    
 	    //	System.out.println(norm);

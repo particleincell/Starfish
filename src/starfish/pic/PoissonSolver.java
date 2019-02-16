@@ -19,6 +19,7 @@ import starfish.core.io.InputParser;
 import starfish.core.solver.LinearSolverADI;
 import starfish.core.solver.LinearSolverDirect1D;
 import starfish.core.solver.LinearSolverGS;
+import starfish.core.solver.LinearSolverGSsimple;
 import starfish.core.solver.LinearSolverLU;
 import starfish.core.solver.LinearSolverMG;
 import starfish.core.solver.LinearSolverPCG;
@@ -73,6 +74,7 @@ public class PoissonSolver extends PotentialSolver
 	String sm = (InputParser.getValue("method", element, "GS")).toUpperCase();
 	if (sm.equals("DIRECT")) lin_solver = new LinearSolverLU();
 	else if (sm.equals("GS")) lin_solver = new LinearSolverGS();
+	else if (sm.equals("GS_SIMPLE")) lin_solver = new LinearSolverGSsimple();
 	else if (sm.equals("PCG")) lin_solver = new LinearSolverPCG();
 	else if (sm.equals("MULTIGRID")) lin_solver = new LinearSolverMG();
 	else if (sm.equals("ADI")) lin_solver = new LinearSolverADI();
@@ -86,6 +88,7 @@ public class PoissonSolver extends PotentialSolver
 	/*output debye length*/
 	double lambda_d = Math.sqrt(eps*kTe0/(Constants.QE*den0));
 	Log.log(String.format("> Debye length: %.3g (m)",lambda_d));
+	
     }
 
     @Override
@@ -180,6 +183,23 @@ public class PoissonSolver extends PotentialSolver
 
 	return it;
     }
+    
+    /**tests the linear solver by loading a sinusoidal form for charge density and
+     * comparing results with theory
+     */
+    void solverTest()
+    {
+	MeshData md = mesh_data[0];
+	Mesh mesh = md.mesh;
+	
+	
+	md.x = Vector.deflate(Starfish.domain_module.getPhi(mesh).getData());
+	md.b = Vector.deflate(Starfish.domain_module.getRho(mesh).getData());	    
+	md.b = Vector.mult(md.b, -1/eps);
+	lin_solver.solve(mesh_data, Starfish.domain_module.getPhi(), lin_max_it, lin_tol);
+	Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
+    }
+    
     
     /**SOLVER FACTORY*/
     public static SolverModule.SolverFactory poissonSolverFactory = new SolverModule.SolverFactory()

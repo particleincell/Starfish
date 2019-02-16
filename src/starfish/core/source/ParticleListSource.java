@@ -7,7 +7,9 @@
 package starfish.core.source;
 
 import java.util.ArrayList;
+import starfish.core.boundaries.Segment;
 import starfish.core.common.Starfish;
+import starfish.core.common.Vector;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
 import starfish.core.materials.Material;
@@ -64,23 +66,4 @@ public class ParticleListSource extends VolumeSource
 	/*do nothing*/
     }
 
-    /**
-     *
-     * @param pos
-     * @param vel
-     * @param orig_mat
-     */
-    public void spawnParticles(double[] pos, double[] vel, KineticMaterial orig_mat)
-    {
-	double spwt_orig = orig_mat.getSpwt0();
-	double spwt_source = ((KineticMaterial) source_mat).getSpwt0();
-	double ratio = spwt_orig / spwt_source;
-
-	int count = (int) (ratio + Starfish.rnd());
-
-	for (int i = 0; i < count; i++)
-	{
-	    addParticle(new Particle(pos, vel, spwt_source, orig_mat));
-	}
-    }
 }

@@ -1,6 +1,7 @@
 <!-- material interactions file -->
 <material_interactions>
-
+ 
+<!-- cosine law, 40% of particles -->
 <surface_hit source="O+" target="SS">
 <product>O</product>
 <model>cosine</model>
@@ -9,6 +10,7 @@
 <c_rest>0.9</c_rest>
 </surface_hit>
 
+<!-- specular reflection, 20$ of particles -->
 <surface_hit source="O+" target="SS">
 <product>O</product>
 <model>specular</model>

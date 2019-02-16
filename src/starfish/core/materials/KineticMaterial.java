@@ -47,8 +47,6 @@ public class KineticMaterial extends Material
 
 	/*kinetic material also need spwt*/
 	spwt0 = InputParser.getDouble("spwt", element);
-	    
-
 	
 	/*support for particle merging*/
 	particle_merge_skip = InputParser.getInt("particle_merge_skip", element,-1);
@@ -575,15 +573,18 @@ public class KineticMaterial extends Material
 	
 	/*perform intersection*/
 	if (seg_min!=null)
-	{
-	    /*set dt_rem*/
-	    part.dt = dt0 * (1 - tp_min);
-
-	    /*move to surface*/
+	{	    
+	    /*don't go all the way to the surface to avoid numerical errors*/
+	    tp_min *= 0.9999;
+	    
+	    /*move to surface (almost)*/	    
 	    part.pos[0] = old[0] + tp_min * (part.pos[0] - old[0]);
 	    part.pos[1] = old[1] + tp_min * (part.pos[1] - old[1]);
 	    part.lc = mesh.XtoL(part.pos);
 	    
+	    /*set dt_rem*/
+	    part.dt = dt0 * (1 - tp_min);
+
 	    //check for math errors, the issue here is that a particle could truly 
 	    //first leave the mesh if the boundary is outside the domain
 	    if (part.lc[0]<0 && part.lc[0]>-Constants.FLT_EPS) part.lc[0]=0;
@@ -1661,10 +1662,10 @@ public class KineticMaterial extends Material
 		}
 		else
 		{
-		    T.data[i][j] = -1;
-		    T1.data[i][j] = -1;
-		    T2.data[i][j] = -1;
-		    T3.data[i][j] = -1;  
+		    T.data[i][j] = init_vals.T;
+		    T1.data[i][j] = init_vals.T;
+		    T2.data[i][j] = init_vals.T;
+		    T3.data[i][j] = init_vals.T;  
 		}
 	    }
 

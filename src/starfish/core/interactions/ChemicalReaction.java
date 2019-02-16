@@ -7,6 +7,7 @@
 
 package starfish.core.interactions;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import org.w3c.dom.Element;
 import starfish.core.common.Constants;
@@ -17,6 +18,7 @@ import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.interactions.InteractionsModule.InteractionFactory;
 import starfish.core.io.InputParser;
+import starfish.core.io.InputParser.DoubleStringPair;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
 import starfish.core.materials.Material;
@@ -26,32 +28,20 @@ import starfish.core.source.VolumeSource;
 public class ChemicalReaction extends VolumeInteraction
 {
 
-    /**
-     *
-     */
-    public Material source_mat[];
 
-    /**
-     *
-     */
+    public Material source_mat[];
     public Material prod_mat[];
 
-    /**
-     *
-     */
     public double source_coeff[];
-
-    /**
-     *
-     */
     public double prod_coeff[];
 
     final int num_sources,num_products;
-    String source_names[];
-    String product_names[];
+
     double energy_release;	    //amount of energy to add to products and remove from sources
     boolean initialized=false;
 
+    double num_consumed;	//number of molecules consumed
+    double num_created;		//number of molecules created
     /**
      *
      */
@@ -60,19 +50,51 @@ public class ChemicalReaction extends VolumeInteraction
     
     /**
      *
-     * @param source_names
-     * @param product_names
-     * @param rate_parser
+
      */
-    public ChemicalReaction(String source_names[], String product_names[], RateParser rate_parser,double energy_release)
+    public ChemicalReaction(Element element)
     {
-	this.source_names = source_names;
-	this.product_names = product_names;
-	this.rate_parser = rate_parser;
-	this.energy_release = energy_release;
+	ArrayList<DoubleStringPair> source_names = InputParser.getDoubleStringPairs("sources", element);
+	ArrayList<DoubleStringPair> product_names = InputParser.getDoubleStringPairs("products", element);
+
+	Element el = InputParser.getChild("rate", element);
+	if (el==null) Starfish.Log.error("Chemical reaction <rate> not specified.");
+	    
+	/*create array of sources and products*/
+	num_sources = source_names.size();
+	num_products = product_names.size();
+	source_mat = new Material[num_sources];
+	source_coeff = new double[num_sources];
+		
+	prod_mat = new Material[num_products];
+	prod_coeff = new double[num_products];
+		
+	/*convert names to materials*/
+	for (int i=0;i<num_sources;i++)
+	{
+	    source_coeff[i] = 1;
+			
+	    source_mat[i] = Starfish.getMaterial(source_names.get(i).s);
+	    source_coeff[i] = source_names.get(i).d;
+	}
+		
+	for (int i=0;i<num_products;i++)
+	{
+	    prod_coeff[i] = 1;
+			
+	    prod_mat[i] = Starfish.getMaterial(product_names.get(i).s);
+	    prod_coeff[i] = product_names.get(i).d;
+	}
 	
-	num_sources = source_names.length;
-	num_products = product_names.length;
+	rate_parser = new RateParser(el, source_mat, prod_mat);
+	    
+	/*energy release, this does not yet fully work*/
+	energy_release = InputParser.getDouble("energy_release",element, 0);
+	energy_release *= Constants.EVtoJ;	
+	
+	Log.log("Added CHEMICAL_REACTION ");
+
+
     }
 	
     /**
@@ -81,73 +103,6 @@ public class ChemicalReaction extends VolumeInteraction
     @Override
     public void init()
     {
-	/*create array of sources and products*/
-	source_mat = new Material[num_sources];
-	source_coeff = new double[num_sources];
-		
-	prod_mat = new Material[num_products];
-	prod_coeff = new double[num_products];
-		
-	/*parse source and product materials, can be specified as coeff*mat_name*/
-	for (int i=0;i<num_sources;i++)
-	{
-	    source_coeff[i] = 1;
-			
-	    String pieces[] = source_names[i].split("\\s*\\*\\s*");
-	    if (pieces.length==1)
-		source_mat[i] = Starfish.getMaterial(source_names[i]);
-	    else if (pieces.length==2)
-	    {
-		source_coeff[i] = Double.parseDouble(pieces[0]);
-		source_mat[i] = Starfish.getMaterial(pieces[1]);
-	    }
-	    else
-		Log.error(String.format("Unrecognized syntax %s, must be coeff*mat",source_names[i]));
-	    
-	    if (!(source_mat[i] instanceof KineticMaterial))
-	    	Log.warning("consumeSources not yet implemented for non-kinetic materials, "+source_mat[i].name+
-			" density will not change in chemical reaction!");
-	}
-		
-	for (int i=0;i<num_products;i++)
-	{
-	    prod_coeff[i] = 1;
-			
-	    String pieces[] = product_names[i].split("\\s*\\*\\s*");
-	    if (pieces.length==1)
-		prod_mat[i] = Starfish.getMaterial(product_names[i]);
-	    else if (pieces.length==2)
-	    {
-		prod_coeff[i] = Double.parseDouble(pieces[0]);
-		prod_mat[i] = Starfish.getMaterial(pieces[1]);
-		
-		/*do we already have this material in source?*/
-		for (int j=0;j<num_sources;j++)
-		{
-		    if (prod_mat[i]==source_mat[j] && prod_mat[i] instanceof KineticMaterial)
-		    {
-			/*adjust coefficients*/
-			if (prod_coeff[i]>= source_coeff[j])
-			{
-			    prod_coeff[i] -= source_coeff[j];
-			    
-			    /*for consistency this should be decreased but then the rate won't be calculated right,
-			     * TODO: fix me*/
-			    //source_coeff[j] = 0;
-			}
-			else
-			{
-			//    source_coeff[j] -= prod_coeff[i];
-			  //  prod_coeff[i] = 0;
-			}
-			
-		    }
-			
-		}
-	    }
-	    else
-		Log.error(String.format("Unrecognized syntax %s, must be coeff*mat",product_names[i]));
-	}
 			
 	rate = new FieldCollection2D(Starfish.getMeshList(),null);
 	
@@ -174,8 +129,8 @@ public class ChemicalReaction extends VolumeInteraction
     public void perform() 
     {
 	evalRate();	
-	updateSource();
-	consumeSources();
+	updateDn();
+	consumeSourceMaterials();
     }
 
     /**evaluates rate*/
@@ -187,6 +142,15 @@ public class ChemicalReaction extends VolumeInteraction
 	    int nj = mesh.nj;
 	    
 	    double k[][] = rate.getField(mesh).getData();
+	    
+	    /*testing, turn off after 100 time steps*/
+	    /*
+	    if (Starfish.getIt()>100)
+	    {
+		rate.getField(mesh).clear();
+		continue;
+	    }
+	    */
 	    
 	    /*temperature*/
 	    double T[][] = Starfish.getMaterial(rate_parser.dep_var_mat).getT(mesh).getData();
@@ -201,8 +165,10 @@ public class ChemicalReaction extends VolumeInteraction
     }
 	
     /**updates dn and temperature on the underlying volume source*/
-    public void updateSource() 
+    public void updateDn() 
     {
+	num_created = 0;
+	
 	double dt=Starfish.getDt();
 	for (Mesh mesh:Starfish.getMeshList())
 	{
@@ -246,6 +212,15 @@ public class ChemicalReaction extends VolumeInteraction
 		    if (dn<1) 
 			continue;
 		    
+		    //can't create more products than we have sources
+		    for (int s=0;s<num_sources;s++)
+		    {
+			if (dn>den[s][i][j]) dn=den[s][i][j];
+		    }
+		    
+		    //convert back to rate
+		    dn_dt = dn/dt;
+		    
 		    /*update energy density rate*/
 		    double W = dn_dt * energy_release;
 		    for (int s=0;s<num_sources;s++)
@@ -263,6 +238,8 @@ public class ChemicalReaction extends VolumeInteraction
 		    {
 			prod_source[p].getDn(mesh).data[i][j] += prod_coeff[p]*dn;
 		    }
+		    
+		    num_created += dn*mesh.nodeVol(i,j);
 		}
 	}
     }
@@ -274,9 +251,9 @@ public class ChemicalReaction extends VolumeInteraction
     TODO: implement for fluid species
     TODO: speed up this algorithm, linked list of particles per cell?
     */
-    void consumeSources()
+    void consumeSourceMaterials()
     {
-	int count=0;
+	num_consumed = 0;
 	for (int s=0;s<num_sources;s++)
 	{
 	    if (!(source_mat[s] instanceof KineticMaterial) )
@@ -303,11 +280,13 @@ public class ChemicalReaction extends VolumeInteraction
 			{
 			    dn_cons=part.spwt;
 			    iterator.remove();
+			    num_consumed+=part.spwt;
 			}
 			else
 			{
 			    part.spwt -= dm;
 			    dn_cons = dm;
+			    num_consumed+=dm;
 			}
 
 			dn_cons /=mesh.nodeVol(i,j);
@@ -315,8 +294,9 @@ public class ChemicalReaction extends VolumeInteraction
 		    }
 		} /*while iterator*/
 	    } /*for mesh*/
-	}
-    } /*for s*/
+	} /*for s*/
+	Log.debug("num_consumed: "+num_consumed+", num_created: "+num_created);
+    } 
     
     /**Parses <chemical_raction> element*/
     static InteractionFactory chemicalReactionFactory = new InteractionFactory()
@@ -324,24 +304,11 @@ public class ChemicalReaction extends VolumeInteraction
 	@Override
 	public void getInteraction(Element element)
 	{
-	    /*get sources and products*/
-	    String sources[] = InputParser.getList("sources", element);
-	    String products[] = InputParser.getList("products",element);
 
-	    Element el = InputParser.getChild("rate", element);
-	    if (el==null) Starfish.Log.error("Chemical reaction <rate> not specified.");
-	    
-	    RateParser rp = new RateParser(el, sources, products);
-	    
-	    /*energy release, this does not yet fully work*/
-	    double energy_release = InputParser.getDouble("energy_release",element);
-	    energy_release *= Constants.EVtoJ;	
-	    
-	    /*TODO: create appropriate model*/
-	    Starfish.interactions_module.addInteraction(new ChemicalReaction(sources,products,rp,energy_release));
+
+	    Starfish.interactions_module.addInteraction(new ChemicalReaction(element));
 		
 	    /*log*/
-	    //sim.log(Level.LOG, "Added CHEMICAL_REACTION "+source_name+" + " +target_name + " -> "+product_name);
 	}
     };
 

@@ -441,10 +441,53 @@ public class InputParser implements Iterable
 		d[i] = Double.parseDouble(s[i]);
 	    d_list.add(d);
 	}
-	return d_list;
-	
+	return d_list;	
     }
 
+    
+    public static class DoubleStringPair
+    {
+	public double d;
+	public String s;
+    };
+	
+     /**
+     * @return values from a field such as {@code <key>1*x, 2.0*y</key>} as a list of <double,string> pairs   
+     */
+    public static ArrayList<DoubleStringPair> getDoubleStringPairs(String key, Element element)
+    {
+	String[] s_list = getList(key, element);
+	
+	ArrayList<DoubleStringPair> dsp_list = new ArrayList();
+	
+	for (String s: s_list)
+	{
+	    /*split at multiplication sign*/
+	    String pieces[] = s.split("\\*");
+	    
+	    DoubleStringPair dsp = new DoubleStringPair();
+	    
+	    if (pieces.length==1)
+	    {
+		dsp.d = 1.0;
+		dsp.s = pieces[0];
+	    }
+	    else if (pieces.length==2)
+	    {
+		dsp.d = Double.parseDouble(pieces[0]);
+		dsp.s = pieces[1];
+	    }
+	    else
+	    {
+		Log.error("Invalid format in "+s+", expecting number*string");
+	    }
+	    
+	    dsp_list.add(dsp);
+	}
+	return dsp_list;	
+    }
+
+    
     @Override
     public Iterator<Element> iterator() 
     {

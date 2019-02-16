@@ -978,6 +978,10 @@ public abstract class Mesh
 	//only process nodes with surface elements
 	if (node[i][j].segments.isEmpty()) return;
 	
+	//also only process "gas" nodes - otherwise internal interface nodes
+	//are given small volume resulting in high density islands
+	if (isInternalPoint(i,j)) return;
+	
 	int inside = 0;
 	int good = 0;
 	for (int d=0;d<1000;d++)
@@ -991,7 +995,6 @@ public abstract class Mesh
 	    inside++;
 	    
 	    if (!isInternalPoint(lc)) good++;
-
 	}
 	
 
@@ -1176,9 +1179,15 @@ public abstract class Mesh
 	    } /*boundary*/
 	}
 	
-    /*return if point is located inside or outside a surface in interface cell*/
 
+    public boolean isInternalPoint(double i, double j)
+    {
+	double lc[] = {i,j};
+	return isInternalPoint(lc);	
+    }
+    
     /**
+      return if point is located inside or outside a surface in interface cell
      *
      * @param lc
      * @return

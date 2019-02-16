@@ -285,12 +285,12 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
     static public double rnd2Ex() {double r; do {r=rnd2();} while (r==-1.0); return r;}  //(-1,1)
 	
     /*code version*/
-    static String VERSION = "v0.20.1 (Development)";
+    static String VERSION = "v0.20.2 (Development)";
 
     /**
      *
      */
-    static public String HEADER_MESSAGE = "2D Plasma / Rarefied Gas Simulation Code\n ";
+    static public String HEADER_MESSAGE = "2D Plasma / Rarefied Gas Simulation Code";
     	
     /*accessors*/
 
@@ -630,7 +630,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	Log.forced("================================================================");
 	Log.forced("> Starfish "+VERSION);
 	Log.forced("> "+HEADER_MESSAGE);
-	Log.forced("> (c) 2012-2018, Particle In Cell Consulting LLC");
+	Log.forced("> (c) 2012-2019, Particle In Cell Consulting LLC");
 	Log.forced("> info@particleincell.com, www.particleincell.com");
 	Log.forced("");
 	Log.forced("!! This is a development version. The software is provided as-is, \n"

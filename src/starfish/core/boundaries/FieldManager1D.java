@@ -47,7 +47,7 @@ public class FieldManager1D
     HashMap<String,FieldCollection1D> field_collection;
 	
     /**returns true if the field exist
-     * @param names
+     * @param name
      * @return */
     public boolean hasField(String name) { return names.contains(name);}
 

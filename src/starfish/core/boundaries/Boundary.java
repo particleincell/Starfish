@@ -8,9 +8,7 @@ package starfish.core.boundaries;
 
 import java.util.ArrayList;
 import starfish.core.common.Constants;
-import starfish.core.common.Starfish;
 import starfish.core.materials.Material;
-import starfish.core.source.ParticleListSource;
 import starfish.core.source.Source;
 
 /*Boundary

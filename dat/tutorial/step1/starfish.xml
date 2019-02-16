@@ -8,10 +8,11 @@
 
 <!-- set potential solver -->
 <solver type="poisson">
-<n0>1e12</n0>
+<method>gs</method>
+<n0>1e10</n0>
 <Te0>1.5</Te0>
 <phi0>0</phi0>
-<max_it>1e4</max_it>
+<max_it>5e4</max_it>
 </solver>
 
 <!-- set time parameters -->
@@ -22,33 +23,22 @@
 	
 <!-- run simulation -->
 <starfish />
-        
-<!-- save results in Tecplot format-->
-<output type="2D" file_name="field.dat" format="tecplot">
-<scalars>phi, efi, efj, rho, nd.O+</scalars>
-</output>
 
-<output type="1D" file_name="profile.dat" format="tecplot">
-<mesh>mesh1</mesh>
-<index>J=0</index>
-<scalars>phi, efi, efj, rho, nd.o+</scalars>
-</output>
-
-<output type="boundaries" file_name="boundaries.dat" format="tecplot" />
-
-<!-- save results in VTK format-->
+<!-- save mesh-based results in VTK format-->
 <output type="2D" file_name="results/field.vts" format="vtk">
 <scalars>phi, rho, nd.O+</scalars>
 <vectors>[efi, efj]</vectors>
 </output>
 
-<output type="1D" file_name="profile.dat" format="vtk">
+<!-- save data along a single mesh grid line -->
+<output type="1D" file_name="results/profile.vts" format="vtk">
 <mesh>mesh1</mesh>
 <index>J=0</index>
 <scalars>phi, rho, nd.o+</scalars>
 <vectors>[efi, efj]</vectors>
 </output>
 
+<!-- save geometry in VTK format -->
 <output type="boundaries" file_name="results/boundaries.vtp" format="vtk" />
 
 </simulation>

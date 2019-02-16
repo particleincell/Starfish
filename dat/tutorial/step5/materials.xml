@@ -4,21 +4,30 @@
 <material name="O+" type="kinetic">
 	<molwt>16</molwt>
 	<charge>1</charge>
-	<spwt>5e5</spwt>
+	<spwt>1e3</spwt>
 	<init>nd_back=1e4</init>
+	<diam>2.0e-10</diam>
+	<visc_temp_index>0.77</visc_temp_index>
 </material>
 
 <material name="iO+" type="kinetic">
 	<molwt>16</molwt>
-	<charge>1</charge>
-	<spwt>5e5</spwt>
-	<init>nd_back=1e4</init>
+	<charge>0</charge>
+	<spwt>1e3</spwt>
+	<init>T=10000</init>
 </material>
 
 <material name="O" type="kinetic">
 	<molwt>16</molwt>
 	<charge>0</charge>
-	<spwt>2e5</spwt>
+	<spwt>5e2</spwt>
+	<diam>2.0e-10</diam>
+	<visc_temp_index>0.77</visc_temp_index>
+</material>
+
+<material name="e-" type="fluid_electrons">
+	<model>qn</model>
+	<kTe0>1.5</kTe0>
 </material>
 
 <material name="SS" type="solid">
