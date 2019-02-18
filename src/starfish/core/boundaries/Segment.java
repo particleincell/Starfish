@@ -9,7 +9,6 @@ package starfish.core.boundaries;
 
 import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.domain.Mesh;
-import starfish.core.domain.Mesh.NodeType;
 import starfish.core.common.Vector;
 import static starfish.core.domain.Mesh.Face.RIGHT;
 import static starfish.core.domain.Mesh.Face.TOP;
@@ -155,8 +154,7 @@ public abstract class Segment
 
     /**intersects line segments,
      * @param s2
-    * @return t[0]  parametric intersection along parent segment
-    * @return t[1]  parametric intersection along segment s2*/
+    * @return t  parametric intersection along parent segment in t[0], parametric intersection along segment s2 in t[1]*/
     public abstract double[] intersect (Segment s2);
 
     /**

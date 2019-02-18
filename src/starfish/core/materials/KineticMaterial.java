@@ -374,16 +374,18 @@ public class KineticMaterial extends Material
 		    part.pos[0] += part.vel[0] * part.dt;
 		    part.pos[1] += part.vel[1] * part.dt;
 
-		    if (Starfish.getDomainType()==DomainType.RZ)
+		    switch (Starfish.getDomainType())
 		    {
-			rotateToRZ(part);
+		    	case RZ:
+			    rotateToRZ(part);
+			    break;
+		    	case ZR:
+			    rotateToZR(part);
+			    break;
+		    	default:
+			    part.pos[2] += part.vel[2]*part.dt;
+			    break;
 		    }
-		    else if (Starfish.getDomainType()==DomainType.ZR)
-		    {
-			rotateToZR(part);
-		    }		
-		    else
-			part.pos[2] += part.vel[2]*part.dt;
 
 		    part.lc = mesh.XtoL(part.pos);
 
@@ -492,16 +494,12 @@ public class KineticMaterial extends Material
      */
     boolean ProcessBoundary(Particle part, Mesh mesh, double old[], double lc_old[])
     {
-	boolean left_mesh = false;
 	Face exit_face;
 	boolean alive=true;
 
 	double dt0 = part.dt;	/*initial time step*/
 	part.dt = 0;		/*default, used up all time*/
 
-	if (part.lc[1]<0)
-	    part.lc=part.lc;
-	
 	/*capture bounding box of particle motion and particle position before pushing
 	 *particle into domain*/
 	double lc_min[] = new double[2];
@@ -522,8 +520,8 @@ public class KineticMaterial extends Material
 	if (i_max>=mesh.ni) i_max=mesh.ni-1;
 	if (j_max>=mesh.nj) j_max=mesh.nj-1;
 	
-	/*assemble a list of segments in this block*/
-	Set<Segment> segments = new HashSet<Segment>();
+	/*assemble a list of segments in this block, using a set to avoid duplicates*/
+	Set<Segment> segments = new HashSet();
 	
 	/*make a set of all segments in the bounding box*/
 	for (int i = i_min; i <= i_max; i++)
@@ -594,6 +592,9 @@ public class KineticMaterial extends Material
 	    Boundary boundary_hit = seg_min.getBoundary();
 	    Material target_mat = boundary_hit.getMaterial(tsurf_min);
 	    double boundary_t = seg_min.id()+tsurf_min;	    
+	    
+	    if (charge>0)
+		boundary_hit = boundary_hit;
 	    
 	    /*perform surface interaction*/
 	   if (target_mat!=null)
@@ -677,7 +678,6 @@ public class KineticMaterial extends Material
 	    part.pos[0] = x[0];
 	    part.pos[1] = x[1];
 
-	    left_mesh = true;
 	    part.dt = dt0 * (1 - t);	/*update remaining dt*/
 
 	    int i = (int)part.lc[0];

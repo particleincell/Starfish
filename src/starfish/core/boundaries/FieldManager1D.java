@@ -104,10 +104,10 @@ public class FieldManager1D
      * @return */
     public String getUnits(String name) {return units.get(name);}
 
-    /**add a new named fiel
+    /**add a new named field
      * @param name
      * @param unit
-     * @return d*/
+     * @return */
     public FieldCollection1D add(String name, String unit) 
     {
 	/*set to lowercase*/

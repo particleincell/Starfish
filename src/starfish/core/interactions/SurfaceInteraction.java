@@ -31,7 +31,7 @@ public class SurfaceInteraction
 	registerSurfaceModel("NONE",SurfaceEmissionNone);
 	registerSurfaceModel("ABSORB",SurfaceEmissionAbsorb);
 	registerSurfaceModel("SPECULAR",SurfaceEmissionSpecular);
-	registerSurfaceModel("DIFFUSE",SurfaceEmissionDiffuse);
+	registerSurfaceModel("DIFFUSE",SurfaceEmissionCosine);
 	registerSurfaceModel("COSINE",SurfaceEmissionCosine);
     }
     
@@ -125,28 +125,32 @@ public class SurfaceInteraction
 	    //v_spec = v_tang - v_perp
 	    double dir_spec[] = Vector.subtract(dir_tang,dir_perp);
 */
+	    /*species change?*/
+	    if (mat_int.source_mat != mat_int.product_mat && mat_int.product_km_mat!=null)
+	    {
+		ParticleListSource source = mat_int.product_mat.getParticleListSource();
+		
+		double spwt_orig = mat_int.source_km_mat.getSpwt0();
+		double spwt_source = source.spwt0;
+	
+		double ratio = spwt_orig / spwt_source;
+
+		int count = (int) (ratio + Starfish.rnd());
+		double pos[] = segment.pos(t_int);
+			
+		for (int i = 0; i < count; i++)
+		{
+		    /*specular emission*/		
+		    source.addParticle(new KineticMaterial.Particle(pos, vel, spwt_source, mat_int.product_km_mat));
+		}		
+		return false;
+	    }
+	    
+	    /*otherwise keep particle*/
 	    return true;
 	}				
     };
-    
-    /** Reflects particles using Bird's diffuse reflection model*/
-    public static SurfaceImpactHandler SurfaceEmissionDiffuse = new SurfaceImpactHandler()
-    {
-	@Override
-	public boolean perform(double vel[], Segment segment, double t_int, MaterialInteraction mat_int) 
-	{
-	    /*based on REFLECT2 in DSMC2.f*/
-	    
-	    /*most probable speed, eqns 4.1 and 4.7*/
-	    double vmp = segment.boundary.getVth(mat_int.product_mat);	
-	    double ref_vel[] = Utils.diffuseReflVel(vmp, segment.normal(t_int),segment.tangent(t_int));
-	   
-	    /*need to actually set the value, saying vel=ref_vel won't work*/
-	    for (int i=0;i<3;i++) vel[i] = ref_vel[i];
-	    return true;
-	}
-    };
-		
+    		
     /** Reflects particles in direction following cosine law*/
     public static SurfaceImpactHandler SurfaceEmissionCosine = new SurfaceImpactHandler()
     {
@@ -191,12 +195,15 @@ public class SurfaceInteraction
 		    v_diff = Utils.SampleMaxwSpeed(boundary.getVth(mat_int.product_mat));
 		    v_mag = v_refl + mat_int.c_accom*(v_diff-v_refl);
 		    vel = Vector.mult(dir_diff,v_mag);
-		    source.addParticle(new KineticMaterial.Particle(pos, vel, spwt_source, mat_int.source_km_mat));
+		    source.addParticle(new KineticMaterial.Particle(pos, vel, spwt_source, mat_int.product_km_mat));
 		}		
 		return false;
 	    }
 	    else
 	    {
+		/*alternatively, can use Bird's algorithm*/
+		//Utils.diffuseReflVel(vmp, segment.normal(t_int),segment.tangent(t_int));
+		
 		/*cosine emission*/		
 		double dir_diff[] = Vector.lambertianVector(segment.normal(t_int),segment.tangent(t_int));
 	 

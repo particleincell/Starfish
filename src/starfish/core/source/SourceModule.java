@@ -42,7 +42,8 @@ public class SourceModule extends CommandModule
     /**
      *
      */
-    protected ArrayList<VolumeSource> volume_source_list = new ArrayList<VolumeSource>();
+    protected ArrayList<VolumeSource> volume_source_list = new ArrayList();
+
 
     /** boundary charge for the circuit model    */
     public double boundary_charge = 0;
@@ -293,6 +294,25 @@ public class SourceModule extends CommandModule
     @Override
     public void exit()
     {
+	Log.log("Source Summary: ");
+	/*initialize surface sources*/
+	for (Boundary boundary:Starfish.getBoundaryList())
+	{
+	    for (Source source:boundary.getSourceList())
+	    {
+		double delta_t = Starfish.time_module.getTimeElapsed();
+		double mdot = source.getMassGenerated()/delta_t;
+		double flux = mdot / boundary.area();
+		double current = mdot * source.source_mat.charge / source.source_mat.mass;
+		double current_den = current / boundary.area();
+		Log.log(String.format("%s: mdot: %.3g (kg/s), mass flux: %.3g (kg/s/m^2), "
+			+ "current: %.3g (A), current density: %.3g (A/m^2)",source.name,mdot,flux,current,current_den));
+	    }
+	}
+	
+	/*init volume sources*/
+	for (Source source:volume_source_list)
+	    source.start();
     }
 
     @Override

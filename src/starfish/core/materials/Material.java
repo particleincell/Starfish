@@ -42,6 +42,7 @@ public abstract class Material
     public double charge;	    /*charge in C*/ 
     public double work_function;    /*material work function in J*/
     public double p_vap_coeffs[];   /*vaporization pressure coefficients, log10(P) = A + B/T + C*log10(T) */
+    public double ionization_energy;	/*ionization energy in eV*/
     public double q_over_m;
     public String name;		/*material name*/ 
     public boolean frozen;	//update will be skipped if true
@@ -67,12 +68,14 @@ public abstract class Material
 	work_function = InputParser.getDouble("work_function",element, 0.0)*Constants.EVtoJ;
 	double def[] = {0.0, 0.0, 0.0};
 	p_vap_coeffs = InputParser.getDoubleList("p_vap_coeffs", element, def);
+	ionization_energy = InputParser.getDouble("ionization_energy",element, -1);
 	
 	/*try to get DSMC data*/
 	ref_temp = InputParser.getDouble("ref_temp", element,275);
 	visc_temp_index = InputParser.getDouble("visc_temp_index",element,0.85);
 	vss_alpha = InputParser.getDouble("vss_alpha",element,1);
 	diam = InputParser.getDouble("diam",element,5e-10);
+	
     }
     
     /**
@@ -751,11 +754,15 @@ public abstract class Material
 	Starfish.source_module.addVolumeSource(particle_list_source);
     }
 
+    boolean steady_state = false;
+    
     void addSurfaceMomentum(Boundary boundary, double spline_t, double vel[], double spwt)
     {
-	if (!Starfish.time_module.steady_state)
+	if (Starfish.time_module.steady_state && !steady_state)
 	{
-	    return;
+	    flux_collection.clear();
+	    flux_normal_collection.clear();
+	    steady_state = true;
 	}
 
 	Field1D flux_field = flux_collection.getField(boundary);
@@ -776,9 +783,10 @@ public abstract class Material
 
     void addSurfaceMassDeposit(Boundary boundary, double spline_t, double spwt)
     {
-	if (!Starfish.time_module.steady_state)
+	if (Starfish.time_module.steady_state && !steady_state)
 	{
-	    return;
+	    deprate_collection.clear();
+	    steady_state = true;
 	}
 		
 	Field1D dep = deprate_collection.getField(boundary);

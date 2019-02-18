@@ -30,7 +30,7 @@ public class BoundaryModule extends CommandModule
      *
      */
 
-    protected ArrayList<Boundary> boundary_list = new ArrayList<Boundary>();
+    protected ArrayList<Boundary> boundary_list = new ArrayList();
 
     /**
      *
@@ -235,7 +235,7 @@ public class BoundaryModule extends CommandModule
 	    boundary.init();
 			
 	/*build a list of all segments for visibility checking*/
-	seg_list = new ArrayList<Segment>();
+	seg_list = new ArrayList();
 	for (Boundary boundary:boundary_list)
 	    for (int i=0;i<boundary.numSegments();i++)
 		seg_list.add(boundary.getSegment(i));

@@ -104,12 +104,12 @@ public class Boundary extends Spline
     public Material getMaterial() {return material;}
 	
     /** returns material at spline position
-     * @param tt
+     * @param t parametric position
      * @return */
     public Material getMaterial (double t) {return material;}	/*TODO: for now this assumes uniform mat*/
     
-    /** returns material inde
-     * @return x*/
+    /** returns material index
+     * @return */
     public int getMaterialIndex() {return mat_index;}
 
     /** source list*/
@@ -165,9 +165,7 @@ public class Boundary extends Spline
      *
      */
     protected double temp;		/*temparture in Kelvin*/
+    
+    
 
-    /**
-     *
-     */
-    protected double v_th;		/*thermal velocity, used for thermal accomodation*/
 }

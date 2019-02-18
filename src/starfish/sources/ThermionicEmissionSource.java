@@ -33,8 +33,11 @@ public class ThermionicEmissionSource extends Source
     public ThermionicEmissionSource(String name, Material source_mat, Boundary boundary, Element element)
     {
 	super(name, source_mat, boundary, element);
+	double lambda_r = InputParser.getDouble("lambda_r", element,0.5);
+	use_field = InputParser.getBoolean("use_field", element, true);
+	
 	A0 = 4*Constants.PI*Constants.ME*Constants.K*Constants.K*Constants.QE/(Constants.H*Constants.H*Constants.H);
-	AG = 0.5*A0;
+	AG = lambda_r*A0;
 	
 	double x0[] = boundary.pos(0.5);    /*midpoint location*/
 	mesh_x0 = Starfish.domain_module.getMesh(x0);
@@ -46,6 +49,7 @@ public class ThermionicEmissionSource extends Source
     
     final double A0;
     final double AG;
+    final boolean use_field;
     double v_th;
     final Mesh mesh_x0;	//mesh containing the spline midpoint
     final double lc_x0[];	//logical coordinate of the spline midpoint
@@ -117,8 +121,15 @@ public class ThermionicEmissionSource extends Source
 	/*magnitude of normal electric field at the surface*/
 	double E_mag = -Vector.dot(normal_x0, ef);	//negative sign since negative field needed to pull electrons
 	double W = boundary.getMaterial().getWorkFunction();
-	double DW = Math.sqrt(Constants.QE*Constants.QE*Constants.QE*E_mag/(4*Constants.PI*Constants.EPS0));
 	
+	//schottky emission
+	double DW = 0;
+	if (use_field)
+	{
+	    DW = Math.sqrt(Constants.QE*Constants.QE*Constants.QE*Math.abs(E_mag)/(4*Constants.PI*Constants.EPS0));
+	    if (E_mag<0) DW = -1;	//if retarding potential forms
+	}
+
 	/*emission current density*/
 	J_te = AG*T_surf*T_surf*Math.exp(-(W - DW)/(Constants.K*T_surf));
 	if (J_te<0) J_te = 0;	

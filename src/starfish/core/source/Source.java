@@ -33,6 +33,14 @@ public abstract class Source
     public int start_it;
     public int stop_it;
     
+    double mass_generated;	//total mass generated
+    double mass_generated_inst; //instantenous mass generated
+    
+    public double getMassGenerated() {return mass_generated;}
+    public double getMassGeneratedInst() {return mass_generated_inst;}
+    public void clearMassGeneratedInst() {mass_generated += mass_generated_inst;mass_generated_inst=0;} //called from stats
+
+    
     /*temporary implementation of a circuit model*/
 
     /**
@@ -45,9 +53,8 @@ public abstract class Source
      * constructor
      * @param name
      * @param source_mat
-     * @param start_it
-     * @param spline
-     * @param mdot
+     * @param boundary
+     * @param element
      */   
     public Source(String name, Material source_mat, Boundary boundary, Element element)
     {
@@ -59,6 +66,7 @@ public abstract class Source
     }
     /**
      * constructor without xml element
+     * @param name
      */
     public Source(String name, Material source_mat, Boundary boundary)
     {
@@ -138,7 +146,7 @@ public abstract class Source
 
     /** samples the source for either particles or fluid*/
     final void sampleAll()
-    {
+    {	
 	/*kinetic material*/
 	if (source_mat instanceof KineticMaterial)
 	{
@@ -153,9 +161,10 @@ public abstract class Source
     }
 
     /**
-     * samples particles from a source
+     * samples particles from a source, declared as final so that sources can't override 
+     * (instead should override sampleParticle and hasParticle)
      */
-    void sampleKinetic()
+    final void sampleKinetic()
     {
 	/*source material*/
 	KineticMaterial ks = (KineticMaterial) source_mat;
@@ -175,9 +184,11 @@ public abstract class Source
 	    if (part!=null && ks.addParticle(part))
 	    {
 		count++;
+		mass_generated_inst+=part.spwt*source_mat.mass;
 	    }
 	}
 
+	
 	Log.log_low("Added " + count + " " + ks.getName() + " particles from " + getName());
     }
 

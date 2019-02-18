@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import org.w3c.dom.Element;
+import starfish.core.boundaries.Boundary;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
@@ -17,6 +18,7 @@ import static starfish.core.common.Starfish.getMaterialsList;
 import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
+import starfish.core.source.Source;
 
 /**
  *
@@ -61,6 +63,16 @@ public class StatsModule extends CommandModule
 	    if (mat instanceof KineticMaterial)
 	    	pw.printf(",mp.%s",mat.name);	    
 	}
+	
+	//write out sources
+	for (Boundary boundary : Starfish.getBoundaryList())
+	{
+	    for (Source source: boundary.getSourceList())
+	    {
+		pw.printf(",source.%s (kg/s)",source.getName());
+		pw.printf(",source.%s (A/m^2/s)",source.getName());
+	    }
+	}
 
 	pw.printf("\n");
     }
@@ -78,6 +90,9 @@ public class StatsModule extends CommandModule
      */
     public void printStats()
     {
+	if (stats_skip>0 && getIt()%stats_skip != 0)
+	    return;
+	    
 	String msg = String.format("it: %d\t",getIt());
 		
 	for (Material mat:getMaterialsList())
@@ -92,8 +107,7 @@ public class StatsModule extends CommandModule
 	Starfish.Log.message(msg);
 	
 	//now save to the file
-	if (stats_skip>0 && getIt()%stats_skip == 0)
-	    saveStats();
+	saveStats();
     }
     
     //saves stats to the file
@@ -111,13 +125,26 @@ public class StatsModule extends CommandModule
 	pw.printf("%d,%g",getIt(),Starfish.time_module.getTime());	
 	for (Material mat:getMaterialsList())
 	{
-	     pw.printf(",%g,%g,%g,%g,%g",
+	     pw.printf(",%.4g,%.4g,%.4g,%.4g,%.4g",
 		    mat.getMassSum(),mat.getMomentumSum()[0],mat.getMomentumSum()[1],
 		    mat.getMomentumSum()[2],mat.getEnergySum());
 	    if (mat instanceof KineticMaterial)
 	    {
 		KineticMaterial km = (KineticMaterial)mat;
 		pw.printf(",%d",km.getNp());
+	    }
+	}
+	
+		//write out sources
+	for (Boundary boundary : Starfish.getBoundaryList())
+	{
+	    for (Source source: boundary.getSourceList())
+	    {
+		double mass_gen = source.getMassGeneratedInst();
+		pw.printf(",%.4g",mass_gen); //mass		
+		pw.printf(",%.4g",mass_gen*source.getMaterial().charge/(source.getMaterial().mass*boundary.area()*stats_skip*Starfish.getDt())); //current den
+		source.clearMassGeneratedInst();
+		
 	    }
 	}
 	pw.printf("\n");

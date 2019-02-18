@@ -40,7 +40,6 @@ public class MCC extends VolumeInteraction
     Material product;
     int frequency;
     double max_T;
-    double ionization_energy;	    //in eV
 
     MCC(Element element) 
     {	
@@ -60,12 +59,6 @@ public class MCC extends VolumeInteraction
 	//no limit by default
 	max_T = InputParser.getDouble("max_target_temp",element, -1);
 	    
-	/*get ionization energy*/
-	if (model instanceof MCC.ModelIonization)
-	{
-	    ionization_energy = InputParser.getDouble("ionization_energy", element);
-	}
-	
 	/*make sure we have a kinetic source*/
 	if (!(Starfish.getMaterial(source_name) instanceof KineticMaterial))
 		Log.error("MCC source material "+source_name+" must be kinetic");
@@ -73,6 +66,13 @@ public class MCC extends VolumeInteraction
 	this.source = (KineticMaterial) Starfish.getMaterial(source_name);
 	this.target = Starfish.getMaterial(target_name);
 	this.product = Starfish.getMaterial(product_name);
+	
+	if (model instanceof ModelIonization)
+	{
+	    /*make sure ionization energy is specified*/
+	    if (target.ionization_energy<=0)
+		Log.error("<ionization_energy> needs to be specified for MCC target mat "+target_name);
+	}
 	
 	//initialize sigma parameters as needed
 	sigma.init(this.source, this.target);
@@ -169,7 +169,6 @@ public class MCC extends VolumeInteraction
 	    if (den_a<=0) continue;
 
 	    /*create random target particle according to target T and stream velocity*/
-	   // double target_vel[] = model.sampleTargetVelocity(target, mesh, part.lc);
 	   double target_vel[] = target.sampleVelocity(mesh, part.lc);
 
 	    double g_vec[] = new double[3];
@@ -295,7 +294,7 @@ public class MCC extends VolumeInteraction
 	{
 	    /*reduce initial energy*/
 	    double e1 = 0.5*source.mass*Vector.dot3(source.vel,source.vel)/Constants.QE;
-	    double e2 = e1 - mcc.ionization_energy;
+	    double e2 = e1 - mcc.target.ionization_energy;
 	    if (e2<0) return;	//sanity check, should not happen
 	    
 	    //randomly redistribute the remaining energy to the two electrons
@@ -312,8 +311,9 @@ public class MCC extends VolumeInteraction
 	    //assume the new electron and ion are created at the neutral temperature
 	    double target_temp = mcc.target.getTempCollection().eval(source.pos,300);
 	    
-	    //sampling sometimes return negative values (??), so need a floor, 100K seems like a good number
-	    if (target_temp<100)
+	    //sampling sometimes return negative values (if temperature not computed), 
+	    //in that case, assume 100K
+	    if (target_temp<=0)
 		target_temp = 100;
 	    	    
 	    /*create new ion and electron*/
@@ -325,9 +325,10 @@ public class MCC extends VolumeInteraction
 	    {
 		KineticMaterial prod = (KineticMaterial)mcc.product;
 		int mp_gen = (int)(mcc.source.getSpwt0()/prod.getSpwt0()+Starfish.rnd());
+		double v_th = Utils.computeVth(target_temp, prod.mass);
 		for (int i=0;i<mp_gen;i++)
 		{
-		    double vel3[] = Utils.SampleMaxw3D(Utils.computeVth(target_temp, prod.mass));
+		    double vel3[] = Utils.SampleMaxw3D(v_th);
 		    prod.addParticle(source.pos, vel3);
 		}
 	    	

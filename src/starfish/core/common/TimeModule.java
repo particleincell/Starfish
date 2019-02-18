@@ -37,6 +37,7 @@ public class TimeModule extends CommandModule
      */
     protected double time;
 	
+    double time_initial = 0;	    //time at the start of the simulation, TODO: update by restart
     /**
      *
      */
@@ -78,6 +79,9 @@ public class TimeModule extends CommandModule
      * @return time for a given time step
      */
     public double getTime(int it) {return it*dt;}
+    
+    /** @return physical simulated time*/
+    public double getTimeElapsed() {return getTime()-time_initial;}
 	
     /**
      *

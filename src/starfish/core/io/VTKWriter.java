@@ -404,6 +404,9 @@ public class VTKWriter extends Writer
 		
 	/*TODO: add collection support*/
 	
+	/*todo: apply automatic rescaling of time*/
+	
+	
 	/*set file name, done using a class variable so we can overwrite prior time data*/
 	if (file_name_1d == null || !animation || (animation && time_data_current_line == 0))
 	{
