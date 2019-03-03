@@ -73,17 +73,18 @@ public class OutputModule extends CommandModule
 	ArrayList<String[]> vectors = InputParser.getListOfPairs("vectors",element);
 	
 	//combine "scalars" and "variables", keeping both for backwards compatibility
-	ArrayList<String> vars = new ArrayList<String>();
+	ArrayList<String> vars = new ArrayList();
 	vars.addAll(Arrays.asList(variables));
 	vars.addAll(Arrays.asList(scalars));
 	variables = vars.toArray(new String[0]);
 	
 	/*make writer*/
 	Writer writer;
-	if (format.equalsIgnoreCase("TECPLOT")) writer = new TecplotWriter(file_name);
-	else if (format.equalsIgnoreCase("VTK")) writer = new VTKWriter(file_name);
+	if (format.equalsIgnoreCase("TECPLOT")) writer = new TecplotWriter(element);
+	else if (format.equalsIgnoreCase("VTK")) writer = new VTKWriter(element);
 	else {Log.error("Unknown output format "+format);return null;}
 		 
+	
 	/*TODO: replace this with "factories"*/
 	/*output data*/
 	if (type.equalsIgnoreCase("2D"))

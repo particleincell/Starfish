@@ -30,18 +30,9 @@ public class ParticleTracer extends CommandModule
     @Override
     public void process(Element element) 
     {
-	String file_name = InputParser.getValue("file_name", element);
-	String format = InputParser.getValue("format", element,"VTK");
-	String material = InputParser.getValue("material", element);
 	
-	Material mat = Starfish.getMaterial(material);
-	if (mat==null || !(mat instanceof KineticMaterial))
-	    Log.error(String.format("Material %s not found or not a kinetic material"));
 	
-	int id = InputParser.getInt("id", element);
-	int start_it = InputParser.getInt("start_it",element,0);
-	
-	tracer_list.add(new Tracer(file_name,format,(KineticMaterial) mat, id, start_it));
+	tracer_list.add(new Tracer(element));
     }
 
     ArrayList<Tracer> tracer_list = new ArrayList<Tracer>();
@@ -84,18 +75,27 @@ public class ParticleTracer extends CommandModule
 	ArrayList<Particle> particles = new ArrayList();
 	ArrayList<Integer> time_steps = new ArrayList();
 	
-	Tracer(String file_name, String format, KineticMaterial km, int id, int start_it)
+	Tracer(Element element)
 	{
-	    this.id = id;
-	    this.start_it = start_it;
+	    String format = InputParser.getValue("format", element,"VTK");
+	    String material = InputParser.getValue("material", element);
+
+	    Material mat = Starfish.getMaterial(material);
+	    if (mat==null || !(mat instanceof KineticMaterial))
+		Log.error(String.format("Material %s not found or not a kinetic material"));
+	    km = (KineticMaterial) mat;
+	    
+	    id = InputParser.getInt("id", element);
+	    start_it = InputParser.getInt("start_it",element,0);
+
 	    if (format.equalsIgnoreCase("VTK")) 
-		writer = new VTKWriter(file_name);
+		writer = new VTKWriter(element);
 	    else if (format.equalsIgnoreCase("TECPLOT"))
-		writer = new TecplotWriter(file_name);
+		writer = new TecplotWriter(element);
 	    else
 		Log.error("Unsuported writer format "+format);
 	    writer.initTrace();
-	    this.km = km;	    
+	    	    
 	}
 		
 	/** saves new trace for the specified particle*/

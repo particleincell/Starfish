@@ -7,6 +7,7 @@
 
 package starfish.core.io;
 
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,6 +35,7 @@ public abstract class Writer
     ArrayList <String[]> vectors;
     String cell_data[];	    //cell centered variables
     Mesh output_mesh;
+    FileOutputStream output_stream;	//output stream associated with the PrintWriter
     
     /*for 1D output*/
     Dim dim;		//dimension
@@ -41,10 +43,12 @@ public abstract class Writer
     boolean ave1d;	//average 1D data in perp direction
     int time_data_lines;    //number of entries in a single time file
     int time_data_write_skip;	//number of samples between write outs
+    double time_data_time_scale;    //time axis multiplier
     
     /*support for time data*/
     protected int time_data_current_line;
     protected double[][][] time_data;	    //[time_line][variable][i/j]
+    protected double[] time_data_time;	    //time corresponding to each line
     
     int resolution;	//for three-D rotation
     String file_name;
@@ -55,9 +59,9 @@ public abstract class Writer
     String mat_name;
 	
     /*general constructor*/
-    public Writer (String file_name)
+    public Writer (Element element)
     {
-	this.file_name = file_name;	
+	file_name = InputParser.getValue("file_name", element);
     }
     
     protected PrintWriter open(String file_name)
@@ -65,7 +69,8 @@ public abstract class Writer
 	PrintWriter pw = null;
 	
 	try {
-	    pw = new PrintWriter(new FileWriter(file_name));
+	    output_stream = new FileOutputStream(file_name);	    
+	    pw = new PrintWriter(output_stream);
 	} catch (IOException ex) 
 	{
 	    //see if the problem is a missing directory
@@ -118,7 +123,7 @@ public abstract class Writer
 	time_data_lines = InputParser.getInt("time_data_lines", element,1);	//number of time entries in a single time file
 	if (time_data_lines<1) time_data_lines = 1;
 	time_data_write_skip = InputParser.getInt("time_data_write_skip",element,5);	//number of samples between writes
-	
+	time_data_time_scale = InputParser.getDouble("time_data_time_scale",element,1);	//multiplier for the time-axis
 	/*grab the mesh*/
 	output_mesh =Starfish.domain_module.getMesh(mesh_name);
 	if (output_mesh==null)
@@ -144,6 +149,7 @@ public abstract class Writer
 	if (dim == Dim.I) nk=output_mesh.nj;
 	else nk = output_mesh.ni;
 	time_data = new double[time_data_lines][num_vars][nk];
+	time_data_time = new double[time_data_lines];
 	
 	
 	/*check for averaging or set node index*/

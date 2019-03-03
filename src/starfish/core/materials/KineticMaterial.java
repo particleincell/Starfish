@@ -85,7 +85,7 @@ public class KineticMaterial extends Material
     /**
      *
      */
-    protected long part_id_counter = 0;
+    protected int part_id_counter = 0;
 
     @Override
     public void init()
@@ -951,7 +951,7 @@ public class KineticMaterial extends Material
 		out.writeDouble(part.spwt);
 		out.writeDouble(part.mass);
 		out.writeInt(part.born_it);
-		out.writeLong(part.id);		
+		out.writeInt(part.id);		
 	    }
 	    
 	    /*next save fields*/
@@ -1004,7 +1004,7 @@ public class KineticMaterial extends Material
 		part.spwt = in.readDouble();
 		part.mass = in.readDouble();
 		part.born_it = in.readInt();
-		part.id = in.readLong();
+		part.id = in.readInt();
 
 		addParticle(md,part);
 	    }
@@ -1247,7 +1247,7 @@ public class KineticMaterial extends Material
 	public double mass;		/*mass of the physical particle*/
 	public double lc[];		/*logical coordinate of current position*/
 	public double dt;		/*remaining dt to move through*/
-	public long id;			/*particle id*/
+	public int id;			/*particle id*/
 	public int born_it;
 	public int trace_id = -1;		/*set to >=0 if particle is being traced*/
 	
@@ -1394,7 +1394,11 @@ public class KineticMaterial extends Material
 	public void addParticle(Particle part)
 	{
 	    if (!Vector.isFinite(part.vel))
-		Log.error("Infinite vel");
+	    {
+		/*not sure why this can happen sometimes...*/
+		Log.warning("Infinite vel");
+		return;
+	    }
 	    
 	    /*find particle block with fewest particles*/
 	    int block=0;

@@ -10,6 +10,7 @@ package starfish.core.io;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
+import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.Field1D;
 import starfish.core.boundaries.Segment;
@@ -32,9 +33,9 @@ public class TecplotWriter extends Writer
      */
     protected PrintWriter pw = null;
     
-    public TecplotWriter(String file_name)
+    public TecplotWriter(Element element)
     {
-	super(file_name);	
+	super(element);	
     }
     
     final public void writeHeader() 
