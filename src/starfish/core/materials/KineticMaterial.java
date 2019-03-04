@@ -21,7 +21,6 @@ import starfish.core.boundaries.Segment;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.MeshBoundaryData;

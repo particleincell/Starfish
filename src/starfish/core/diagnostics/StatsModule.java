@@ -73,6 +73,15 @@ public class StatsModule extends CommandModule
 		pw.printf(",source.%s (A/m^2/s)",source.getName());
 	    }
 	}
+	
+	for (Boundary boundary : Starfish.getBoundaryList())
+	{
+	    for (Material mat:Starfish.getMaterialsList())
+	    {
+		pw.printf(",flux.%s.%s (kg/m^2/s)",boundary.getName(),mat.name);
+	    }
+	}
+	
 
 	pw.printf("\n");
     }
@@ -135,7 +144,7 @@ public class StatsModule extends CommandModule
 	    }
 	}
 	
-		//write out sources
+	//write out sources
 	for (Boundary boundary : Starfish.getBoundaryList())
 	{
 	    for (Source source: boundary.getSourceList())
@@ -145,6 +154,17 @@ public class StatsModule extends CommandModule
 		pw.printf(",%.4g",mass_gen*source.getMaterial().charge/(source.getMaterial().mass*boundary.area()*stats_skip*Starfish.getDt())); //current den
 		source.clearMassGeneratedInst();
 		
+	    }
+	}
+	
+	for (Boundary boundary : Starfish.getBoundaryList())
+	{
+	    double time=stats_skip*Starfish.getDt();
+	    for (Material mat:Starfish.getMaterialsList())
+	    {
+		double in_flux  = mat.getMassFluxInst(boundary, time);
+		pw.printf(",%.4g",in_flux);	
+		mat.clearInstData(boundary);
 	    }
 	}
 	pw.printf("\n");

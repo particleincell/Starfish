@@ -144,6 +144,8 @@ public abstract class Material
      *
      */
     protected FieldCollection1D deprate_collection;	/*pointer to deprate for quick access*/  
+    
+    protected FieldCollection1D deprate_collection_inst;    /*instantenous surface deposition data*/
 
     /**
      *
@@ -741,6 +743,7 @@ public abstract class Material
 	flux_collection = field_manager1d.add("flux", "#/m^2/s");
 	flux_normal_collection = field_manager1d.add("flux-normal", "#/m^2/s");
 	deprate_collection = field_manager1d.add("deprate", "kg/s");
+	deprate_collection_inst = field_manager1d.add("deprate-inst", "kg/s");
 	depflux_collection = field_manager1d.add("depflux", "kg/m^2/s");
 	
 	for (Mesh mesh : Starfish.getMeshList())
@@ -791,8 +794,23 @@ public abstract class Material
 		
 	Field1D dep = deprate_collection.getField(boundary);
 	dep.scatter(spline_t, spwt);
+	Field1D dep_inst = deprate_collection_inst.getField(boundary);
+	dep_inst.scatter(spline_t,spwt);
+    }
+    
+    public void clearInstData(Boundary boundary) { 
+	deprate_collection_inst.getField(boundary).clear();
     }
 
+    /**@return total instantaneous deposited mass flux onto a boundary over some time*/
+    public double getMassFluxInst(Boundary boundary, double time) {
+	double data[] = deprate_collection_inst.getField(boundary).getData();
+	double sum=0;
+	for (int i=0;i<data.length;i++)
+	    sum+=data[i];
+	return sum/(boundary.area()*time);
+    }
+    
     void finish()
     {
 	Field1D flux_normal[] = flux_normal_collection.getFields();
