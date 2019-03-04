@@ -44,6 +44,7 @@ public abstract class CommandModule
 	/*do nothing*/
     }
 
+
     /** function called after end of main loop*/
     public void finish() 
     {

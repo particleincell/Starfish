@@ -15,7 +15,7 @@ import starfish.core.domain.Mesh;
 public class Vector 
 {
     /** computes v1 = v1-v
-     * @param v12
+     * @param v1
      * @param v2*/
     public static void subtractInclusive(double v1[], double v2[])
     {
@@ -256,8 +256,8 @@ public class Vector
 	return Math.sqrt(v[0]*v[0]+v[1]*v[1]);		
     }
 
-    /** computes dot product of a 2D vecto
-     * @param v1r
+    /** computes dot product of a 2D vector
+     * @param v1
      * @param v2
      * @return */
     public static double dot2(double v1[], double v2[]) 
@@ -281,8 +281,8 @@ public class Vector
 	return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
     }
 	
-    /**prints the vector on standard ou
-     * @param vt*/
+    /**prints the vector on standard out
+     * @param v*/
     public static void print(double v[]) 
     {
 	for (int i=0;i<v.length;i++)
@@ -290,9 +290,9 @@ public class Vector
 	System.out.printf("\n");
     }
 
-    /**cross product of a 3d arra
+    /**cross product of a 3d array
      * @param v1
-     * @param v2y
+     * @param v2
      * @return */
     public static double[] CrossProduct3(double v1[], double v2[])
     {

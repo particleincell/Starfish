@@ -18,7 +18,7 @@ import starfish.core.solver.Matrix;
 import starfish.core.common.Vector;
 
 /** Defines a spline, collection of line segments
- * Segments can be linear or smooth cubic bezier curves
+ * Segments can be linear or smooth cubic Bezier curves
  * 
  * The parametric position along the spline is t=[0,np] where np is the 
  * number of points. t=2.25 indicates position 1/4 of the way from the start of
@@ -32,7 +32,7 @@ public class Spline
     }
     
     /**constructs a spline made of other spline
-     * @param spliness*/
+     * @param splines*/
     public Spline (ArrayList<Spline>splines)
     {
 	for (Spline spline:splines)
@@ -46,9 +46,9 @@ public class Spline
 	computeLength();
     }
 
-    /**constructs a spline composed of a single linear segmen
+    /**constructs a spline composed of a single linear segment
      * @param x1
-     * @param x2t*/
+     * @param x2*/
     public Spline (double x1[], double x2[])
     {
 	segments.add(Segment.newLinearSegment(x1, x2));
@@ -61,14 +61,9 @@ public class Spline
     /**
      *
      */
-    protected ArrayList<Segment>segments = new ArrayList<Segment>();
+    protected ArrayList<Segment>segments = new ArrayList<>();
 
     /*bounding box*/
-
-    /**
-     *
-     */
-
     protected double box[][];
     double length;
 
@@ -78,6 +73,10 @@ public class Spline
 	return box;
     }
 
+    /**hook to update spline value
+     @return true if value changed*/
+    boolean update() {return false;}
+    
     /**
      *
      */
@@ -126,7 +125,7 @@ public class Spline
     public void setPath(String path, Matrix T, boolean flip_normals)
     {
 	SetPathMode mode = SetPathMode.MOVE;
-	ArrayList<double[]> points = new ArrayList<double[]>();
+	ArrayList<double[]> points = new ArrayList<>();
 
 	Scanner sc = new Scanner(path);
 	sc.useDelimiter("[,\\s\\n\\t]+");
@@ -289,7 +288,7 @@ public class Spline
      */
     protected void reverseSegmentOrdering()
     {
-	ArrayList<Segment> list = new ArrayList<Segment>();
+	ArrayList<Segment> list = new ArrayList<>();
 	int ns=segments.size();
 	
 	for (int i=0;i<ns;i++)

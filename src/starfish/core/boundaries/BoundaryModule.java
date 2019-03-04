@@ -12,6 +12,7 @@ import java.util.Iterator;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.common.CommandModule;
+import starfish.core.common.LinearList;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
@@ -95,6 +96,15 @@ public class BoundaryModule extends CommandModule
 	return null;	//this won't actually happen
     }
 		
+    public void updateBoundaries()
+    {
+	boolean changed = false;
+	for (Boundary boundary:boundary_list)
+	    changed |= boundary.update();
+	if (changed)
+	    Starfish.domain_module.updateBCvalues();
+    }
+    
     @Override
     public void process(Element element) 
     {	
@@ -139,53 +149,14 @@ public class BoundaryModule extends CommandModule
      */
     public void NewBoundary(Element element, Matrix G, boolean flip_normals_global)
     {
-	/*get name and type*/
-	String name = InputParser.getValue("name", element);
-	String type = InputParser.getValue("type", element,"solid");
-		
-	/*b.c.*/
-	double value = InputParser.getDouble("value", element,0);
-		
-	/*set boundary type*/
-	BoundaryType boundary_type=null;
-	if (type.equalsIgnoreCase("OPEN")) boundary_type = BoundaryType.OPEN;
-	else if (type.equalsIgnoreCase("SOLID")) boundary_type = BoundaryType.DIRICHLET;
-	//legacy support, symmetry should be set on meshes
-	else if (type.equalsIgnoreCase("SYMMETRY")) boundary_type = BoundaryType.VIRTUAL;	
-	else if (type.equalsIgnoreCase("VIRTUAL")) boundary_type = BoundaryType.VIRTUAL;
-	else if (type.equalsIgnoreCase("SINK")) boundary_type = BoundaryType.SINK;
-	else Log.error("Unknown boundary type "+type);
-		
-	/*try to grab material, only require for dirichlet*/
-	Material material = null;
-	String mat_name = InputParser.getValue("material", element,"");
-	try{
-	    material = Starfish.getMaterial(mat_name);	
-	}
-	catch (Exception e) {
-	    if (boundary_type == BoundaryType.DIRICHLET)
-		Log.error(e.getMessage());
-	}
-		
-	/*also try to grab temperature*/
-	double temp = InputParser.getDouble("temperature",element,273.15);
-	temp = InputParser.getDouble("temp", element, temp);	    //for backward compatibility
-	
-	/*make new boundary*/
-	Boundary boundary = new Boundary(name, boundary_type, value, material);
-	boundary.setTemp(temp);
-	
-	/*read reverse flag if defined*/
-	boolean flip_normals = InputParser.getBoolean("reverse", element, flip_normals_global);
-
-	/*spline split?*/
-	//int split = InputParser.getInt("split",element,1);
-	
-	/*grab local transformation if set*/
+	Boundary boundary = new Boundary(element);
+/*grab local transformation if set*/
 	Element transf = InputParser.getChild("transform", element);
 	double scaling[] = {1,1};
 	double translation[] = {0,0};
 	double rotation = 0;
+	/*read reverse flag if defined*/
+	boolean flip_normals = InputParser.getBoolean("reverse", element, flip_normals_global);
 	
 	if (transf!=null)
 	{
@@ -205,13 +176,10 @@ public class BoundaryModule extends CommandModule
 
 	/*add points*/
 	String path = InputParser.getValue("path", element);
-	boundary.setPath(path,T,flip_normals);
-
+	boundary.setPath(path,T,flip_normals);	
+	
 	/*add boundary to the list*/
 	addBoundary(boundary);
-		
-	/*log*/
-	Log.log("Added " + boundary_type + " boundary '"+name+"'");	
     }
 	
     @Override
@@ -263,7 +231,9 @@ public class BoundaryModule extends CommandModule
     
     
     /**
-     * @param xp * @return true if the point xp is internal to any boundary spline*/
+     * @param xp * @return true if the point xp is internal to any boundary spline
+     * @return true if point xp is on the internal side of boundaries
+     */
     public boolean isInternal(double xp[])
     {
 	Segment seg = Spline.visibleSegment(xp, seg_list);

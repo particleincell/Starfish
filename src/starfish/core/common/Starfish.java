@@ -74,6 +74,9 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	
 	while(time_module.hasTime())
 	{	    
+	    /*update boundary spline temperatures and values*/
+	    boundary_module.updateBoundaries();
+	    
 	    /*add new particles*/
 	    source_module.sampleSources();
 	    

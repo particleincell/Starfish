@@ -10,17 +10,17 @@ package starfish.core.interactions;
 import java.util.ArrayList;
 import org.w3c.dom.Element;
 import starfish.core.common.Constants;
-import starfish.core.common.Utils.LinearList;
+import starfish.core.common.LinearList;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
 
 /** Collision cross-sections */
 public abstract class Sigma 
 {
-    /**returns cross-section for the given relative velocit
+    /**returns cross-section for the given relative velocity
      * @param g relative velocity
      * @param mass mass of colliding particle(s) for computing energy, if needed
-     * @return y*/
+     * @return */
     public abstract double eval(double g, double mass);
 
     /**

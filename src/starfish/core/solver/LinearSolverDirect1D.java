@@ -58,9 +58,18 @@ public class LinearSolverDirect1D implements LinearSolver
 	double dx = mesh.pos1(1,0) - mesh.pos1(0,0);
 	for (int i=1;i<mesh.ni-1;i++)
 	{
-	   a[i] = 1/(dx*dx);
-	   b[i] = -2/(dx*dx);
-	   c[i] = 1/(dx*dx);
+	   if (mesh.isDirichletNode(i,nj_half))
+	   {
+	       a[i] = 0;
+	       b[i] = 1;
+	       c[i] = 0;
+	   }
+	   else
+	   {
+		a[i] = 1/(dx*dx);
+		b[i] = -2/(dx*dx);
+		c[i] = 1/(dx*dx);
+	   }
 	}
 	
 	/*boundaries*/

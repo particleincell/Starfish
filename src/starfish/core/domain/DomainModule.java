@@ -248,8 +248,13 @@ public class DomainModule extends CommandModule
 	/*TODO: this is currently getting called twice, once 
 	* on <domain> and then by <starfish> (after boundaries are loaded*/		
 	
-
+	updateBCvalues();	
 	
+	has_started = true;
+    }
+    
+    /*TODO: this is not very efficient since things like node volumes get recomputed even if they don't need to be*/
+    public void updateBCvalues() {
 	
 	/*initialize all meshes*/
         for (Mesh mesh:mesh_list)
@@ -263,11 +268,6 @@ public class DomainModule extends CommandModule
 	{
 	    mesh.initNodes();	    
 	}
-	
-	/*sync mesh volumes*/
-//	Starfish.getFieldCollection("NodeVol").syncMeshBoundaries();	
-	
-	has_started = true;
     }
     
     /*accessors*/

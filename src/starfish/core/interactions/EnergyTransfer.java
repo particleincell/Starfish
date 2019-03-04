@@ -12,7 +12,7 @@ import org.w3c.dom.Element;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.common.Utils.LinearList;
+import starfish.core.common.LinearList;
 import starfish.core.domain.Mesh;
 import starfish.core.interactions.InteractionsModule.InteractionFactory;
 import starfish.core.io.InputParser;

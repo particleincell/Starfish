@@ -210,8 +210,4 @@ public class PoissonSolver extends PotentialSolver
 	    return new PoissonSolver(element);
 	}
     };
-
-
- 
-    
 }

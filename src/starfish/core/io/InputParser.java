@@ -18,6 +18,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import starfish.core.common.LinearList;
 import starfish.core.common.Starfish.Log;
 
 /** xml file parser*/
@@ -25,7 +26,7 @@ public class InputParser implements Iterable
 {
     Node root_element;
 	
-    /** constructo
+    /** constructor
      * @param file_name*/
     public InputParser(String file_name)
     {
@@ -121,48 +122,81 @@ public class InputParser implements Iterable
 	return list.toArray(new Element [0]);
     }
 
-    /**Searches source element for the specified key which can be given as an attribute or a node and returns the value
+    /**Searches source element for the specified key which can be given as an attribute or a node. 
+     * If key exists as attribute, it returns the associated value
+     * If key exists as a node, the function returns a list of all node values with this key. Also returns the corresponding attribute if specified
      * @param key key name
      * @param element source element
      * @return key value
      */
-    private static String getValueInternal(String key, Element element) throws NoSuchElementException
+    static class AttValPair {
+	String attribute;
+	String value;
+	AttValPair(String attribute, String value) {
+	    this.attribute = attribute; 
+	    this.value = value;
+	}
+    }
+    public static ArrayList<AttValPair> getAttributeValueList(String key, String attribute, Element element) throws NoSuchElementException
     {
 	/*make sure element is not null*/
 	if (element==null) throw new NoSuchElementException("element is null");
 	
+	ArrayList<AttValPair> list = new ArrayList();
+	
 	/*check if attribute with this key exists*/
-	String attr = element.getAttribute(key);
-	if (!attr.isEmpty())
-	    return attr;
-
-	/*next search among nodes*/
+	String key_val = element.getAttribute(key);
+	if (!key_val.isEmpty()){
+	    list.add(new AttValPair(null,key_val));
+	    return list;
+	}
+	    
+	/*get child nodes - using this instead of getElementsByTagName since
+	that one is case sensitive*/
 	NodeList nodes = element.getChildNodes();
 
 	/*loop through elements and search for node_name*/
 	for (int i=0;i<nodes.getLength();i++)
 	{
 	    Node node = nodes.item(i);
-	    if (node.getNodeName().equalsIgnoreCase(key))
+	    
+	    if (node.getNodeName().equalsIgnoreCase(key) && 
+		node.getNodeType() == Node.ELEMENT_NODE)
 	    {
-		/*if some text is defined*/
-		String str = "";
-		Node sub = node.getFirstChild();
+		Element el = (Element)node;
 		
+		/*if some text is defined*/
+		key_val = "";
+		Node sub = el.getFirstChild();
+	
 		while (sub!=null)
 		{
 		    if (sub.getNodeType()!=Node.COMMENT_NODE) 
-			str += sub.getNodeValue();
+			key_val += sub.getNodeValue();
 		    sub = sub.getNextSibling();
 		}
-		 
-		return str;
+		String attr_val = null;
+		if (attribute!=null)
+		    attr_val = el.getAttribute(attribute);
+		
+		list.add(new AttValPair(attr_val,key_val));
 	    }
 	}
 	
-	throw new NoSuchElementException("Could not find <"+key+"> in <"+element.getNodeName()+">");
+	if (list.isEmpty())
+	    throw new NoSuchElementException("Could not find <"+key+"> in <"+element.getNodeName()+">");
+	return list;
     }
 
+    /**@returns value associated with a given key*/
+    private static String getValueInternal(String key, Element element) throws NoSuchElementException
+    {
+	ArrayList<AttValPair> list = getAttributeValueList(key,null,element);
+	if (!list.isEmpty())
+	    return list.get(0).value;
+	else return null;	//this shouldn't ever happen since getAttValList throws an exception
+    }
+    
     /**returns string value associated with the given key or the default if not found
      * @param key key to search for
      * @param element source element
@@ -387,7 +421,7 @@ public class InputParser implements Iterable
 	return list;
     }
 
-    /**
+    /** Parses d1, d2, d3, d4, etc...
      *
      * @param name
      * @param element
@@ -487,6 +521,29 @@ public class InputParser implements Iterable
 	return dsp_list;	
     }
 
+    public static LinearList getLinearList(String key, String attr, Element element, double def) {
+	
+	LinearList list = new LinearList();
+	try {
+	    ArrayList<AttValPair> in_list = InputParser.getAttributeValueList(key, attr, element);
+	    for (AttValPair av_pair:in_list)
+	    {
+		try {
+		    double t=0;
+		    if (!av_pair.attribute.isEmpty()) t=Double.parseDouble(av_pair.attribute);
+		    double val = Double.parseDouble(av_pair.value);
+		    list.insert(t, val);
+		} catch (NumberFormatException e) {
+		    Log.warning("Could not parse attribute-key pair "+av_pair.attribute+", "+av_pair.value+" to two doubles");
+		}	
+	    }
+	}
+	catch (Exception e) {
+	    list.insert(0, def);
+	}
+	
+	return list;	
+    }
     
     @Override
     public Iterator<Element> iterator() 

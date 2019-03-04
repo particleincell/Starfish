@@ -16,7 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import starfish.core.boundaries.Boundary;
-import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.boundaries.Field1D;
 import starfish.core.boundaries.Segment;
 import starfish.core.boundaries.Spline;
@@ -24,7 +23,6 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
-import starfish.core.common.Vector;
 import starfish.core.domain.DomainModule.DomainType;
 
 /**abstract implementation of a mesh with a structured topology*/
@@ -97,7 +95,7 @@ public abstract class Mesh
 	TOP(1),
 	LEFT(2),
 	BOTTOM(3);
-	private int v;
+	private final int v;
 	Face(int val) {v=val;}
 
 	/** @return associated value */
@@ -112,7 +110,7 @@ public abstract class Mesh
 	public double bc_value;
 		
 	/**list of splines in this control volume*/
-	public ArrayList<Segment>segments = new ArrayList<Segment>();
+	public ArrayList<Segment>segments = new ArrayList<>();
     }
     
     Field2D node_vol;
@@ -1170,7 +1168,7 @@ public abstract class Mesh
 			if (!found)
 			{
 			    if (node[i][j].segments==null)
-				   node[i][j].segments = new ArrayList<Segment>();
+				   node[i][j].segments = new ArrayList<>();
 			    node[i][j].segments.add(segment);
 			}
 					 
@@ -1300,8 +1298,8 @@ public abstract class Mesh
 		    } /*j*/
 
 		    /*this indicates that we did not set any more nodes*/
-		    if (count==0) 
-			break;
+		if (count==0) 
+		    break;
 		} /*pass*/
 
 		if (count>0)
@@ -1318,7 +1316,7 @@ public abstract class Mesh
 	    double lc[] = XtoL(x);
 	    if (lc[0]<-Constants.FLT_EPS || lc[1]<-Constants.FLT_EPS ||
 		lc[0]>(ni-1+Constants.FLT_EPS) || lc[1]>(nj-1+Constants.FLT_EPS))
-	    return false;
+		return false;
 		
 	    return true;
 	}
@@ -1336,153 +1334,6 @@ public abstract class Mesh
 		
 	    return false;
 	}
-	
-	/**saves the mesh, useful for debugging
-     * @param file_name*/
-	public void save(String file_name)
-	{
-	    /*create an empty map*/
-	    LinkedHashMap<String,Field2D> fields = new LinkedHashMap<String,Field2D>();
-	    save(file_name,fields);
-	}
-	
-    /**
-     * Saves the mesh along with the specified 2D data
-     * @param file_name
-     * @param fields
-     */
-    public void save(String file_name, HashMap<String,Field2D> fields) 
-    {
-	PrintWriter pw = null;
-	try {
-	    pw = new PrintWriter(new FileWriter(file_name));
-	} catch (IOException ex) 
-	{
-	    Log.error("error opening file "+file_name);
-	}
-	
-	pw.println("<?xml version=\"1.0\"?>");
-	pw.println("<VTKFile type=\"StructuredGrid\">");
-	pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", ni-1,nj-1);
-	pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n",ni-1,nj-1);
-	   
-	pw.println("<Points>");
-	pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
-	for (int j=0;j<nj;j++)
-	    for	(int i=0;i<ni;i++)
-	    {
-		double x[] = pos(i,j);			
-		pw.printf("%g %g 0 ", x[0], x[1]);
-	    }
-	pw.println("\n</DataArray>");
-	pw.println("</Points>");
-	
-	pw.println("<PointData>");
-	for (Entry<String,Field2D> pair:fields.entrySet())
-	{
-	    String var = pair.getKey();
-	    Field2D field = pair.getValue();
-	    
-	    double data[][] = field.getData();
-	    
-	    pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
-	    for (int j=0;j<nj;j++)
-	  	for (int i=0;i<ni;i++)
-		    pw.printf("%g ",(data[i][j]));
-	    pw.println("\n</DataArray>");
-	}
-	
-	pw.println("</PointData>");	
-	 
-	 
-	 pw.println("</Piece>");
-	 pw.println("</StructuredGrid>");
-	 pw.println("</VTKFile>");
-	/*save output file*/
-        pw.close();
-	  
-  	}
     
-    /**
-     * Saves the mesh along with the specified 2D data and 1D (constant along j index) data
-     * This function saves in Paraview format
-     * @param file_name file name
-     * @param fields2d list of 2D fields to save
-     * @param fields1d list of 1D fields to save
-     */
-    public void save(String file_name, LinkedHashMap<String,Field2D> fields2d, 
-	    LinkedHashMap<String,Field1D> fields1d) 
-	{
-	    /*open file*/
-	    PrintWriter pw = null;
-	    try 
-	    {
-		pw = new PrintWriter(new FileWriter(file_name));
-	    } 
-	    catch (IOException ex) 
-	    {
-		Log.error("Failed to open input file "+file_name);
-	    }
-	    
-	    pw.println("<?xml version=\"1.0\"?>");
-	    pw.println("<VTKFile type=\"StructuredGrid\">");
-	    pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", ni-1,nj-1);
-	    pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n",ni-1,nj-1);
-	   
-	    pw.println("<Points>");
-	    pw.println("<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">");
-	    for (int j=0;j<nj;j++)
-		for	(int i=0;i<ni;i++)
-		{
-		    double x[] = pos(i,j);			
-		    pw.printf("%g %g 0 ", x[0], x[1]);
-		}
-	    pw.println("\n</DataArray>");
-	    pw.println("</Points>");
-	
-	    pw.println("<PointData>");
-	    pw.println("<DataArray Name=\"type\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">");
-	    for (int j=0;j<nj;j++)
-		for	(int i=0;i<ni;i++)
-		    pw.printf("%d ",getNode(i,j).type.value());
-	    pw.println("\n</DataArray>");
-	
-	    /*2d data*/
-	    for (Map.Entry<String, Field2D> pair : fields2d.entrySet()) 
-	    {
-		String var = pair.getKey();
-		Field2D field = pair.getValue();	    
-		double data[][] = field.getData();
-	    
-		pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
-		for (int j=0;j<nj;j++)
-		    for (int i=0;i<ni;i++)
-			pw.printf("%g ",(data[i][j]));
-		pw.println("\n</DataArray>");
-	    }
-	    
-	    /*1d data*/
-	    for (Map.Entry<String, Field1D> pair : fields1d.entrySet()) 
-	    {
-		String var = pair.getKey();
-		Field1D field = pair.getValue();	    
-		double data[]= field.getData();
-	    
-		pw.println("<DataArray Name=\""+var+"\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">");
-		for (int j=0;j<nj;j++)
-		    for (int i=0;i<ni;i++)
-			pw.printf("%g ",(data[i]));
-		pw.println("\n</DataArray>");
-	    }
-		
-	pw.println("</PointData>");		 
-	pw.println("</Piece>");
-	pw.println("</StructuredGrid>");
-	pw.println("</VTKFile>");
-	/*save output file*/
-        pw.close();
-   
-    }
-
-
+  
 }
