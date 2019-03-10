@@ -121,7 +121,13 @@ public class ChemicalReaction extends VolumeInteraction
 	
 	initialized=true;
     }
-			
+	
+    @Override
+    public void clearSamples() {
+	/*do nothing*/
+    }
+    
+    
     /**
      *
      */
@@ -142,15 +148,6 @@ public class ChemicalReaction extends VolumeInteraction
 	    int nj = mesh.nj;
 	    
 	    double k[][] = rate.getField(mesh).getData();
-	    
-	    /*testing, turn off after 100 time steps*/
-	    /*
-	    if (Starfish.getIt()>100)
-	    {
-		rate.getField(mesh).clear();
-		continue;
-	    }
-	    */
 	    
 	    /*temperature*/
 	    double T[][] = Starfish.getMaterial(rate_parser.dep_var_mat).getT(mesh).getData();

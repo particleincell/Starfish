@@ -77,7 +77,8 @@ public abstract class Writer
 	    try{
 		String pieces[] = this.splitFileName(file_name);
 		Files.createDirectories(Paths.get(pieces[2]));
-		pw = new PrintWriter(new FileWriter(file_name));
+		output_stream = new FileOutputStream(file_name);
+		pw = new PrintWriter(output_stream);
 	    } catch (IOException ex2)
 	    {	    
 		Log.error("error opening file "+file_name);

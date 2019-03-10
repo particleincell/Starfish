@@ -70,6 +70,10 @@ public class EnergyTransfer extends VolumeInteraction
 	}
 	
     }
+        @Override
+    public void clearSamples() {
+	Log.error("Not yet implemented!");
+    }
     
     @Override
     public void perform()

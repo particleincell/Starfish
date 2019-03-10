@@ -112,8 +112,16 @@ public class MCC extends VolumeInteraction
 	throw new UnsupportedOperationException("Collision model "+type+" undefined");
     }
 
+    double time_sampling_start=0;
     int num_samples = 0;
     boolean steady_state = false;
+    
+    @Override
+    public void clearSamples() {
+	fc_count_sum.clear();
+	fc_real_sum.clear();	   
+	num_samples = 0;
+    }
     
     /**
      *
@@ -123,15 +131,13 @@ public class MCC extends VolumeInteraction
     {
 	if (Starfish.getIt()%frequency!=0) return;
 	
+	
 	/*clear samples if we are now at steady state*/
 	if (Starfish.steady_state() && !steady_state)
-	{
-	   steady_state = true;
-	   fc_count_sum.clear();
-	   fc_real_sum.clear();
-	   
-	   num_samples = 0;
-	}
+	   clearSamples();
+	
+	if (num_samples==0) 
+	    time_sampling_start = Starfish.getTime();
 	
 	num_samples++;
 	
@@ -147,7 +153,14 @@ public class MCC extends VolumeInteraction
 
 	/*update collision frequency*/
 	fc_nu.copy(fc_real_sum);
-	fc_nu.mult(1.0/(num_samples*frequency*Starfish.getDt()));	
+	fc_nu.mult(1.0/((Starfish.getTime()-time_sampling_start)));
+	for (Mesh mesh:Starfish.getMeshList())
+	{
+	    double data[][] = fc_nu.getField(mesh).data;
+	    for (int i=0;i<mesh.ni;i++)
+		for (int j=0;j<mesh.nj;j++)
+		    data[i][j] /= mesh.nodeVol(i,j);
+	}
     }
 
     /*performs collisions on a single mesh*/

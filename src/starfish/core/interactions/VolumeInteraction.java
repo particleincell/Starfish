@@ -66,4 +66,6 @@ abstract public class VolumeInteraction
      *
      */
     abstract public void init();	
+    
+    abstract public void clearSamples();
 }

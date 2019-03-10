@@ -107,6 +107,13 @@ public class DSMC extends VolumeInteraction
 	}				
     }	
 
+    @Override
+    public void clearSamples() {
+	fc_count_sum.clear();
+	fc_real_sum.clear();
+	num_samples = 0;
+    }
+    
     class CellInfo
     {
 	List<Particle> sp1_list = new ArrayList<Particle>();
@@ -154,9 +161,7 @@ public class DSMC extends VolumeInteraction
 	if (Starfish.steady_state() && !steady_state)
 	{
 	   steady_state = true;
-	   fc_count_sum.clear();
-	   fc_real_sum.clear();
-	   num_samples = 0;
+	   clearSamples();
 	}
 	
 	num_samples++;

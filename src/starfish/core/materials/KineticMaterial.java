@@ -1157,8 +1157,10 @@ public class KineticMaterial extends Material
 		    double vel2[] = new double[3];
 		    for (int d=0;d<3;d++)
 		    {
-			vel1[d] = p0[d] + Math.sqrt(t0[d]);
-			vel2[d] = p0[d] - Math.sqrt(t0[d]);
+			//assign random sign to each dimension
+			int sign = (Starfish.rnd()<0.5)?1:-1;			
+			vel1[d] = p0[d] + sign*Math.sqrt(t0[d]);
+			vel2[d] = p0[d] - sign*Math.sqrt(t0[d]);
 		    }
 		    Particle part1 = new Particle(x0, vel1, w, this);
 		    Particle part2 = new Particle(x0, vel2, w, this);
