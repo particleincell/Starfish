@@ -63,11 +63,12 @@ public class MaterialInteraction
 	/**
 	* @param vel		incident velocity
 	* @param segment	intersection spline
+	* @param spwt		specific weight of the impacting particle
 	* @param t_int		parametric  intersection location
-	 * @param mat_int
+	 * @param mat_int       material interaction structure
 	* @return false if particle is absorbed
 	*/
-	public boolean perform(double vel[], Segment segment, double t_int, MaterialInteraction mat_int);
+	public boolean perform(double vel[], double spwt, Segment segment, double t_int, MaterialInteraction mat_int);
     }
 	
     SurfaceImpactHandler surface_impact_handler;
@@ -80,14 +81,15 @@ public class MaterialInteraction
 
     /**
      *
-     * @param vel
+     * @param vel	velocity of the impacting particle
+     * @param spwt      weight of the impacting particle
      * @param segment
      * @param t_int
      * @return
      */
-    public boolean callSurfaceImpactHandler(double vel[], Segment segment, double t_int) 
+    public boolean callSurfaceImpactHandler(double vel[], double spwt, Segment segment, double t_int) 
     {
-	return surface_impact_handler.perform(vel, segment, t_int, this);
+	return surface_impact_handler.perform(vel, spwt, segment, t_int, this);
     }
 
     /**

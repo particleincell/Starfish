@@ -85,7 +85,7 @@ public class SurfaceInteraction
     public static SurfaceImpactHandler SurfaceEmissionNone = new SurfaceImpactHandler() 
     {
 	@Override
-	public boolean perform(double[] vel, Segment segment, double t_int, MaterialInteraction mat_int) 
+	public boolean perform(double[] vel, double spwt, Segment segment, double t_int, MaterialInteraction mat_int) 
 	{	
 	    return true;
 	}		
@@ -95,7 +95,7 @@ public class SurfaceInteraction
     public static SurfaceImpactHandler SurfaceEmissionAbsorb = new SurfaceImpactHandler() 
     {
 	@Override
-	public boolean perform(double[] vel, Segment segment, double t_int, MaterialInteraction mat_int) 
+	public boolean perform(double[] vel, double spwt_source, Segment segment, double t_int, MaterialInteraction mat_int) 
 	{	
 	    return false;
 	}		
@@ -105,7 +105,7 @@ public class SurfaceInteraction
     public static SurfaceImpactHandler SurfaceEmissionSpecular = new SurfaceImpactHandler()
     {
 	@Override
-	public boolean perform(double vel[], Segment segment, double t_int, MaterialInteraction mat_int) 
+	public boolean perform(double vel[], double spwt_source, Segment segment, double t_int, MaterialInteraction mat_int) 
 	{
 	    double n[] = segment.normal(t_int);
 			
@@ -131,7 +131,6 @@ public class SurfaceInteraction
 		ParticleListSource source = mat_int.product_mat.getParticleListSource();
 		
 		double spwt_orig = mat_int.source_km_mat.getSpwt0();
-		double spwt_source = source.spwt0;
 	
 		double ratio = spwt_orig / spwt_source;
 
@@ -155,7 +154,7 @@ public class SurfaceInteraction
     public static SurfaceImpactHandler SurfaceEmissionCosine = new SurfaceImpactHandler()
     {
 	@Override
-	public boolean perform(double vel[], Segment segment, double t_int, MaterialInteraction mat_int) 
+	public boolean perform(double vel[], double spwt_source, Segment segment, double t_int, MaterialInteraction mat_int) 
 	{
 	    Boundary boundary = segment.getBoundary();
 	
@@ -176,12 +175,11 @@ public class SurfaceInteraction
 	    */
 	    if (mat_int.source_mat != mat_int.product_mat && mat_int.product_km_mat!=null)
 	    {
-		ParticleListSource source = mat_int.product_mat.getParticleListSource();
+		ParticleListSource part_source = mat_int.product_mat.getParticleListSource();
 		
-		double spwt_orig = mat_int.source_km_mat.getSpwt0();
-		double spwt_source = source.spwt0;
+		double spwt_prod = part_source.spwt0;
 	
-		double ratio = spwt_orig / spwt_source;
+		double ratio = spwt_source / spwt_prod;
 
 		int count = (int) (ratio + Starfish.rnd());
 		double pos[] = segment.pos(t_int);
@@ -195,7 +193,7 @@ public class SurfaceInteraction
 		    v_diff = Utils.SampleMaxwSpeed(boundary.getVth(mat_int.product_mat));
 		    v_mag = v_refl + mat_int.c_accom*(v_diff-v_refl);
 		    vel = Vector.mult(dir_diff,v_mag);
-		    source.addParticle(new KineticMaterial.Particle(pos, vel, spwt_source, mat_int.product_km_mat));
+		    part_source.addParticle(new KineticMaterial.Particle(pos, vel, spwt_prod, mat_int.product_km_mat));
 		}		
 		return false;
 	    }

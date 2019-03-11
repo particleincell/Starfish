@@ -275,13 +275,13 @@ public abstract class Material
      *
      * @return false if source material is absorbed
      */
-    boolean performSurfaceInteraction(double[] vel, int source_index, Segment segment, double t)
+    boolean performSurfaceInteraction(double[] vel, double spwt, int source_index, Segment segment, double t)
     {
 	/*first check for sputtering or surface emission hooks*/
 	ArrayList<MaterialInteraction> emission = target_interactions.getInteractionList(source_index);
 	for (MaterialInteraction em:emission)
 	{
-	    em.callSurfaceImpactHandler(vel, segment, t);
+	    em.callSurfaceImpactHandler(vel, spwt, segment, t);
 	}
 	
 	/*now process source particl impact*/
@@ -290,19 +290,12 @@ public abstract class Material
 	/*check for special case of not set, kill particle*/
 	if (list.isEmpty()) 
 	{
-	    /*TODO: default to diffuse for neutrals, but this requires passing pointer to MaterialInteraction*/
-	    //if (Starfish.getMaterial(source_index).charge!=0)
 		return false;
-	/*    else
-	    {
-		SurfaceImpactHandler handler = SurfaceInteraction.SurfaceEmissionDiffuse;
-		return handler.perform(vel, segment, t, null);
-	    }*/
 	}
 	
 	/*otherwise, if only one handler and probability 1, use that one*/
 	else if (list.size()==1 && list.get(0).getProbability()==1.0)
-	    return list.get(0).callSurfaceImpactHandler(vel, segment, t);
+	    return list.get(0).callSurfaceImpactHandler(vel, spwt, segment, t);
 	
 	/*TODO: optimize this by precomputing this list and storing it with MatInt list*/
 
@@ -318,9 +311,12 @@ public abstract class Material
 	    counter++;
 	}
 
-	/*normalize*/
-	if (sum!=1.0)
-	 for (int i=0;i<counter;i++) prob[i]/=sum;
+	/*normalize, but only if things add to more than 1, otherwise assuming the rest is filled with adsorption*/
+	if (sum>1.0)
+	    for (int i=0;i<counter;i++) prob[i]/=sum;
+	
+	/*make sure we don't get division by zero*/
+	if (sum<=0) for (int i=0;i<counter;i++) prob[i] = 0;
 
 	/*pick one*/
 	double R = Starfish.rnd();
@@ -329,7 +325,7 @@ public abstract class Material
 	{
 	    if (R >= sum && R < sum + prob[i])
 	    {
-		return list.get(i).callSurfaceImpactHandler(vel, segment, t);
+		return list.get(i).callSurfaceImpactHandler(vel, spwt, segment, t);
 	    }
 	    sum += prob[i];
 	}

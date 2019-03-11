@@ -592,12 +592,9 @@ public class KineticMaterial extends Material
 	    Material target_mat = boundary_hit.getMaterial(tsurf_min);
 	    double boundary_t = seg_min.id()+tsurf_min;	    
 	    
-	    if (charge>0)
-		boundary_hit = boundary_hit;
-	    
 	    /*perform surface interaction*/
 	   if (target_mat!=null)
-		alive = target_mat.performSurfaceInteraction(part.vel, mat_index, seg_min, tsurf_min);
+		alive = target_mat.performSurfaceInteraction(part.vel, part.spwt, mat_index, seg_min, tsurf_min);
 	   
 	   //track boundary charge for use with the circuit model
 	   if (!alive )
