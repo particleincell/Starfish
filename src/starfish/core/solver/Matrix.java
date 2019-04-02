@@ -42,7 +42,7 @@ public class Matrix
 	this.nr = nr;	    //save number of rows
 	
 	//data = new HashMap[nr];
-	data = new ArrayList<HashMap<Integer,Double>>();
+	data = new ArrayList<>();
 	
 	for (int i=0;i<nr;i++)
 	    data.add (new HashMap<Integer,Double>());
@@ -61,16 +61,16 @@ public class Matrix
     }
 
     
-    /**clears (sets to zero) a single ro
-     * @param iw*/
+    /**clears (sets to zero) a single row
+     * @param i*/
     public void clearRow(int i)
     {
 	data.set(i, new HashMap<Integer,Double>());
     }
 
-    /**returns the value held by full matrix at row i and column
+    /**returns the value held by full matrix at row i and column j
      * @param i
-     * @param jj
+     * @param j
      * @return */
     public double get(int i, int j)
     {
@@ -78,44 +78,44 @@ public class Matrix
 	if (val==null) return 0; else return val;
     }
 
-    /**sets value at row i, column j in full matri
+    /**sets value at row i, column j in full matrix
      * @param i
-     * @param jx
+     * @param j
      * @param val*/
     public void set(int i, int j, double val)
     {
 	data.get(i).put(j, val);	
     }
 
-    /**add value to row r, column c in full matri
+    /**add value to row r, column c in full matrix
      * @param i
-     * @param jx
+     * @param j
      * @param val*/
     public void add(int i, int j, double val)
     {
 	set(i,j, get(i,j)+val);
     }
 
-    /** copies single row between matrixe
+    /** copies single row between matrixes
      * @param A
-     * @param is*/
+     * @param i*/
     public void copyRow(Matrix A, int i)
     {
 	assert(nr==A.nr);	
 	data.set(i, (HashMap<Integer,Double>)A.data.get(i).clone());	
     }
     
-    /**add value to row r, column c in full matri
+    /**add value to row r, column c in full matrix
      * @param i
-     * @param jx
+     * @param j
      * @param val*/
     public void subtract(int i, int j,  double val)
     {
 	add(i,j,-val);
     }
     
-    /**returns A-
-     * @param BB
+    /**returns A-B
+     * @param B
      * @return */
     public Matrix subtract(Matrix B)
     {
@@ -205,17 +205,17 @@ public class Matrix
 	}    	
     }
 
-    /**multiplies value held in full matrix row i, column j, by valu
+    /**multiplies value held in full matrix row i, column j, by value
      * @param i
      * @param j
-     * @param vale*/
+     * @param val*/
     public void mult(int i, int j,  double val)
     {
 	data.get(i).put(j, data.get(i).get(j)*val);
     }
 
-    /**multiplies entire row by
-     * @param is
+    /**multiplies entire row by s
+     * @param i
      * @param s*/
     public void multRow(int i, double s)
     {
@@ -321,8 +321,12 @@ public class Matrix
  
 
     /**prints self*/
-    public void print()
+    public void print() {print("");}
+    public void print(String header)
     {
+	if (!header.isEmpty()) 
+	    System.out.println("*** "+header+" ***");
+	
 	for (int i=0;i<nr;i++)
 	{
 	    for (int j=0;j<nr;j++)
@@ -393,7 +397,7 @@ public class Matrix
 	for (int i = 0;i<nr;i++)
 	{
 	    //new empty data
-	    HashMap<Integer,Double> d = new HashMap<Integer,Double>();
+	    HashMap<Integer,Double> d = new HashMap<>();
 	    
 	    for (Map.Entry<Integer, Double> it : data.get(i).entrySet())
 	    {

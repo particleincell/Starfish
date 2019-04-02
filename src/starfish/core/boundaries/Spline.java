@@ -8,6 +8,7 @@
 package starfish.core.boundaries;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.common.Constants;
@@ -66,6 +67,7 @@ public class Spline
     /*bounding box*/
     protected double box[][];
     double length;
+    protected double seg_distance[];	   //cumulative distance to the start of i-th segment
 
     /** @return bounding box of this spline*/
     public double[][] getBox() 
@@ -506,8 +508,22 @@ public class Spline
     public final void computeLength()
     {
 	length=0;
+	seg_distance = new double[numSegments()+1];
+	
+	seg_distance[0] = 0;	    //not really needed but to be explicit
 	for (int i=0;i<numSegments();i++)
-	    length+=segments.get(i).length();
+	{
+	    double L = segments.get(i).length();
+	    length += L;
+	    double x0[] = segments.get(i).centroid();
+	    double R;
+	    switch (Starfish.getDomainType()){
+		case RZ: R = x0[0];break;
+		case ZR: R = x0[1];break;
+		default: R=1;
+	    }
+	    seg_distance[i+1] = seg_distance[i]+L*R;		    
+	}
     }
 
     /**
@@ -589,14 +605,15 @@ public class Spline
     /** @return random parametric position*/
     public double randomT() 
     {
-	if (Starfish.getDomainType()==DomainType.RZ ||
-	    Starfish.getDomainType()==DomainType.ZR) return randomTforRZ();
+	//since seg_distance is scaled by R, it will not be the same as this.length
+	double l = Starfish.rnd()*seg_distance[seg_distance.length-1];
+	int seg = Vector.binarySearch(seg_distance, l); //map distane to segment
 	
-	/*pick random segment*/
-	int seg = (int)(numSegments()*Starfish.rnd());
+	/*need to remap from length dimension to parametric t along the segment*/
+	double frac = (l-seg_distance[seg])/(seg_distance[seg+1]-seg_distance[seg]);
 
 	/*add random distance along the segment*/
-	return seg+Starfish.rnd();
+	return seg+frac;
     }
 
     /** @return random parametric position for uniform sampling on RZ mesh*/
@@ -621,19 +638,21 @@ public class Spline
 	    double tm=t-0.01;
 	    if (tp>numSegments()) tp=numSegments();
 	    if (tm<0) tm=0;
-	    
-	    /*r compoment of position*/
-	    if (Starfish.getDomainType()==DomainType.RZ)
+
+	    /*r compoment of position*/ 
+	    switch (Starfish.getDomainType())
 	    {
-		rp = pos(tp)[0];
-		rm = pos(tm)[0]; 		
+	    	case RZ:
+		    rp = pos(tp)[0]; 		
+		    rm = pos(tm)[0];
+		    break;
+	    	case ZR:
+		    rp = pos(tp)[1];
+		    rm = pos(tm)[1];
+		    break;
+	    	default:
+		    throw new UnsupportedOperationException("Unknown domain type in RandomT");
 	    }
-	    else if (Starfish.getDomainType()==DomainType.ZR)
-	    {
-		rp = pos(tp)[1];
-		rm = pos(tm)[1]; 
-	    }
-	    else throw new UnsupportedOperationException("Unknown domain type in RandomT");
 	
 	    //swap if needed
 	    if (rm>rp) {double s=rp;rp=rm;rm=s;}

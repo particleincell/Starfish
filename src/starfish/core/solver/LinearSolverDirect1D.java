@@ -10,6 +10,7 @@
  */
 package starfish.core.solver;
 
+import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.FieldCollection2D;
@@ -51,6 +52,44 @@ public class LinearSolverDirect1D implements LinearSolver
 		d[i] += md.b[u];		
 	    }
 	    d[i] /= mesh.nj;
+	}
+	
+	/*apply filtering*/
+	boolean filtering = true;
+	if (filtering)
+	{
+	    double alpha = 0.7;	//large value to keep tight corners
+	    int nn = d.length;
+	    
+	    for (int s=0;s<10;s++)  //repeat smoothing 10 times
+	    {	    
+		//forward
+		double df[] = new double[nn];
+		df[1] = d[1];   //skip first node as b.c.
+		for (int i=2;i<nn-1;i++)
+		    df[i] = (1-alpha)*df[i-1] + alpha*d[i];
+
+		//backward
+		double db[] = new double[nn];
+		db[nn-2] = d[nn-2];
+		for (int i=nn-2;i>=1;i--)
+		    db[i] = (1-alpha)*db[i+1]+alpha*d[i];
+
+		for (int i=1;i<nn-1;i++) //skip boundaries
+		{
+		    int nj_half = (int)(0.5*mesh.nj);
+		    if (!mesh.isDirichletNode(i,nj_half))
+			d[i] = 0.5*(df[i]+db[i]);	//average
+		}
+	    }
+	    
+	    /*set global data*/
+	    double rho[][] = Starfish.domain_module.getRho(mesh).getData();
+	    for (int i=0;i<mesh.ni;i++)
+		for (int j=0;j<mesh.nj;j++)
+		    if (!mesh.isDirichletNode(i,j))
+			rho[i][j] = d[i]*Constants.EPS0;
+	    
 	}
 	
 	/*initialize coefficients to those along midpoint*/
