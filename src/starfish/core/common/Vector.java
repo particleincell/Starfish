@@ -25,8 +25,8 @@ public class Vector
 	    v1[i]-= v2[i];
     }
 
-    /**computes v1 = v1+v
-     * @param v12
+    /**computes v1 = v1+v2
+     * @param v1
      * @param v2*/
     public static void addInclusive(double v1[], double v2[])
     {
@@ -36,8 +36,8 @@ public class Vector
 	    v1[i]+=v2[i];			
     }
 
-    /** returns r = v1-v
-     * @param v12
+    /** returns r = v1-v2
+     * @param v1
      * @param v2
      * @return */
     public static double[] subtract(double v1[], double v2[])
@@ -50,8 +50,8 @@ public class Vector
 	return r;			
     }
 
-    /** returns r = v1+v
-     * @param v12
+    /** returns r = v1+v2
+     * @param v1
      * @param v2
      * @return */
     public static double[] add(double v1[], double v2[])
@@ -66,7 +66,7 @@ public class Vector
 
     /** Multiplies vector by t
      * @param v
-     @param t scalar to multiply by
+     * @param t scalar to multiply by
      * @return */
     public static double[] mult(double v[], double t)
     {
@@ -78,7 +78,7 @@ public class Vector
 
     /** Multiplies vector by t and stores in result vector
      * @param v
-     @param t scalar to multiply by
+     * @param t scalar to multiply by
      * @param result*/
     public static void mult(double v[], double t, double result[])
     {
@@ -86,9 +86,9 @@ public class Vector
 	    result[i] *= t;			
     }
     
-    /** returns {@code\(r = <v1,v2>\)}, inner produc
+    /** returns {@code\(r = <v1,v2>\)}, inner product
      * @param v1
-     * @param v2t
+     * @param v2
      * @return */
     public static double[] mult(double v1[], double v2[])
     {
@@ -99,9 +99,9 @@ public class Vector
 	return r;			
     }
 
-    /** returns copy of the vecto
+    /** returns copy of the vector
      * @param v
-     * @return r*/
+     * @return */
     public static double[] copy(double v[])
     {
 	double r[] = new double[v.length];
@@ -110,7 +110,7 @@ public class Vector
     }
 	
     /** generates empty vector
-     @param n length of the vector
+     * @param n length of the vector
      * @return */
     public static double[] zeros(int n)
     {
@@ -131,8 +131,8 @@ public class Vector
 	return Math.sqrt(v2)/v.length;
     }
 
-    /** computes vector dot produc
-     * @param v1t
+    /** computes vector dot product
+     * @param v1
      * @param v2
      * @return */
     public static double dot(double v1[], double v2[]) 
@@ -184,9 +184,9 @@ public class Vector
 		data1D[u++] = data2D[i][j];
 	    }
     }
-    /** copies 1D data to 2
+    /** copies 1D data to 2D
      * @param data1D
-     * @param niD
+     * @param ni
      * @param nj
      * @param data2D*/
     public static void inflate(double data1D[], int ni,int nj, double data2D[][])
@@ -198,8 +198,8 @@ public class Vector
 	    	data2D[i][j] = data1D[u++];	
     }	
 	
-    /** filter to selectively combine two vector
-     * @param use_firsts
+    /** filter to selectively combine two vectors
+     * @param use_first
      * @param first
      * @param second
      * @return */
@@ -214,8 +214,8 @@ public class Vector
 	return r;
     }
 
-    /** filter to selectively combine two vector
-     * @param use_firsts
+    /** filter to selectively combine two vectors
+     * @param use_first
      * @param first
      * @param second
      * @param r*/
@@ -250,7 +250,9 @@ public class Vector
     }
 
     /**
-     * @param v * @return magnitude of a v[2] vector*/
+     * @param v 
+     * @return magnitude of a v[2] vector
+     */
     public static double mag2(double v[])
     {
 	return Math.sqrt(v[0]*v[0]+v[1]*v[1]);		
@@ -266,7 +268,8 @@ public class Vector
     }
 
     /**
-     * @param v * @return magnitude of a v[2] vector*/
+     * @param v 
+     * @return magnitude of a v[3] vector*/
     public static double mag3(double v[])
     {
 	return Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);		
@@ -283,8 +286,13 @@ public class Vector
 	
     /**prints the vector on standard out
      * @param v*/
-    public static void print(double v[]) 
+    public void print(double v[]) {print(v,"");}
+    	
+    public static void print(double v[],String header) 
     {
+	if (!header.isEmpty()) 
+	    System.out.println("*** "+header+" ***");
+
 	for (int i=0;i<v.length;i++)
 	    System.out.printf("%g ",v[i]);
 	System.out.printf("\n");
@@ -486,5 +494,31 @@ public class Vector
     {
 	for (int i=0;i<vec.length;i++)
 	    vec[i] = s;
+    }
+    
+    
+    /** my implementation of binary search. The one in Arrays.binarySearch searches for the 
+     * actual value. This returns i such that vec[i]<= x <= vec[i+1]
+     * @param vec data vector, must be sorted
+     * @param val value to search for
+     * @return index for the larges vec[i] that is smaller than the value
+     */
+    public static int binarySearch(double[] vec, double val)
+    {
+	if (val<vec[0]) return -1;
+	if (val>vec[vec.length-1]) return vec.length;
+	
+	//initialize to the full range
+	int i1 = 0;
+	int i2 = vec.length;
+	
+	while (true) {
+	    int i_mid = (int) (0.5*(i1+i2));
+	    if (val<vec[i_mid]) i2=i_mid;
+	    else if (val>vec[i_mid]) i1=i_mid;
+	    else return i_mid;	    //if perfect match, unlikely...
+	    
+	    if ((i2-i1)<=1) return i1;
+	}
     }
 }

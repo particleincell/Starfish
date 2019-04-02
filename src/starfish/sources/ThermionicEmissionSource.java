@@ -42,7 +42,12 @@ public class ThermionicEmissionSource extends Source
 	double x0[] = boundary.pos(0.5);    /*midpoint location*/
 	mesh_x0 = Starfish.domain_module.getMesh(x0);
 	if (mesh_x0==null)
-	    Log.error("Source boundary "+boundary.getName()+" is outside the computational domain");
+	{
+	    Log.warning("Source boundary "+boundary.getName()+" is outside the computational domain");
+	    lc_x0 = new double[]{0.0,0.0};
+	    normal_x0 = new double[]{0.0,0.0};
+	    return;
+	}
 	lc_x0 = mesh_x0.XtoL(x0);
 	normal_x0 = boundary.normal(0.5);	
     }
@@ -115,17 +120,18 @@ public class ThermionicEmissionSource extends Source
 	double T_surf = boundary.getTemp();
 	v_th = boundary.getVth(source_mat);
 	
-	double ef[] = {Starfish.domain_module.getEfi(mesh_x0).gather(lc_x0), 
-	               Starfish.domain_module.getEfj(mesh_x0).gather(lc_x0),0};
-    	
-	/*magnitude of normal electric field at the surface*/
-	double E_mag = -Vector.dot(normal_x0, ef);	//negative sign since negative field needed to pull electrons
 	double W = boundary.getMaterial().getWorkFunction();
 	
 	//schottky emission
 	double DW = 0;
-	if (use_field)
+	if (use_field && mesh_x0!=null)
 	{
+	    double ef[] = {Starfish.domain_module.getEfi(mesh_x0).gather(lc_x0), 
+	    Starfish.domain_module.getEfj(mesh_x0).gather(lc_x0),0};
+    	
+	    /*magnitude of normal electric field at the surface*/
+	    double E_mag = -Vector.dot(normal_x0, ef);	//negative sign since negative field needed to pull electrons
+	    
 	    DW = Math.sqrt(Constants.QE*Constants.QE*Constants.QE*Math.abs(E_mag)/(4*Constants.PI*Constants.EPS0));
 	    if (E_mag<0) DW = -1;	//if retarding potential forms
 	}
