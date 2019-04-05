@@ -31,7 +31,7 @@ public class BoundaryModule extends CommandModule
      *
      */
 
-    protected ArrayList<Boundary> boundary_list = new ArrayList();
+    protected ArrayList<Boundary> boundary_list = new ArrayList<>();
 
     /**
      *
@@ -185,7 +185,7 @@ public class BoundaryModule extends CommandModule
     @Override
     public void init()
     {
-	/*nothing*/
+	/*nothing to do*/
     }
 
     @Override

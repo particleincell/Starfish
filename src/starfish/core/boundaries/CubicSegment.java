@@ -7,7 +7,9 @@
 
 package starfish.core.boundaries;
 
+import starfish.core.common.Starfish;
 import starfish.core.common.Vector;
+import starfish.core.domain.DomainModule.DomainType;
 
 /**Cubic segment given by the cubic Bezier spline*/
 class CubicSegment extends Segment
@@ -31,6 +33,33 @@ class CubicSegment extends Segment
 	/*centroid*/
 	centroid = pos(0.5);
     }		
+
+    /** 
+     * Computes area swept by the segment. This currently multiplies the length by the 
+     * midpoint radius. This is just an approximation for now until a more robust method is found.
+     * Based on Pappus' theory but without actually computing the geometric centroid (error)
+     * http://en.wikipedia.org/wiki/Pappus%27s_centroid_theorem
+     */
+    @Override	  
+    double area(double t) {
+	
+	if (Starfish.getDomainType()==DomainType.XY) 
+	    return t*length;
+	
+	//position of the midpoint half-way to our t
+	double pos_mid[] = pos(0.5*t);
+	double length_t = t*length;	//another estimate
+	
+	double r_mid;
+	switch (Starfish.getDomainType()) {
+	    case RZ: r_mid = pos_mid[0]; break;
+	    case ZR: r_mid = pos_mid[1]; break;
+	    default: return 0;
+	}
+	area = 2*Math.PI*r_mid*length_t;
+	return area;
+    }
+
 
     /**returns normal vector at position t*/
     @Override

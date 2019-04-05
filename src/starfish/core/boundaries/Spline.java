@@ -44,7 +44,6 @@ public class Spline
 
 	/*recompute box and length*/
 	computeBoundingBox();
-	computeLength();
     }
 
     /**constructs a spline composed of a single linear segment
@@ -56,7 +55,6 @@ public class Spline
 
 	/*recompute box and length*/
 	computeBoundingBox();
-	computeLength();
     }
 
     /**
@@ -66,8 +64,9 @@ public class Spline
 
     /*bounding box*/
     protected double box[][];
-    double length;
-    protected double seg_distance[];	   //cumulative distance to the start of i-th segment
+    double spline_length;   //total spline length
+    double spline_area;	    //total spline area
+    protected double[] cum_area;	   //cumulative distance to the start of i-th segment
 
     /** @return bounding box of this spline*/
     public double[][] getBox() 
@@ -282,7 +281,7 @@ public class Spline
 	
 	if (segments.isEmpty()) Log.error("Failed to add points for spline "+path);
 	computeBoundingBox();
-	computeLength();
+	computeGeometry();
     }
 
     /**
@@ -503,76 +502,55 @@ public class Spline
     }
 
     /**
-     *
+     * Sets global length and revolved area. This gets called from BoundaryModule.start, since
+     * we need to have domain type to compute segment areas
      */
-    public final void computeLength()
+    public final void computeGeometry()
     {
-	length=0;
-	seg_distance = new double[numSegments()+1];
+	spline_length = 0;
+	spline_area = 0;
+	cum_area = new double[numSegments()+1];
 	
-	seg_distance[0] = 0;	    //not really needed but to be explicit
+	/*initialize segment areas now that we know domain type we have*/
+	for (Segment seg:segments)
+	    seg.computeArea();
+		
+	cum_area[0] = 0;	 //not really needed but to be explicit
 	for (int i=0;i<numSegments();i++)
 	{
-	    double L = segments.get(i).length();
-	    length += L;
-	    double x0[] = segments.get(i).centroid();
-	    double R;
-	    switch (Starfish.getDomainType()){
-		case RZ: R = x0[0];break;
-		case ZR: R = x0[1];break;
-		default: R=1;
-	    }
-	    seg_distance[i+1] = seg_distance[i]+L*R;		    
+	    Segment seg = segments.get(i);
+	    double L = seg.length();
+	    spline_length += L;
+	    spline_area += seg.area();
+	    cum_area[i+1] = cum_area[i] + seg.area();
 	}
     }
 
     /**
-     * @param i *  @return node area, area centered around the node
+     * Computes surface area centered on i-th node. This is the half of surface
+     * areas on both sides. On end points, we have half area.
+     * @return node area, area centered around the node
      */
     public double nodeArea(int i)
     {
-	double L1=0, L2=0;
-	if (i>0) L1=0.5*segments.get(i-1).length;
-	if (i<segments.size()) L2=0.5*segments.get(i).length;
-	
-	if (Starfish.domain_module.getDomainType()==DomainType.XY)
-	{
-	    return L1+L2;
-	}
-	else	    /*RZ*/
-	{
-	    /* based on Pappus' theory, http://en.wikipedia.org/wiki/Pappus%27s_centroid_theorem*/
-	    double area=0;
-	    double R1,R2;
-	    
-	    int j;
-	    if (Starfish.domain_module.getDomainType()==DomainType.RZ) j=0;
-	    else j=1;
-	    
-	    if (i>0) R1=segments.get(i-1).centroid()[j];   
-	    else R1=segments.get(i).x1[j];
-	    
-	    if (i<segments.size()) R2=segments.get(i).centroid()[j];
-	    else R2=segments.get(i-1).x2[j];
-	    
-	    /*mean centroid*/
-	    double R0 = 0.5*(R1+R2);
-	    
-	    area = 2*Math.PI*R0*(L1+L2);
-	    return area;
-	}
+	if (i>0 && i<numSegments())
+	    return 0.5*(segmentArea(i)+segmentArea(i-1));
+	else if (i==0)
+	    return 0.5*segmentArea(i);
+	else
+	    return 0.5*segmentArea(numSegments()-1);
     }
     
     /**
      * @param i *  @return area of the segment, analogous to cell area in mesh*/
     public double segmentArea(int i)
     {
-	return nodeArea(i)+nodeArea(i+1);
+	return segments.get(i).area();
     }
     
     /**
      * @param t1
-     * @param t2 *  @return area of a strip between two endpoints, assumes linear strip    */
+     * @param t2 *  @return area of a strip between two endpoints, assumes line connection  */
     public double stripArea(double t1, double t2)
     {
 	double pos1[] = pos(t1);
@@ -580,40 +558,85 @@ public class Spline
 	double l = Vector.dist2(pos1, pos2);	/*arc length*/
 	if (Starfish.domain_module.getDomainType()==DomainType.XY) return l;
 	
-	double r=0;
-	if (Starfish.domain_module.getDomainType()==DomainType.RZ) r = 0.5*(pos1[0]+pos2[0]);
-	else if (Starfish.domain_module.getDomainType()==DomainType.ZR) r = 0.5*(pos1[1]+pos2[1]);
-	else Log.error("Unknown domain type");
+	/*in axisymmetric case, the strip area is the difference between two cones
+	    A = pi* ( r2*(l2+r2) - r1*(l1+r1) )
+	*/
+	double r1,z1,r2,z2;
+	switch (Starfish.domain_module.getDomainType()) {
+	    case RZ: r1=pos1[0]; r2=pos2[0]; z1=pos1[1]; z2=pos2[1]; break;
+	    case ZR: z1=pos1[0]; z2=pos2[0]; r1=pos1[1]; r2=pos2[1]; break;
+	    default: Log.error("Unknown domain type in stripArea");return 0;	
+	}
 	
-	return 2*Math.PI*l*r;
+	return Math.PI*(r2*r2 - r1*r1 + r2*z2 - r1*z1);
     }
 
     /** @return "surface" area of the spline*/
     /*TODO: why is this being recomputed?*/
     public double area()
     {
-	if (segments.size()<1) return 0;
-
-	double area = 0;
-
-	for (int i=0;i<numPoints();i++)
-	    area += nodeArea(i);
-	
-	return area;
+	return spline_area;
     }
 
     /** @return random parametric position*/
     public double randomT() 
     {
-	//since seg_distance is scaled by R, it will not be the same as this.length
-	double l = Starfish.rnd()*seg_distance[seg_distance.length-1];
-	int seg = Vector.binarySearch(seg_distance, l); //map distane to segment
+	/*sample uniformly from total spline area*/
+	double A1 = Starfish.rnd()*spline_area;
+	int i = Vector.binarySearch(cum_area, A1); //map distance to segment
 	
-	/*need to remap from length dimension to parametric t along the segment*/
-	double frac = (l-seg_distance[seg])/(seg_distance[seg+1]-seg_distance[seg]);
-
+	/*compute parametric position along this segment*/
+	double seg_area = segments.get(i).area;
+	double frac = (A1-cum_area[i])/seg_area;
+	
+	//area of a conical frustrum 
+	
+	if (Starfish.getDomainType()!=DomainType.XY)
+	{
+	    /*for axisymmetric domain we need to search for "t" that will produce
+	    the desired fractional area. My attempt for analytical solution has so far
+	    been unfruitful as this gives an ugly equation containing sqrt(t) terms
+	    */
+	    
+	    Segment seg = segments.get(i);
+	    	    
+	    /*
+	    this is my attempt at searching for the solution. This is probably the same
+	    as Newton's method.	    
+	    */
+	    final int max_steps = 10;
+	    final double tol = 1e-6;
+	    double x[] = new double[max_steps];
+	    double f[] = new double[max_steps];
+	    double f_goal = frac*seg_area;   //what we are looking
+	    
+	    //initialize. With assume that t ~ area fraction 
+	    x[0] = frac;
+	    f[0] = seg.area(x[0]);
+	    
+	    double diff = Math.abs(f[0]-f_goal);
+	    
+	    int k=1;
+	    //set x[1] since this is the final that is used if initial guess is right
+	    x[1] = x[0] + (f_goal-f[0]);    
+	    	
+	    if (diff>tol)
+	    	f[1] = seg.area(x[1]);		
+	    
+	    
+	    while (diff>tol && k<max_steps-1)
+	    {
+		x[k+1] = (x[k]-x[k-1])*(f_goal-f[k-1])/(f[k]-f[k-1]) + x[k-1];
+		f[k+1] = seg.area(x[k+1]);
+		diff = Math.abs(f[k+1]-f_goal);	 
+		k++;		
+	    }
+	    
+	   frac = x[k];
+	}
+	
 	/*add random distance along the segment*/
-	return seg+frac;
+	return i+frac;
     }
 
     /** @return random parametric position for uniform sampling on RZ mesh*/
@@ -959,7 +982,7 @@ public class Spline
 
 	for (int s=0;s<ns;s++)
 	{
-	    divs[s] = (int)Math.floor((nn-1)*getSegment(s).length()/length+0.5);
+	    divs[s] = (int)Math.floor((nn-1)*getSegment(s).length()/spline_length+0.5);
 	    dt[s] = getSegment(s).length()/divs[s];
 	    tot += divs[s];
 	}

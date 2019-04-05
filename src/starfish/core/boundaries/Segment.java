@@ -85,11 +85,24 @@ public abstract class Segment
 
     double centroid[] = new double[3];
     double length;
+    double area;
 
-    /**returns normal vector at segment position t=[0,1
-     * @return ]*/
+    /** @return actual length of the segment*/
     public final double length() {return length;}
+    
+    /** Computes segment area. For XY domain, this is the same as length (depth=1 is assumed).
+     * For RZ/ZR domains, this is the swept area (currently correctly defined only for linear segments)
+     * @return area of the segment. */
+    public final double area() {return area;}
+    
+    /** returns segment area up to position t*/
+    abstract double area(double t);
 
+    /** hook to compute segment area*/
+    final void computeArea() {
+	area = area(1.0);	    
+    }
+        
     /**
      *
      * @return

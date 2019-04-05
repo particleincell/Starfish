@@ -8,6 +8,9 @@
 package starfish.core.boundaries;
 
 import starfish.core.common.Constants;
+import starfish.core.common.Starfish;
+import starfish.core.common.Starfish.Log;
+import starfish.core.domain.DomainModule.DomainType;
 
 /**Linear Segment*/
 class LinearSegment extends Segment
@@ -42,6 +45,37 @@ class LinearSegment extends Segment
 
 	/*centroid*/
 	centroid = pos(0.5);
+    }
+    
+    /** 
+     * Computes area swept by the segment
+     */
+    @Override	  
+    double area(double t) {
+	
+	if (Starfish.getDomainType()==DomainType.XY)
+	    return t*length;
+	
+	double r1,z1,r2,z2;
+	double pos[] = pos(t);
+	
+	switch (Starfish.getDomainType()) {
+	    case RZ: r1=x1[0]; z1=x1[1];
+		     r2=pos[0]; z2=pos[1];
+		     break;
+	    case ZR: r1=x1[1]; z1=x1[0];
+		     r2=pos[1]; z2=pos[0];
+		     break;
+	    default: return 0;
+	}
+	
+	double dr = r1-r2;
+	double dz = z1-z2;
+	
+	//lateral area of conical frustrum https://en.wikipedia.org/wiki/Frustum#Surface_area
+	double A = Math.PI*(r1+r2)*Math.sqrt(dr*dr+dz*dz);
+	if (A<0) A*=-1.0;
+	return A;
     }
 
     @Override

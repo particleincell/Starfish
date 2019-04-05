@@ -123,6 +123,8 @@ public class Boundary extends Spline
     /**allocates sources*/
     protected void init()
     {
+	computeGeometry();
+	
 	/*set boundaries for segments*/
 	for (int i=0;i<numSegments();i++)
 	    this.getSegment(i).setParentInfo(this,i);	   
