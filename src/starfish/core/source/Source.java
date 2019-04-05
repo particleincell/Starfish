@@ -179,7 +179,13 @@ public abstract class Source
 	while (hasParticles())
 	{
 	    Particle part = sampleParticle();
-
+	    
+	    /*push particle slightly off the surface
+	      this is needed to avoid particles getting injected inside the surface if
+	      strong external retarding field*/
+	    for (int i=0;i<3;i++)
+		part.pos[i] += part.vel[i]*1e-6*Starfish.getDt();
+		    
 	    /*only add particles located within our domain*/
 	    if (part!=null && ks.addParticle(part))
 	    {

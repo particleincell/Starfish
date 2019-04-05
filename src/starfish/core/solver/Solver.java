@@ -131,9 +131,9 @@ public abstract class Solver
     /**data to evaluate sum(k*mesh.eval(lc)) on a node n*/
     public class NeighborData
     {
-	public ArrayList<Mesh> mesh = new ArrayList();
-	public ArrayList<double[]> lc =new ArrayList();
-	public ArrayList<Double> coeff = new ArrayList();
+	public ArrayList<Mesh> mesh = new ArrayList<>();
+	public ArrayList<double[]> lc =new ArrayList<>();
+	public ArrayList<Double> coeff = new ArrayList<>();
     }
     
     /** Container for data used by the field solver
@@ -141,7 +141,7 @@ public abstract class Solver
      * A*x product that is due to nodes located in a neighbor mesh
      * The gradients matrixes are used to compute the gradient, (Gi*x,Gj*x)
      */
-    public class MeshData
+    static public class MeshData
     {
 
 	public Mesh mesh;	/*associated mesh*/

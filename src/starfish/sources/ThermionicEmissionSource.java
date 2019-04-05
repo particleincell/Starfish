@@ -130,10 +130,11 @@ public class ThermionicEmissionSource extends Source
 	    Starfish.domain_module.getEfj(mesh_x0).gather(lc_x0),0};
     	
 	    /*magnitude of normal electric field at the surface*/
-	    double E_mag = -Vector.dot(normal_x0, ef);	//negative sign since negative field needed to pull electrons
+	    double qe = source_mat.charge/Constants.QE;	//this is the charge in terms of electron units
+	    double E_mag = qe*Vector.dot(normal_x0, ef);	
 	    
 	    DW = Math.sqrt(Constants.QE*Constants.QE*Constants.QE*Math.abs(E_mag)/(4*Constants.PI*Constants.EPS0));
-	    if (E_mag<0) DW = -1;	//if retarding potential forms
+	    if (E_mag<0) DW = 0;	//if retarding potential forms
 	}
 
 	/*emission current density*/

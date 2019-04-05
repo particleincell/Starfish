@@ -13,7 +13,6 @@ import starfish.core.common.LinearList;
 import starfish.core.common.Starfish;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
-import starfish.core.solver.Matrix;
 import starfish.core.source.Source;
 
 /*Boundary

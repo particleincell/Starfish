@@ -142,12 +142,12 @@ public class InputParser implements Iterable
 	/*make sure element is not null*/
 	if (element==null) throw new NoSuchElementException("element is null");
 	
-	ArrayList<AttValPair> list = new ArrayList();
+	ArrayList<AttValPair> list = new ArrayList<>();
 	
 	/*check if attribute with this key exists*/
 	String key_val = element.getAttribute(key);
 	if (!key_val.isEmpty()){
-	    list.add(new AttValPair(null,key_val));
+	    list.add(new AttValPair("",key_val));
 	    return list;
 	}
 	    
@@ -539,6 +539,7 @@ public class InputParser implements Iterable
 	    }
 	}
 	catch (Exception e) {
+	    //if list not found, try to read individual entry
 	    list.insert(0, def);
 	}
 	

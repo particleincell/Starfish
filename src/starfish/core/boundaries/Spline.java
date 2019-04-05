@@ -622,8 +622,7 @@ public class Spline
 	    	
 	    if (diff>tol)
 	    	f[1] = seg.area(x[1]);		
-	    
-	    
+	    	    
 	    while (diff>tol && k<max_steps-1)
 	    {
 		x[k+1] = (x[k]-x[k-1])*(f_goal-f[k-1])/(f[k]-f[k-1]) + x[k-1];

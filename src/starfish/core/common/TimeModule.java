@@ -112,7 +112,7 @@ public class TimeModule extends CommandModule
 	dt = 1e-6;
 	num_it = 100;
 	time = 0;
-	it = 0;
+	it = 1;
     }
 	
     /**
@@ -121,7 +121,7 @@ public class TimeModule extends CommandModule
      */
     public boolean hasTime()
     {
-	if (it<num_it) return true;
+	if (it<=num_it) return true;
 	return false;
     }
     

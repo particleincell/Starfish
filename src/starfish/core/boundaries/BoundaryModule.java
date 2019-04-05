@@ -10,13 +10,10 @@ package starfish.core.boundaries;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.w3c.dom.Element;
-import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.common.CommandModule;
-import starfish.core.common.LinearList;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
-import starfish.core.materials.Material;
 import starfish.core.solver.Matrix;
 
 /**

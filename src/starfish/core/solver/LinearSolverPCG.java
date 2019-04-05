@@ -7,59 +7,63 @@
 package starfish.core.solver;
 
 import starfish.core.common.Starfish;
+import starfish.core.common.Starfish.Log;
 import starfish.core.common.Vector;
+import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.solver.Solver.LinearSolver;
 
 public class LinearSolverPCG implements LinearSolver
 {
+    boolean first_time = true;
+    
     @Override
     public int solve(Solver.MeshData[] md, FieldCollection2D fc, int max_it, double tolerance)
     {
 	double norm = tolerance;
 	
+	if (first_time && Starfish.getDomainType()!=DomainType.XY)
+	    Log.warning("PCG solver may not converge on axi-symmetric domains!!");
+	
 	double b[][] = new double[md.length][];
 	double x[][] = new double[md.length][];
 	Matrix A[]= new Matrix[md.length];
-	Matrix Ci[] = new Matrix[md.length];
-	Matrix Cit[] = new Matrix[md.length];
-	double w[][] = new double[md.length][];
-	double v[][] = new double[md.length][];
+	Matrix Mi[] = new Matrix[md.length];
 	double r[][] = new double[md.length][];
-	double alpha[] = new double[md.length];
+	double z[][] = new double[md.length][];
+	double p[][] = new double[md.length][];
 	
 	for (int m=0;m<md.length;m++)
 	{
+	    /*pcg needs a non-zero initial guess (otherwise diverges), 
+	      setting to b seems to do the trick   */
+	    if (first_time) 
+	    	md[m].x = Vector.copy(md[m].b);
+	    
 	    b[m]= md[m].b;
 	    x[m]= md[m].x;
-	   
+	    
+	    
 	    A[m] = md[m].A;
 	 
-	    A[m].print("A");
+	    //A[m].print("A");
 	    
 	    /*diagonal preconditioner*/
 	    //Matrix M = Matrix.diag_matrix(A);
-	    Matrix C = A[m].diag_matrix();
-	    Ci[m] = C.inverse();	    //this is only defined for diagonal matrix
-	    Cit[m] = Ci[m].transpose();	    //for generality, identical to inv(C) for C=diag(A)
+	    Matrix M = A[m].diag_matrix();
+	    Mi[m] = M.inverse();	    //this is only defined for diagonal matrix
 	    
-	    C.print("C");
-	    Ci[m].print("inv(C)");
-	    Cit[m].print("t(i(C))");
+	    //M.print("M");
+	    //Mi[m].print("inv(M)");
 	    
-	    
-		    
 	    /*initialize*/
 	    r[m] = Vector.subtract(b[m], A[m].mult(x[m]));  //r=b-Ax
-	    w[m] = Ci[m].mult(r[m]);	    // w = inv(C)*r
-	    v[m] = Cit[m].mult(w[m]);	    // v = tran(inv(C))*w
-	    alpha[m] = Vector.dot(w[m],w[m]);
-	    Vector.print(r[m],"R");
-	    Vector.print(w[m],"w");
-	    Vector.print(v[m],"v");
-	    System.out.println(alpha[m]);
+	    z[m] = Mi[m].mult(r[m]);	    // z = Mi*r
+	    p[m] = Vector.copy(z[m]);
 	}
-
+	
+	first_time = false;
+	
 	
 	/* SOLVER */
 	int it = 1;			/*start with one so we don't compute residue on first run*/
@@ -68,55 +72,52 @@ public class LinearSolverPCG implements LinearSolver
 	     /*** update boundaries**/	    
 	   // Solver.updateGhostVector(md, fc);
 	    
+	    norm = 0;
+	    
 	    /*iterate over all meshes*/
 	    for (int m=0;m<md.length;m++)
 	    {
 		
-		double u[] = A[m].mult(v[m]);	//u=A*v
+		//compute the maximum norm accross the domains
+		double  norm_m = Vector.norm(r[m]);
+		if (norm_m>norm) norm = norm_m;
+		if (norm<tolerance) break;
 		
-		//t=alpha/dot(v*u), split up to avoid div by zero
-		double t_den = Vector.dot(v[m], u);
-		if (alpha[m] == 0.0 || t_den==0.0)
-		{
-		    /*already at exact solution*/
-		    break;
-		}
-		double t = alpha[m]/t_den;
+		//alpha = dot(r,z) / dot(p,A*p)
+		double alpha = Vector.dot(r[m], z[m]) / 
+			       Vector.dot(p[m], A[m].mult(p[m]));
 		
-		// x = x + t*v
-		Vector.addInclusive(x[m], Vector.mult(v[m], t));
+		//x = x + alpha*p
+		Vector.addInclusive(x[m],Vector.mult(p[m], alpha));
+
+		//save dot(z,r) for later use
+		double zr_dot = Vector.dot(z[m],r[m]);
+        
+		//r = r - alpha*(A*p)
+		Vector.subtractInclusive(r[m], Vector.mult(A[m].mult(p[m]),alpha));
+
+		//z = Mi*r
+		z[m] = Mi[m].mult(r[m]);
+        
+		// beta = dot(z,r)/ dot(z[k-1],r[k-1]))
+		double beta = Vector.dot(z[m],r[m])/zr_dot;
 		
-		// r = r - t*u
-		Vector.subtractInclusive(r[m], Vector.mult(u, t));
-		
-		w[m] = Ci[m].mult(r[m]);    // w = inv(C)*r
-		double beta = Vector.dot(w[m],w[m]);	//beta = dot(wm,wm)
-		norm = beta;
-		if (beta<tolerance)
-		{
-		    break;
-		}
-		
-		double s  = beta/alpha[m];
-		// v = trans(inv(C))*w + s*v
-		v[m] = Vector.add( Cit[m].mult(w[m]), Vector.mult(v[m], s));
-		alpha[m] = beta;
-		
-		/* check convergence */
-		if (it % 25 == 0)
-		{
-		    System.out.printf(" alpha = ", alpha[m]);
-		}
+		// p = z + beta*p
+		p[m] = Vector.add(z[m], Vector.mult(p[m], beta));
 		
 	    }
 	    
-	    //	System.out.println(norm);
-	    if (norm>0 && norm < tolerance)
+	    /* check convergence */
+	    if (it % 25 == 0)
+	    {
+		System.out.printf("it: %d, norm = %.3g\n", it, norm);
+	    }
+	    	    
+	    if (norm < tolerance)
 	    {
 		break;
 	    }
 	    it++;
-	    System.out.printf("it: %d, norm: %g\n",it,norm);
 	}
 
 	it--;
