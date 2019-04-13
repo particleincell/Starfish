@@ -43,11 +43,20 @@ public class MCC extends VolumeInteraction
 
     MCC(Element element) 
     {	
+	
+	/*figure out how many other interaction pairs are defined to get our default tag id*/
+	int id = Starfish.interactions_module.getInteractionsList().size();
+		
+	/*for backward compatibility, there is no "-1" only "-2"*/
+	String tag = "";
+	if (id>1) tag="-"+id;
+		
 	/*parse data*/
 	String source_name = InputParser.getValue("source", element);
 	String product_name = InputParser.getValue("product",element,source_name);
 	String target_name = InputParser.getValue("target",element);
 	String model_name = InputParser.getValue("model", element);
+	tag = InputParser.getValue("name",element,tag);
 
 	sigma = InteractionsModule.parseSigma(element);
 	model = MCC.getModel(model_name);
@@ -76,24 +85,12 @@ public class MCC extends VolumeInteraction
 	
 	//initialize sigma parameters as needed
 	sigma.init(this.source, this.target);
-	    
-	/*figure out how many other MCC pairs are defined to add the appropriate fields*/
-	ArrayList<VolumeInteraction> vints = Starfish.interactions_module.getInteractionsList();
-	int id = 1;
-	for (VolumeInteraction vint : vints)
-	{
-	    if (vint instanceof MCC) id++;
-	}
-	
-	/*for backward compatibility, there is no "-1" only "-2"*/
-	String tag = "";
-	if (id>1) tag="-"+id;
-	
+	  	
 	/*add fields*/
-	fc_real_sum = Starfish.domain_module.getFieldManager().add("mcc-real-sum"+tag, "#",null);
-	fc_count_sum = Starfish.domain_module.getFieldManager().add("mcc-count-sum"+tag, "#",null);
-	fc_count = Starfish.domain_module.getFieldManager().add("mcc-count"+tag, "#",null);
-	fc_nu = Starfish.domain_module.getFieldManager().add("mcc-nu"+tag, "#/s",null);
+	fc_real_sum = Starfish.domain_module.getFieldManager().add("col-real-sum-"+tag, "#",null);
+	fc_count_sum = Starfish.domain_module.getFieldManager().add("col-count-sum-"+tag, "#",null);
+	fc_count = Starfish.domain_module.getFieldManager().add("col-count-"+tag, "#",null);
+	fc_nu = Starfish.domain_module.getFieldManager().add("nu-"+tag, "#/s",null);
     }
 	
     FieldCollection2D fc_count;	    	//number of collisions 
@@ -130,12 +127,7 @@ public class MCC extends VolumeInteraction
     public void perform() 
     {
 	if (Starfish.getIt()%frequency!=0) return;
-	
-	
-	/*clear samples if we are now at steady state*/
-	if (Starfish.steady_state() && !steady_state)
-	   clearSamples();
-	
+		
 	if (num_samples==0) 
 	    time_sampling_start = Starfish.getTime();
 	

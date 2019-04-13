@@ -24,6 +24,7 @@ public class InteractionsModule extends CommandModule
 	/*register sigmas*/
 	registerSigma("CONST", Sigma.sigmaConstFactory);
 	registerSigma("INV", Sigma.sigmaInvFactory);
+	registerSigma("LN", Sigma.sigmaLnFactory);
 	registerSigma("TABLE", Sigma.sigmaTableFactory);
 	
 	/*register interactions*/

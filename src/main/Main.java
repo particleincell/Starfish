@@ -8,7 +8,7 @@
  * This software is governed by the following license:
  * 
  *  == Simplified BSD *** MODIFIED FOR NON-COMMERCIAL USE ONLY!!! *** ==
- * Copyright (c) 2012-2018, Particle In Cell Consulting LLC
+ * Copyright (c) 2012-2019, Particle In Cell Consulting LLC
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without modification, 

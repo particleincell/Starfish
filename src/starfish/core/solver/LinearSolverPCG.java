@@ -42,19 +42,11 @@ public class LinearSolverPCG implements LinearSolver
 	    
 	    b[m]= md[m].b;
 	    x[m]= md[m].x;
-	    
-	    
 	    A[m] = md[m].A;
-	 
-	    //A[m].print("A");
 	    
 	    /*diagonal preconditioner*/
-	    //Matrix M = Matrix.diag_matrix(A);
 	    Matrix M = A[m].diag_matrix();
 	    Mi[m] = M.inverse();	    //this is only defined for diagonal matrix
-	    
-	    //M.print("M");
-	    //Mi[m].print("inv(M)");
 	    
 	    /*initialize*/
 	    r[m] = Vector.subtract(b[m], A[m].mult(x[m]));  //r=b-Ax
@@ -70,7 +62,7 @@ public class LinearSolverPCG implements LinearSolver
 	while (it <= max_it)
 	{
 	     /*** update boundaries**/	    
-	   // Solver.updateGhostVector(md, fc);
+	    Solver.updateGhostVector(md, fc);
 	    
 	    norm = 0;
 	    
@@ -108,7 +100,7 @@ public class LinearSolverPCG implements LinearSolver
 	    }
 	    
 	    /* check convergence */
-	    if (it % 25 == 0)
+	    if (it % 100 == 0)
 	    {
 		System.out.printf("it: %d, norm = %.3g\n", it, norm);
 	    }

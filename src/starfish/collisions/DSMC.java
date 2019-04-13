@@ -43,43 +43,51 @@ public class DSMC extends VolumeInteraction
 
     double vss_inv;
     
-    DSMC(String mat1, String mat2, Sigma sigma, DSMCModel model, int frequency, double sig_cr_max) 
+    DSMC(Element element) 
     {
+	String pair[] = InputParser.getList("pair", element);
+	if (pair.length!=2)
+	     Log.error("Must specify collision pair, pair=\"mat1,mat2\"");
+	
+	String model_name = InputParser.getValue("model", element);
+	model = DSMC.getModel(model_name);
+
+	/*number of time steps between dsmc computations*/
+	frequency = InputParser.getInt("frequency", element, 1);
+	if (frequency<1) frequency=1;
+
+	/*get initial sig_cr_max*/
+	sig_cr_max0 = InputParser.getDouble("sig_cr_max",element, 1e-16);
+
+	sigma = InteractionsModule.parseSigma(element);
+	
 	/*make sure we have a kinetic source*/
-	if (!(Starfish.getMaterial(mat1) instanceof KineticMaterial) ||
-	    !(Starfish.getMaterial(mat2) instanceof KineticMaterial))
+	if (!(Starfish.getMaterial(pair[0]) instanceof KineticMaterial) ||
+	    !(Starfish.getMaterial(pair[1]) instanceof KineticMaterial))
 	    Log.error("DSMC materials must be kinetic");
 
-	this.mat1 = (KineticMaterial) Starfish.getMaterial(mat1);
-	this.mat2 = (KineticMaterial)Starfish.getMaterial(mat2);
-	//this.product = (KineticMaterial)Starfish.getMaterial(product);
-	this.model = model;
-	this.vss_inv=0.5*(1.0/this.mat1.vss_alpha+1.0/this.mat2.vss_alpha);
+	/*figure out how many other interaction pairs are defined to get our default tag id*/
+	int id = Starfish.interactions_module.getInteractionsList().size();
+		
+	/*for backward compatibility, there is no "-1" only "-2"*/
+	String tag = "";
+	if (id>1) tag=Integer.toString(id);
+	tag = InputParser.getValue("name",element,tag);
 
-	this.sigma = sigma;
-	this.frequency = frequency;	//iteration skip between collisions
-	this.sig_cr_max0 = sig_cr_max;
+	mat1 = (KineticMaterial) Starfish.getMaterial(pair[0]);
+	mat2 = (KineticMaterial) Starfish.getMaterial(pair[1]);
+	
+	//this.product = (KineticMaterial)Starfish.getMaterial(product);
+	this.vss_inv=0.5*(1.0/this.mat1.vss_alpha+1.0/this.mat2.vss_alpha);
 	
 	//initialize sigma parameters as needed
 	sigma.init(this.mat1, this.mat2);
 	
-	/*figure out how many other DSMC pairs are defined*/
-	ArrayList<VolumeInteraction> vints = Starfish.interactions_module.getInteractionsList();
-	int id = 1;
-	for (VolumeInteraction vint : vints)
-	{
-	    if (vint instanceof DSMC) id++;
-	}
-	
-	/*for backward compatibility, there is no "-1" only "-2"*/
-	String tag = "";
-	if (id>1) tag="-"+id;
-	
 	/*add fields*/
-	fc_real_sum = Starfish.domain_module.getFieldManager().add("dsmc-real-sum"+tag, "#",null);
-	fc_count_sum = Starfish.domain_module.getFieldManager().add("dsmc-count-sum"+tag, "#",null);
-	fc_count = Starfish.domain_module.getFieldManager().add("dsmc-count"+tag, "#",null);
-	fc_nu = Starfish.domain_module.getFieldManager().add("dsmc-nu"+tag, "#/s",null);
+	fc_real_sum = Starfish.domain_module.getFieldManager().add("col-real-sum-"+tag, "#",null);
+	fc_count_sum = Starfish.domain_module.getFieldManager().add("col-count-sum-"+tag, "#",null);
+	fc_count = Starfish.domain_module.getFieldManager().add("col-count-"+tag, "#",null);
+	fc_nu = Starfish.domain_module.getFieldManager().add("nu-"+tag, "#/s",null);
     }
 
     FieldCollection2D fc_count;	    	//number of collisions 
@@ -449,22 +457,8 @@ public class DSMC extends VolumeInteraction
 	@Override
 	public void getInteraction(Element element)
 	{
-	    String pair[] = InputParser.getList("pair", element);
-	    if (pair.length!=2)
-		Log.error("Must specify collision pair, pair=\"mat1,mat2\"");
-	    String model_name = InputParser.getValue("model", element);
-	    DSMCModel model = DSMC.getModel(model_name);
-
-	    /*number of time steps between dsmc computations*/
-	    int frequency = InputParser.getInt("frequency", element, 1);
-	    if (frequency<1) frequency=1;
-	    
-	    /*get initial sig_cr_max*/
-	    double sig_cr_max = InputParser.getDouble("sig_cr_max",element, 1e-16);
-	    
-	    Sigma sigma = InteractionsModule.parseSigma(element);
-	    
-	    Starfish.interactions_module.addInteraction(new DSMC(pair[0],pair[1],sigma,model,frequency, sig_cr_max));
+	   
+	    Starfish.interactions_module.addInteraction(new DSMC(element));
 	}
     };
 

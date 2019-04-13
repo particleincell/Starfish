@@ -121,7 +121,6 @@ public class KineticMaterial extends Material
 	
     }
 
-    boolean steady_state = false;	/*TODO: temporary hack to clear samples*/
     boolean first_time = true;
     
     @Override
@@ -215,7 +214,7 @@ public class KineticMaterial extends Material
     void moveParticles(boolean particle_transfer)
     {	
 	/*allocate iterators*/
-	ArrayList<ParticleMover> movers = new ArrayList();
+	ArrayList<ParticleMover> movers = new ArrayList<>();
 	
 	for (MeshData md:mesh_data)
 	{

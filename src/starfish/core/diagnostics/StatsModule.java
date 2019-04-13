@@ -78,7 +78,7 @@ public class StatsModule extends CommandModule
 	{
 	    for (Material mat:Starfish.getMaterialsList())
 	    {
-		pw.printf(",flux.%s.%s (kg/m^2/s)",boundary.getName(),mat.name);
+		pw.printf(",flux.%s.%s (#/m^2/s)",boundary.getName(),mat.name);
 	    }
 	}
 	
@@ -162,7 +162,7 @@ public class StatsModule extends CommandModule
 	    double time=stats_skip*Starfish.getDt();
 	    for (Material mat:Starfish.getMaterialsList())
 	    {
-		double in_flux  = mat.getMassFluxInst(boundary, time);
+		double in_flux  = mat.getFluxInst(boundary, time);
 		pw.printf(",%.4g",in_flux);	
 		mat.clearInstData(boundary);
 	    }

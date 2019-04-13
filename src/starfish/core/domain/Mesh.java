@@ -153,7 +153,7 @@ public abstract class Mesh
 	BAD(-99), 
 	UNKNOWN(-2), 
 	OPEN(-1),
-	DIRICHLET(0); 
+	DIRICHLET(0);	    
 	
 	protected int val;
 	NodeType(int val) {this.val=val;}

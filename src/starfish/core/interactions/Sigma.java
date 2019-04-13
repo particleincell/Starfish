@@ -75,6 +75,13 @@ public abstract class Sigma
 	    return new SigmaConst(c);
 	}
     };
+    
+    static SigmaFactory sigmaLnFactory = new SigmaFactory() {
+	@Override
+	public Sigma makeSigma(double[] c, Element element) {
+	    return new SigmaLn(c);
+	}
+    };
 
     static SigmaFactory sigmaInvFactory = new SigmaFactory() {
 	@Override
@@ -113,6 +120,27 @@ public abstract class Sigma
 	    return val;
 	}
     }
+    
+    /** sigma = c*(a+b*ln(g))^2 */
+    public static class SigmaLn extends Sigma
+    {
+	SigmaLn(double c[]){super(c);}
+	@Override
+	public double eval(double g, double mass) 
+	{
+	    double val = 0;
+	    if (g>0)
+	    {
+		double v = c[0]+c[1]*Math.log(g);
+		val = v*v;
+	    }
+    		
+	    //if (val>1e-14) val=1e-14;
+	    return val;
+	}
+    }
+    
+        
     
     /** linear interpolation from tabular data */
     public static class SigmaTable extends Sigma

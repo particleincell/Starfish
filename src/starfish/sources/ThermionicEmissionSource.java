@@ -77,7 +77,7 @@ public class ThermionicEmissionSource extends Source
     {
 	Particle part = new Particle((KineticMaterial) source_mat);
 	double t = boundary.randomT();
-	
+		
 	double x[] = boundary.pos(t);
 	double normal[] = boundary.normal(t);
 	double tang[] = boundary.tangent(t);
@@ -86,16 +86,21 @@ public class ThermionicEmissionSource extends Source
 	part.pos[0] = x[0];
 	part.pos[1] = x[1];
 	part.pos[2] = 0;
-
+	
 	double v_mag = Utils.SampleMaxwSpeed(v_th);
+	
+	/*push off surface*/
+	//Vector.addInclusive(part.pos, Vector.mult(normal,v_mag*.01*Starfish.getDt()));
+
+	
 	/*TODO: Move this to a wrapper!*/
 	do
 	{    
 	    part.vel = Utils.diffuseReflVel(v_mag, normal,tang);
 
-	    part.dt=Starfish.rnd()*Starfish.getDt();
 	} while (Vector.dot2(normal, part.vel) <= 0);
-
+	
+	part.dt=Starfish.rnd()*Starfish.getDt();
 	num_mp--;
 	
 	return part;

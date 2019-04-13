@@ -15,6 +15,8 @@ import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
+import starfish.core.solver.Solver;
+import starfish.pic.PotentialSolver;
 
 /** electrons from ne=n0*exp((phi-phi0)/kTe)*/
 public class FluidElectronsMaterial extends Material
@@ -52,8 +54,13 @@ public class FluidElectronsMaterial extends Material
     public void init()
     {
 	super.init();
-	this.getDenCollection().setValue(Starfish.solver_module.getSolver().den0);
-	this.getTempCollection().setValue(Starfish.solver_module.getSolver().kTe0/Constants.KtoEV);
+	Solver solver = Starfish.solver_module.getSolver();
+	if (solver instanceof PotentialSolver) {
+	    PotentialSolver ps = (PotentialSolver) solver;
+	    this.getDenCollection().setValue(ps.den0);
+	    this.getTempCollection().setValue(ps.kTe0/Constants.KtoEV);
+	}
+	
     }
 	
     /**
@@ -131,9 +138,13 @@ public class FluidElectronsMaterial extends Material
 	    /*get values from solver if not specified*/
 	    if (den0<=0 || kTe0<=0)
 	    {
-		phi0 = Starfish.solver_module.getSolver().phi0;
-		den0 = Starfish.solver_module.getSolver().den0;
-		kTe0 = Starfish.solver_module.getSolver().kTe0;
+		Solver  solver = Starfish.solver_module.getSolver();
+		if (solver instanceof PotentialSolver) {
+		    PotentialSolver ps = (PotentialSolver) solver;	
+		    phi0 = ps.phi0;
+		    den0 = ps.den0;
+		    kTe0 = ps.kTe0;		 
+		}
 		if (kTe0<=0)
 		    Log.error("Non zero temperature <kTe0> needs to be specified for QN electron fluid");
 	    }

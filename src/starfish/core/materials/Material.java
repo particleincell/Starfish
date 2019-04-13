@@ -799,7 +799,7 @@ public abstract class Material
     }
 
     /**@return total instantaneous deposited mass flux onto a boundary over some time*/
-    public double getMassFluxInst(Boundary boundary, double time) {
+    public double getFluxInst(Boundary boundary, double time) {
 	double data[] = deprate_collection_inst.getField(boundary).getData();
 	double sum=0;
 	for (int i=0;i<data.length;i++)

@@ -249,4 +249,22 @@ public class Utils
 	return Math.sqrt(2*Math.PI)*Math.pow(t, x+0.5)*Math.exp(-t)*a;
     }
     
+    /**
+     * @param kTe Electron temperature in eV
+     * @param ne electron density
+     * @return Debye length
+     */
+    public static double debyeLength(double kTe, double ne) {
+	return Math.sqrt(Constants.EPS0*kTe/(ne*Constants.QE));
+    }
+    
+    /**
+     * @param kTe Electron temperature in eV
+     * @param ne electron density
+     * @return Volume of a Debye sphere
+     */
+    public static double debyeVolume(double kTe, double ne) {
+	double lambda_d = Utils.debyeLength(kTe,ne);
+	return (4/3.0)*Math.PI*lambda_d*lambda_d*lambda_d;
+    }
 }

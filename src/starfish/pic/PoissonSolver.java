@@ -11,6 +11,7 @@ import org.w3c.dom.Element;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.common.Utils;
 import starfish.core.common.Vector;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.DomainBoundaryType;
@@ -23,6 +24,7 @@ import starfish.core.solver.LinearSolverGSsimple;
 import starfish.core.solver.LinearSolverLU;
 import starfish.core.solver.LinearSolverMG;
 import starfish.core.solver.LinearSolverPCG;
+import starfish.core.solver.Matrix;
 import starfish.core.solver.Solver;
 import starfish.core.solver.SolverModule;
 
@@ -37,6 +39,8 @@ public class PoissonSolver extends PotentialSolver
     enum Method {DIRECT, GS, PCG, MULTIGRID, ADI};
     Method method;
     int skip;
+    boolean qn_switch;	    //nodes with dh>lambda_d fixed per Boltzmann inversion
+    double qn_den0,qn_kTe0,qn_phi0;
 	
     /**
      * @param element
@@ -50,8 +54,7 @@ public class PoissonSolver extends PotentialSolver
 	    den0_pos = InputParser.getDoublePairs("n0_pos", element);
 	    kTe0=InputParser.getDouble("Te0", element);
 	    phi0=InputParser.getDouble("phi0", element);
-	    
-	    
+	    	    
 	     /*log*/
 	    Log.log("Added NONLINEAR POISSON solver");
 	    Log.log("> n0: " + den0 + " (#/m^3)");
@@ -65,6 +68,14 @@ public class PoissonSolver extends PotentialSolver
 	    kTe0=InputParser.getDouble("Te0", element,1);
 	    /*log*/
 	    Log.log("Added LINEAR POISSON solver");
+	}
+	
+	//check for qn_switch
+	qn_switch = InputParser.getBoolean("qn_switch",element,false);
+	if (qn_switch) {
+	    qn_den0 = InputParser.getDouble("qn_n0", element,den0);
+	    qn_kTe0 = InputParser.getDouble("qn_Te0", element,kTe0);
+	    qn_phi0 = InputParser.getDouble("qn_phi0", element,phi0);
 	}
 	
 	double eps_r = InputParser.getDouble("eps_r",element,1);	/*relative permittivity*/	    
@@ -134,12 +145,55 @@ public class PoissonSolver extends PotentialSolver
 	     md.b = Vector.mergeBC(md.fixed_node, mesh, md.b);
 	}
 		
+	MeshData md_bu[] = mesh_data.clone();   //back up
+	/*apply QN switch, if enabled*/
+	if (qn_switch) {
+	    
+	    for (int m=0;m<mesh_data.length;m++) {
+		md_bu[m].A = Matrix.copy(mesh_data[m].A);
+		md_bu[m].b = mesh_data[m].b.clone();
+		md_bu[m].fixed_node = mesh_data[m].fixed_node.clone();
+		
+		Mesh mesh = mesh_data[m].mesh;
+		
+		double rho[][] = Starfish.domain_module.getRho(mesh).getData();
+		
+		for (int i=0;i<mesh.ni;i++)
+		    for (int j=0;j<mesh.nj;j++) {
+			if (mesh.isDirichletNode(i, j)) continue;
+			
+			//compute local Debye length and compare to node volume
+			double ion_den = rho[i][j]/Constants.QE;
+			if (ion_den<=0) ion_den=1e4;	//apply floor
+			
+			double debye_vol = Utils.debyeVolume(kTe0,ion_den);
+			if (mesh.nodeVol(i,j)>debye_vol) {
+			    int u = mesh.IJtoN(i, j);
+			    double phi_qn = qn_phi0 + qn_kTe0*Math.log(ion_den/qn_den0);
+			    mesh_data[m].A.clearRow(u);
+			    mesh_data[m].A.set(u, u, 1);
+			    mesh_data[m].b[u] = phi_qn;
+			}
+		    }
+	    }
+	    
+	}
+	
+	
 	/* solve potential */	
 	if (linear_mode)
 		lin_solver.solve(mesh_data, Starfish.domain_module.getPhi(), lin_max_it, lin_tol);
 	else
 		solvePotentialNL();
 	  
+	/*restore matrix if QN switch is used*/
+	if (qn_switch)	{
+	    for (int m=0;m<mesh_data.length;m++) {
+		mesh_data[m].A = md_bu[m].A;
+		mesh_data[m].b = md_bu[m].b;	//probably not needed
+	    }
+	}
+	    
 	/*inflate and update electric field*/
 	for (MeshData md:mesh_data)
 	    Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
