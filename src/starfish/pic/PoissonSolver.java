@@ -173,13 +173,13 @@ public class PoissonSolver extends PotentialSolver
 			    mesh_data[m].A.clearRow(u);
 			    mesh_data[m].A.set(u, u, 1);
 			    mesh_data[m].b[u] = phi_qn;
+			    mesh_data[m].fixed_node[u] = true;
 			}
 		    }
 	    }
 	    
 	}
-	
-	
+		
 	/* solve potential */	
 	if (linear_mode)
 		lin_solver.solve(mesh_data, Starfish.domain_module.getPhi(), lin_max_it, lin_tol);
@@ -190,6 +190,7 @@ public class PoissonSolver extends PotentialSolver
 	if (qn_switch)	{
 	    for (int m=0;m<mesh_data.length;m++) {
 		mesh_data[m].A = md_bu[m].A;
+		mesh_data[m].fixed_node = md_bu[m].fixed_node;
 		mesh_data[m].b = md_bu[m].b;	//probably not needed
 	    }
 	}
