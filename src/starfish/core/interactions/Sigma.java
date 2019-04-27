@@ -140,8 +140,6 @@ public abstract class Sigma
 	}
     }
     
-        
-    
     /** linear interpolation from tabular data */
     public static class SigmaTable extends Sigma
     {
@@ -151,6 +149,8 @@ public abstract class Sigma
 	SigmaTable(Element element){
 	    super();
 	    ArrayList<double[]> data = InputParser.getDoublePairs("sigma_tabulated", element);
+	    if (data.isEmpty()) 
+		data = InputParser.getDoublePairs("table_values",element);   //another option
 	    table = new LinearList(data);
 	    String dep_var = InputParser.getValue("sigma_dep_var", element,"velocity");    
 	    if (dep_var.equalsIgnoreCase("ENERGY"))

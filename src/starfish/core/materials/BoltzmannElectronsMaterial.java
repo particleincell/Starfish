@@ -7,6 +7,7 @@
 
 package starfish.core.materials;
 
+import java.util.ArrayList;
 import org.w3c.dom.Element;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
@@ -14,12 +15,11 @@ import starfish.core.common.Starfish.Log;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
-import starfish.core.materials.Material;
 import starfish.core.solver.Solver;
 import starfish.pic.PotentialSolver;
 
 /** electrons from ne=n0*exp((phi-phi0)/kTe)*/
-public class FluidElectronsMaterial extends Material
+public class BoltzmannElectronsMaterial extends Material
 {
 
     /**
@@ -27,7 +27,7 @@ public class FluidElectronsMaterial extends Material
      * @param element xml file element
      * @param name
      */
-    public FluidElectronsMaterial(Element element, String name) 
+    public BoltzmannElectronsMaterial(Element element, String name) 
     {
 	super(name);
 	charge = -Constants.QE;
@@ -48,6 +48,19 @@ public class FluidElectronsMaterial extends Material
 	kTe0 = InputParser.getDouble("kTe0",element, -1);
 	den0 = InputParser.getDouble("n0",element, -1);	//negative density used as a flag to get values from solver
 	
+	/*read fixed region settings*/
+	Element fixed_els[] = InputParser.getChildren("fixed_region", element);
+	for (Element fixed_el:fixed_els)
+	{
+	    FixedRegion fr = new FixedRegion();
+	    
+	    fr.x0 = InputParser.getDoubleList("x0", fixed_el);
+	    fr.xm = InputParser.getDoubleList("xm", fixed_el);
+	    fr.density = InputParser.getDouble("density",fixed_el,-1);
+	    fr.temperature = InputParser.getDouble("temperature",fixed_el,-1);
+	    if (fr.density>=0 || fr.temperature>=0)
+		fixed_regions.add(fr);
+	}	
     }
 
     @Override
@@ -60,7 +73,6 @@ public class FluidElectronsMaterial extends Material
 	    this.getDenCollection().setValue(ps.den0);
 	    this.getTempCollection().setValue(ps.kTe0/Constants.KtoEV);
 	}
-	
     }
 	
     /**
@@ -81,9 +93,7 @@ public class FluidElectronsMaterial extends Material
     double kTe0;
     
     protected ElectronModel model = electronModelNone;
-
     /**
-     *
      * @param model
      */
     public void setElectronModel (ElectronModel model) {this.model=model;}
@@ -92,6 +102,42 @@ public class FluidElectronsMaterial extends Material
     public void updateFields() 
     {
 	model.update(this);	
+	applyFixedRegion();
+    }
+    
+    protected class FixedRegion {
+	double x0[];
+	double xm[];
+	double density = -1;
+	double temperature = -1;
+    }
+    ArrayList<FixedRegion> fixed_regions = new ArrayList<>();
+    
+    /*sets fixed density and temperature within a small region*/
+    protected void applyFixedRegion()
+    {
+	for (FixedRegion fr:fixed_regions)
+	{
+	    for (Mesh mesh:Starfish.getMeshList())
+	    {
+		double den[][] = this.getDen(mesh).getData();
+		double temp[][] = this.getT(mesh).getData();
+		
+		for (int i=0;i<mesh.ni;i++)
+		    for (int j=0;j<mesh.nj;j++)
+		    {
+			double pos[] = mesh.pos(i,j);
+			if (pos[0]>=fr.x0[0] && pos[0]<=fr.xm[0] &&
+			    pos[1]>=fr.x0[1] && pos[1]<=fr.xm[1])
+			{
+			    if (fr.density>=0) 
+				den[i][j] = fr.density;
+			    if (fr.temperature>=0)
+				temp[i][j] = fr.temperature;
+			}
+		    }
+	    }
+	}
     }
     
     /**
@@ -168,12 +214,13 @@ public class FluidElectronsMaterial extends Material
 	}
     };
     
-    public static MaterialsModule.MaterialParser FluidElectronsMaterialParser = new MaterialsModule.MaterialParser() 
+    public static MaterialsModule.MaterialParser BoltzmannElectronsMaterialParser = 
+	    new MaterialsModule.MaterialParser() 
     {
 	@Override
 	public Material addMaterial(String name, Element element)
 	{
-	    Material material = new FluidElectronsMaterial(element, name);
+	    Material material = new BoltzmannElectronsMaterial(element, name);
 	    return material;
         }
     };

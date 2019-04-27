@@ -80,7 +80,7 @@ public class MaterialsModule extends CommandModule
 	registerMaterialType("SOLID",SolidMaterial.SolidMaterialParser);
 	registerMaterialType("KINETIC",KineticMaterial.KineticMaterialParser);
 	registerMaterialType("FLUID_DIFFUSION",FluidDiffusionMaterial.FluidDiffusionMaterialParser);
-	registerMaterialType("FLUID_ELECTRONS",FluidElectronsMaterial.FluidElectronsMaterialParser);
+	registerMaterialType("BOLTZMANN_ELECTRONS",BoltzmannElectronsMaterial.BoltzmannElectronsMaterialParser);
 	
 
     }

@@ -16,7 +16,7 @@ import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
 import starfish.pic.ConstantEF;
-import starfish.core.materials.FluidElectronsMaterial;
+import starfish.core.materials.BoltzmannElectronsMaterial;
 import starfish.pic.PoissonSolver;
 import starfish.pic.QNSolver;
 
@@ -168,7 +168,7 @@ public class SolverModule extends CommandModule
 	    /*loop over species and add densities*/
 	    for (Material mat : Starfish.getMaterialsList())
 	    {
-		if (mat.getCharge() == 0 || (mat instanceof FluidElectronsMaterial))
+		if (mat.getCharge() == 0 || (mat instanceof BoltzmannElectronsMaterial))
 		{
 		    continue;
 		}

@@ -180,6 +180,9 @@ public abstract class Source
 	{
 	    Particle part = sampleParticle();
 	    
+	    if (part==null) //sampleParticle may return null on internal particles
+		continue;
+	    
 	    /*push particle slightly off the surface
 	      this is needed to avoid particles getting injected inside the surface if
 	      strong external retarding field*/

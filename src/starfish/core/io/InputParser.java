@@ -392,7 +392,7 @@ public class InputParser implements Iterable
     public static ArrayList<String[]> getListOfPairs(String node_name, Element element)
     {
 	String text = getValue(node_name,element,"");
-	ArrayList<String[]> list = new ArrayList<String[]>();
+	ArrayList<String[]> list = new ArrayList<>();
 
 	StringTokenizer st = new StringTokenizer(text,",");
 	boolean first=true;
@@ -465,7 +465,7 @@ public class InputParser implements Iterable
     {
 	ArrayList<String[]> s_list = getListOfPairs(key, element);
 	
-	ArrayList<double[]> d_list = new ArrayList<double[]>();
+	ArrayList<double[]> d_list = new ArrayList<>();
 	
 	for (String s[] : s_list)
 	{
@@ -492,7 +492,7 @@ public class InputParser implements Iterable
     {
 	String[] s_list = getList(key, element);
 	
-	ArrayList<DoubleStringPair> dsp_list = new ArrayList();
+	ArrayList<DoubleStringPair> dsp_list = new ArrayList<>();
 	
 	for (String s: s_list)
 	{

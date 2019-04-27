@@ -57,8 +57,10 @@ public class ChemicalReaction extends VolumeInteraction
 	ArrayList<DoubleStringPair> source_names = InputParser.getDoubleStringPairs("sources", element);
 	ArrayList<DoubleStringPair> product_names = InputParser.getDoubleStringPairs("products", element);
 
-	Element el = InputParser.getChild("rate", element);
-	if (el==null) Starfish.Log.error("Chemical reaction <rate> not specified.");
+	Element el_rate = InputParser.getChild("rate", element);
+	
+	if (el_rate==null) 
+	    Starfish.Log.error("Chemical reaction is missing a <rate> or <sigma> element");
 	    
 	/*create array of sources and products*/
 	num_sources = source_names.size();
@@ -86,14 +88,13 @@ public class ChemicalReaction extends VolumeInteraction
 	    prod_coeff[i] = product_names.get(i).d;
 	}
 	
-	rate_parser = new RateParser(el, source_mat, prod_mat);
+	rate_parser = new RateParser(el_rate, source_mat, prod_mat);
 	    
 	/*energy release, this does not yet fully work*/
 	energy_release = InputParser.getDouble("energy_release",element, 0);
 	energy_release *= Constants.EVtoJ;	
 	
 	Log.log("Added CHEMICAL_REACTION ");
-
 
     }
 	
@@ -119,6 +120,10 @@ public class ChemicalReaction extends VolumeInteraction
 	}
 	
 	
+	/*get field collection for the dependent variable*/
+	rate_parser.dep_var_fc = Starfish.getFieldCollection(rate_parser.dep_var_name);
+	if (rate_parser.dep_var_fc==null)
+	    Log.error("Failed to find chemical reaction rate dependent variable "+rate_parser.dep_var_name);
 	initialized=true;
     }
 	
@@ -142,6 +147,11 @@ public class ChemicalReaction extends VolumeInteraction
     /**evaluates rate*/
     public void evalRate() 
     {
+	double mass_ave = 0;		//average mass of sources
+	for (int i=0;i<source_mat.length;i++)
+	    mass_ave+=source_mat[i].mass*source_coeff[i];
+	mass_ave /= source_mat.length;
+	
 	for (Mesh mesh:Starfish.getMeshList())
 	{
 	    int ni = mesh.ni;
@@ -150,14 +160,33 @@ public class ChemicalReaction extends VolumeInteraction
 	    double k[][] = rate.getField(mesh).getData();
 	    
 	    /*temperature*/
-	    double T[][] = Starfish.getMaterial(rate_parser.dep_var_mat).getT(mesh).getData();
+	    double vals[][] = rate_parser.dep_var_fc.getField(mesh).getData();
 	    
 	    for (int i=0;i<ni;i++)
 		for (int j=0;j<nj;j++)
-		{	    
-		    k[i][j] = rate_parser.eval(T[i][j]); 			    
-		}
+		{	
+		    k[i][j] = 0;
+		    if (vals[i][j]>0)	    //do not evaluate with negative temperature or density
+			k[i][j] = rate_parser.eval(vals[i][j]); 			    
 		    
+		    //convert sigma to rate 
+		    if (rate_parser.is_sigma)
+		    {
+			double T_ave = 0;
+			int count = 0;
+			for (Material mat:source_mat) 
+			{
+			    double T = mat.getT(mesh).at(i, j);
+			    if (T>=0) {T_ave+=T;count++;}
+			}
+			if (count>0) T_ave/=count;
+			if (T_ave<0) T_ave=0;
+			
+			double v_mean = 2*Math.sqrt(2*Constants.K*T_ave/(Constants.PI*mass_ave)); 
+			k[i][j] *=v_mean;
+		    }
+	
+		}		    
 	}		
     }
 	

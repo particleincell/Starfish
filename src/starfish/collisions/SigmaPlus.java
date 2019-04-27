@@ -35,7 +35,6 @@ public abstract class SigmaPlus
     /**
      *
      */
-
     public static class SigmaBird463 extends Sigma
     {
 	private double sigma0;

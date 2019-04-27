@@ -12,6 +12,7 @@ import org.w3c.dom.Element;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.domain.FieldCollection2D;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
 
@@ -21,20 +22,41 @@ import starfish.core.materials.Material;
  */
 public class RateParser 
 {
-    String dep_var_mat;
+    String dep_var_name;
+    FieldCollection2D dep_var_fc = null;
     
-    enum WrapperType {NONE,LOG10,LOG10ENERGY};
-    WrapperType wrapper;
+    enum WrapperType {NONE,CONST,LOG,LOG10,ENERGY,JTOEV,KTOEV};
+    static class Wrapper {
+	double apply(double input) {
+	    switch (type){
+		case CONST: return coeff*input;	    //C*input
+		case LOG: return Math.log(input);	//log of input
+		case LOG10: return Math.log10(input);	//log10 of input
+		case ENERGY: return 1.5*Constants.K*input;  //  (3/2)kT
+		case JTOEV: return Constants.JtoEV*input;   // converts from Joules to eV
+		case KTOEV: return Constants.KtoEV*input;   // converst from Kelvin to eV
+		case NONE: 
+		default: return input;	
+	    }
+	}
+	Wrapper(WrapperType type, double coeff) {this.type=type;this.coeff=coeff;}	
+	WrapperType type;
+	double coeff;
+	
+    };
     
-    private MathParser math_parser;
+    Sigma rate_model;	    //using Sigma as rate model
+    ArrayList<Wrapper> input_wrappers = new ArrayList<>();
+    ArrayList<Wrapper> output_wrappers = new ArrayList<>();
     
-    double c[];		//parser coefficients
-    double d[];		//secondary coefficients
-    double mult;
+    double coeffs[];		//parser coefficients
+    double mult;		//multiplier for legacy purposes
+    double mass;
+    boolean is_sigma = false;	    //is this actually cross-section?
     Material sources[];
     Material products[];
-    ArrayList<Double> sources_coeffs = new ArrayList();	    //coefficients for the sources 
-    ArrayList<Double> products_coeffs = new ArrayList();    //coeficients for products
+    ArrayList<Double> sources_coeffs = new ArrayList<>();	    //coefficients for the sources 
+    ArrayList<Double> products_coeffs = new ArrayList<>();    //coeficients for products
     
     /**
      *
@@ -44,19 +66,75 @@ public class RateParser
      */
     public RateParser (Element el, Material[] sources, Material[] products)
     {
-	String type = InputParser.getValue("type", el);
-	c = InputParser.getDoubleList("coeffs", el);
-	d = InputParser.getDoubleList("coeffs_secondary", el);
+	String rate_type = InputParser.getValue("type", el);
+	coeffs = InputParser.getDoubleList("coeffs", el);
 	mult = InputParser.getDouble("multiplier", el,1);
-	math_parser = parsers_list.get(type.toUpperCase());
-	if (math_parser==null)
-	    Log.error("Unknown rate model "+type);
-
-	Element dep_var = InputParser.getChild("dep_var", el);
-	dep_var_mat = InputParser.getValue("mat",dep_var);
+	is_sigma = InputParser.getBoolean("is_sigma", el,false);
+	 
+	rate_model = InteractionsModule.getSigma(rate_type, coeffs, el);
 	
-	String dep_var_type = InputParser.getValue("wrapper",dep_var,"NONE");	
-	wrapper = WrapperType.valueOf(dep_var_type.toUpperCase());
+	if (rate_model==null)
+	    Log.error("Unknown rate model "+rate_type);
+
+	dep_var_name = InputParser.getValue("dep_var",el);
+	String input_wrapper_names[]= InputParser.getList("input_wrappers", el);
+	String output_wrapper_names[] = InputParser.getList("output_wrappers",el);
+	
+	/*convert string wrapper names to data objects*/
+	for (String name:input_wrapper_names)
+	{
+	    WrapperType type=WrapperType.NONE;
+	    
+	    /*first try to parse a double*/
+	    double val=0;
+	    try {val=Double.parseDouble(name);type=WrapperType.CONST;}
+	    catch (NumberFormatException e) {
+		/*pass*/
+	    }
+	    
+	    if (type!=WrapperType.CONST)
+	    {
+		try {
+		    type = WrapperType.valueOf(name.toUpperCase());
+		}
+		catch (IllegalArgumentException e) {
+		    Log.warning("Unknown wrapper type "+name);
+		    continue;
+		}	    
+	    }
+	    input_wrappers.add(new Wrapper(type,val));	    
+	}
+
+	/*repeat for output wrappers*/
+	/*convert string wrapper names to data objects*/
+	for (String name:output_wrapper_names)
+	{
+	    WrapperType type=WrapperType.NONE;	    
+	    /*first try to parse a double*/
+	    double val=0;
+	    try {val=Double.parseDouble(name);type=WrapperType.CONST;}
+	    catch (NumberFormatException e) {
+		/*pass*/
+	    }
+	    
+	    if (type!=WrapperType.CONST)
+	    {
+		try {
+		    type = WrapperType.valueOf(name.toUpperCase());
+		}
+		catch (IllegalArgumentException e) {
+		    Log.warning("Unknown wrapper type "+name);
+		    continue;
+		}	    
+	    }
+	    output_wrappers.add(new Wrapper(type,val));	    
+	}
+	
+	/*compute average mass for computing vmean*/
+	this.mass = 0;
+	for (Material mat:sources)
+	    this.mass+=mat.mass;
+	this.mass /= sources.length;
 	
 	/*save sources and products*/
 	this.sources = sources.clone();
@@ -70,70 +148,23 @@ public class RateParser
     /**
      *
      * @param var
+     * @param T
      * @return
      */
     public double eval(double var)
     {
-	double v=var;
-	switch (wrapper)
-	{
-	    case LOG10ENERGY: if (var>0) v=Math.log10(1.5*Constants.KtoEV*var); else return 0; break;
-	    case LOG10: if (var>0) v=Math.log10(Constants.KtoEV*var); else return 0; break;
-	}
-	 
-	double rate = math_parser.eval(v,c,d)*mult;
-	//rate*=Math.sqrt(2*Constants.K*var/Constants.ME);
+	for (Wrapper wrapper:input_wrappers) 
+	    var = wrapper.apply(var);
+	
+	double rate = rate_model.eval(var,1);
+	
+	for (Wrapper wrapper:output_wrappers)
+	    rate = wrapper.apply(rate);
+	
 	return (rate>0)?rate:0;
     }
     
-    /**
-     *
-     */
-    static protected HashMap<String,MathParser> parsers_list = new HashMap<String,MathParser>();
-
-    /**
-     *
-     * @param name
-     * @param parser
-     */
-    static public void registerMathParser(String name, MathParser parser)
-    {
-	parsers_list.put(name.toUpperCase(), parser);
-    }
-    
-    /**
-     *
-     */
-    public interface MathParser {
-
-	/**
-	 *
-	 * @param x input value
-	 * @param c main coefficients
-	 * @param d array of optional "secondary" coefficients
-	 * @return chemical equation rate, generally (sigma*nu)=m^3/s
-	 */
-	public double eval(double x, double c[], double d[]);
-    }
-    
-    /**
-     *
-     */
-    static public MathParser MathParserPolynomial = new MathParser()
-    {
-	public double eval (double var, double c[],double d[])
-	{
-	    int order = c.length;
-	    double sum=c[order-1];
-	    double v=var;
-
-	    for (int i=order-2;i>=0;i--)
-	    {
-		sum+=c[i]*v;
-		v*=var;
-	    }
-	    return sum;
-	}
-    };
+  
+ 
     
 }

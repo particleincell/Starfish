@@ -1144,6 +1144,7 @@ public class KineticMaterial extends Material
 		    {
 			p0[d] /= n0;	    //average velocity
 			t0[d] = t0[d]/n0 - p0[d]*p0[d];
+			if (t0[d]<0) t0[d] = 0;
 			x0[d] /= n0;	    //average position;
 		    }
 

@@ -18,13 +18,13 @@ a [PowerPoint presentation](dat/tutorial/starfish-code-overview.pdf) with some i
 # Examples
 Input files for these examples are located in the dat/ folder.
 
-![ion velocity](doc/plots/ion-vel.png)  
+![ion velocity](doc/plots/ion-vel.png)
 Axial velocity of ions streaming past a charged sphere
 
-![temperature profile](doc/plots/dsmc-t.png)  
+![temperature profile](doc/plots/dsmc-t.png)
 DSMC computation of temperature in an atmospheric jet expanding to a low pressure tank
 
-![ion density](doc/plots/tube.png)  
+![ion density](doc/plots/tube.png)
 Number density of ions flowing through a sectioned tube computed on a domain consisting of multiple meshes
 
 # Bug Reporting
@@ -33,13 +33,14 @@ The code is under ongoing development and may contain numerous bugs. Please subm
 # License
 Please view LICENSE for license terms. 
 
-(c) 2012-2018 Particle In Cell Consulting LLC
+(c) 2012-2019 Particle In Cell Consulting LLC
 
 # Contact
 Contact us [by visiting the website](https://www.particleincell.com/contact/) 
 or on Twitter [@particleincell](https://twitter.com/particleincell).
 
 # Revision History
+- v0.20.5 Time dependent boundaries, fix to surface sampling
 - v0.20 Rename of Starfish-LE to Starfish, addition of thermionic emission, evaporation, and particle merge
 - v0.19 Re-enables support for multi-domain simulations
 - v0.16.2 Various bug fixes related to DSMC and ambient boundary source

@@ -42,6 +42,7 @@ public class Field2D
 	else {ni = mesh.ni; nj = mesh.nj;}
 
         data = new double[ni][nj]; 
+	clear();
     }
 
     /** constructor for field not associated with a particular mesh, should
@@ -55,6 +56,7 @@ public class Field2D
 	this.nj = nj;
 	this.mesh = null;
 	data = new double[ni][nj]; 
+	clear();
     }
 	
     /**
@@ -152,7 +154,7 @@ public class Field2D
     }
 	
     /**clear the array*/
-    public void clear()
+    public final void clear()
     {
 	setValue(0);
     }

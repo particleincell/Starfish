@@ -36,8 +36,6 @@ public class InteractionsModule extends CommandModule
 	/*register surface impact models*/
 	SurfaceInteraction.registerModels();
 	
-	/*register rate parser*/
-	RateParser.registerMathParser("POLYNOMIAL",RateParser.MathParserPolynomial);
     }
 	
     /**

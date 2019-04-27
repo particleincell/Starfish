@@ -325,7 +325,7 @@ public class MCC extends VolumeInteraction
 	    double vel2b[] = Utils.isotropicVel(speed2a);
 	    mcc.source.getParticleListSource().addParticle(new Particle(source.pos, vel2b, source.spwt, mcc.source));
 	    	    
-	    /*TODO: need to destroy the targe particle, for now assuming den_target>>den_source*/
+	    /*TODO: need to destroy the target particle, for now assuming den_target>>den_source*/
 	    if (mcc.product instanceof KineticMaterial)
 	    {
 		KineticMaterial prod = (KineticMaterial)mcc.product;
@@ -338,7 +338,6 @@ public class MCC extends VolumeInteraction
 		}
 	    	
 	    }
-	    
 	}
     }
     
