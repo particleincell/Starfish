@@ -21,7 +21,7 @@ public class DiagnosticsModule
 	public void exit();	//called after main loop ends
     }
     
-    ArrayList<Diagnostic> diagnostics = new ArrayList<Diagnostic>();
+    ArrayList<Diagnostic> diagnostics = new ArrayList<>();
     
     /** runs all registered diagnostics*/
     public void sampleAll(boolean force)

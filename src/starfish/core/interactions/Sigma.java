@@ -76,6 +76,13 @@ public abstract class Sigma
 	}
     };
     
+        static SigmaFactory sigmaPolyFactory = new SigmaFactory() {
+	@Override
+	public Sigma makeSigma(double[] c, Element element) {
+	    return new SigmaPoly(c);
+	}
+    };
+    
     static SigmaFactory sigmaLnFactory = new SigmaFactory() {
 	@Override
 	public Sigma makeSigma(double[] c, Element element) {
@@ -105,6 +112,22 @@ public abstract class Sigma
 	public double eval(double g, double mass) {return c[0];}
     }
  	
+        
+    /** sigma = [c0] */
+    public static class SigmaPoly extends Sigma
+    {
+	SigmaPoly(double c[]){super(c);}
+	@Override
+	public double eval(double g, double mass) {
+	    double v = c[0];
+	    for (int i=1;i<c.length;i++) {
+		v+=c[i]*g;
+		g*=g;
+	    }
+	    return v;
+	}
+    }
+    
     /** sigma = c[0]/g */
     public static class SigmaInv extends Sigma
     {

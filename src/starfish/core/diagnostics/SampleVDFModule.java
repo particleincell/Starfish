@@ -166,7 +166,7 @@ public class SampleVDFModule extends CommandModule
 	    {
 		/*write data, each histogram may have different length*/
 		
-		String name = String.format("%s_%6d.csv", prefix, Starfish.getIt());
+		String name = String.format("%s_%06d.csv", prefix, Starfish.getIt());
 		PrintWriter pw = null;
 		try
 		{

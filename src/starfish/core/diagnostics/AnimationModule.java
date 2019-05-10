@@ -25,7 +25,7 @@ public class AnimationModule extends CommandModule
 	int start_it=0;
 	int frequency=0;
 	boolean clear_samples;
-	ArrayList<Writer> writer_list = new ArrayList<Writer>();
+	ArrayList<Writer> writer_list = new ArrayList<>();
 	Element output_list[];
 	boolean first_time = true;
 	

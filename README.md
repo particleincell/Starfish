@@ -40,6 +40,7 @@ Contact us [by visiting the website](https://www.particleincell.com/contact/)
 or on Twitter [@particleincell](https://twitter.com/particleincell).
 
 # Revision History
+- v0.21 Support for sigmas to be used for chemical reaction rates
 - v0.20.5 Time dependent boundaries, fix to surface sampling
 - v0.20 Rename of Starfish-LE to Starfish, addition of thermionic emission, evaporation, and particle merge
 - v0.19 Re-enables support for multi-domain simulations
