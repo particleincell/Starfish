@@ -9,6 +9,7 @@ package starfish.core.boundaries;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Scanner;
 import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.common.Constants;
@@ -130,6 +131,7 @@ public class Spline
 
 	Scanner sc = new Scanner(path);
 	sc.useDelimiter("[,\\s\\n\\t]+");
+	sc.useLocale(Locale.English)
 
 	/*need [0,0,1] so we can apply translation via transformation matrix*/
 	double x1[]={0,0,1};
