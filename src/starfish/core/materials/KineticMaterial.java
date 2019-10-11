@@ -204,22 +204,34 @@ public class KineticMaterial extends Material {
 		/* allocate iterators */
 		ArrayList<ParticleMover> movers = new ArrayList<>();
 
-		for (MeshData md : mesh_data) {
-			for (int block = 0; block < md.particle_block.length; block++) {
-				Iterator<Particle> iterator;
-
-				if (!particle_transfer)
-					iterator = md.getIterator(block);
-				else
-					iterator = md.getTransferIterator(block);
-
-				/* don't bother adding empty blocks */
-				if (iterator.hasNext()) {
-					ParticleMover mover = new ParticleMover(md, iterator, particle_transfer, "PartMover" + block);
-					movers.add(mover);
-				}
-			}
+		if (!particle_transfer)
+		{
+			for (MeshData md : mesh_data) 
+				for (int block = 0; block < md.particle_block.length; block++) {
+					Iterator<Particle> iterator = md.getIterator(block);
+				
+					/* don't bother adding empty blocks */
+					if (iterator.hasNext()) {
+						ParticleMover mover = new ParticleMover(md, iterator, particle_transfer, "PartMover" + block);
+						movers.add(mover);
+					}
+				} //block
 		}
+		else  //particle transfer
+		{
+			for (MeshData md : mesh_data) 
+			{
+				if (md.transfer_particles.isEmpty()) continue;
+				
+				//make a local copy so that we can add particles as needed without invalidating iterator
+				ArrayList<Particle> tp_copy = new ArrayList<>(md.transfer_particles);				
+				md.transfer_particles.clear();	//clear out the original list (this does not touch tp_copy - checked				
+				ParticleMover mover = new ParticleMover(md, tp_copy.iterator(), particle_transfer, "PartMover_tp" );
+				movers.add(mover);				
+			}
+			
+		}
+
 
 		/* move particles */
 		for (ParticleMover mover : movers)
@@ -232,25 +244,6 @@ public class KineticMaterial extends Material {
 		} catch (InterruptedException ex) {
 			Log.warning("Particle Mover thread interruption");
 		}
-
-			
-		//delete dead particles
-		for (MeshData md : mesh_data) {
-			for (int block = 0; block < md.particle_block.length; block++) {
-				Iterator<Particle> iterator;
-
-				if (!particle_transfer)
-					iterator = md.getIterator(block);
-				else
-					iterator = md.getTransferIterator(block);
-
-				while (iterator.hasNext()) {
-					Particle part = iterator.next();
-					if (part.spwt<=0) iterator.remove();
-				}
-			}
-		}
-		
 				
 		/* add up totals */
 		if (!particle_transfer) {
@@ -371,8 +364,6 @@ public class KineticMaterial extends Material {
 
 					part.lc = mesh.XtoL(part.pos);
 
-					Particle part_old = new Particle(part);
-
 					/* check if particle hit anything or left the domain */
 					alive = ProcessBoundary(part, mesh, old, old_lc);
 
@@ -381,16 +372,8 @@ public class KineticMaterial extends Material {
 						Starfish.particle_trace_module.addTrace(part);
 
 					if (!alive) {
-						part.spwt = 0;
-						break;
-					}
-
-					// sanity check to make sure we don't have out of bounds particles
-					if (part.lc[0] < 0 || part.lc[1] < 0 || part.lc[0] >= md.mesh.ni || part.lc[1] >= md.mesh.nj) {
-						part = part_old;
-						alive = ProcessBoundary(part, mesh, old, old_lc);
-						Log.warning("out of bounds particle " + part.id);
 						iterator.remove();
+						break;
 					}
 
 				} /* dt */
@@ -410,10 +393,9 @@ public class KineticMaterial extends Material {
 					E_sum += part.spwt * Vector.mag3(part.vel);
 				}
 
-				/* TODO: bottleneck since only one thread can access at once */
+				//add the particle to the main population if it is in the particle_transfer list
 				if (alive && particle_transfer) {
 					md.addParticle(part);
-					part.spwt = 0;
 				}
 
 			} /* end of particle loop */
@@ -1328,12 +1310,11 @@ public class KineticMaterial extends Material {
 			num_blocks = Starfish.getNumProcessors();
 
 			particle_block = new ParticleBlock[num_blocks];
-			transfer_block = new ParticleBlock[num_blocks];
+			transfer_particles = new ArrayList<>();
 
 			/* init particle lists */
 			for (int i = 0; i < particle_block.length; i++) {
-				particle_block[i] = new ParticleBlock();
-				transfer_block[i] = new ParticleBlock();
+				particle_block[i] = new ParticleBlock();				
 			}
 		}
 
@@ -1348,7 +1329,7 @@ public class KineticMaterial extends Material {
 		public CellData[][] cell_data;
 
 		public ParticleBlock particle_block[];
-		public ParticleBlock transfer_block[]; /*
+		public ArrayList<Particle> transfer_particles; /*
 												 * particles transferred into this mesh from a neighboring one during
 												 * the transfer
 												 */
@@ -1380,18 +1361,8 @@ public class KineticMaterial extends Material {
 
 		/** add particle to the transfers list, attempting to keep block sizes equal */
 		void addTransferParticle(Particle part) {
-			/* find particle block with fewest particles */
-			int block = 0;
-			int min_count = transfer_block[block].particle_list.size();
-
-			for (int i = 1; i < particle_block.length; i++)
-				if (transfer_block[i].particle_list.size() < min_count) {
-					min_count = transfer_block[i].particle_list.size();
-					block = i;
-				}
-
 			/* call copy constructor since original particle may be deleted */
-			transfer_block[block].particle_list.add(new Particle(part));
+			transfer_particles.add(new Particle(part));
 		}
 
 		/**
@@ -1408,10 +1379,7 @@ public class KineticMaterial extends Material {
 		 * @return number of particles waiting to be transferred between domains
 		 */
 		public long getTransferNp() {
-			long count = 0;
-			for (int i = 0; i < transfer_block.length; i++)
-				count += transfer_block[i].particle_list.size();
-			return count;
+			return transfer_particles.size();			
 		}
 
 		/**
@@ -1439,8 +1407,8 @@ public class KineticMaterial extends Material {
 		 * @param block
 		 * @return k
 		 */
-		public Iterator<Particle> getTransferIterator(int block) {
-			return transfer_block[block].particle_list.iterator();
+		public Iterator<Particle> getTransferIterator() {
+			return transfer_particles.iterator();
 		}
 	}
 
@@ -1450,13 +1418,11 @@ public class KineticMaterial extends Material {
 	public MeshData mesh_data[];
 
 	/**
-	 *
+	 * Particles are stored in linked-list array blocks	 *
 	 */
 	public class ParticleBlock {
-		/**
-		 *
-		 */
-		public LinkedList<Particle> particle_list = new LinkedList<Particle>();
+
+		public ArrayList<Particle> particle_list = new ArrayList<Particle>();
 	}
 
 	/**
