@@ -23,14 +23,12 @@
 </chemistry> 
 
 <!-- MCC charge exchange -->
-
-<!--
 <mcc model="cex">
 <source>O+</source>
 <target>O</target>
 <sigma>const</sigma>
 <sigma_coeffs>1e-7</sigma_coeffs>
 </mcc> 
--->
+
 
 </material_interactions>
