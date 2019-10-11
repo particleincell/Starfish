@@ -139,10 +139,10 @@ public abstract class Mesh
      */
     public static class MeshBoundaryData
     {
-	public Mesh neighbor = null;
-	public DomainBoundaryType type = DomainBoundaryType.OPEN;
-	double bc_value;	    //optional value for Dirichlet/Neumann boundaries
-	public double buffer;	    //buffer for syncing boundaries	
+		public Mesh neighbor[] = new Mesh[2];	//corner nodes can have two neighbors
+		public DomainBoundaryType type = DomainBoundaryType.OPEN;
+		double bc_value;	    //optional value for Dirichlet/Neumann boundaries
+		public double buffer;	    //buffer for syncing boundaries	
     }
 	
     MeshBoundaryData boundary_data[][] = new MeshBoundaryData[4][];	/*[face][node_index]*/
@@ -431,17 +431,19 @@ public abstract class Mesh
      */
     protected void addMeshToBoundary(Face face, int  index, Mesh mesh)
     {
-	MeshBoundaryData bc=boundary_data[face.val()][index];
-	
-	if (bc.neighbor!=null)
-	{
-	    Log.warning(String.format("Duplicate mesh neighbor in %s, face %s, index %d",getName(), face, index));
-	    Log.warning(String.format("Current neighbor is %s, found duplicate in %s",bc.neighbor.getName(), mesh.getName()));
-	    
-	}
-	
-	bc.type = DomainBoundaryType.MESH;
-	bc.neighbor = mesh;	
+		MeshBoundaryData bc=boundary_data[face.val()][index];
+		
+		if (bc.neighbor[0]!=null && bc.neighbor[1]!=null)
+		{
+		    Log.warning(String.format("Too many mesh neighbors for mesh %s, face %s, index %d",getName(), face, index));
+		    Log.warning(String.format("Current neighbors are %s and %s, found duplicate in %s",
+		    		bc.neighbor[0].getName(), bc.neighbor[1].getName(), mesh.getName()));
+		}
+		
+		bc.type = DomainBoundaryType.MESH;
+		if (bc.neighbor[0]==null) bc.neighbor[0] = mesh;
+		else bc.neighbor[1] = mesh;
+		
     }
 
     /**evaluates position at topological coordinate i,j

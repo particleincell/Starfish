@@ -50,7 +50,6 @@ public class RateParser
     ArrayList<Wrapper> output_wrappers = new ArrayList<>();
     
     double coeffs[];		//parser coefficients
-    double mult;		//multiplier for legacy purposes
     double mass;
     boolean is_sigma = false;	    //is this actually cross-section?
     Material sources[];
@@ -68,7 +67,6 @@ public class RateParser
     {
 	String rate_type = InputParser.getValue("type", el);
 	coeffs = InputParser.getDoubleList("coeffs", el);
-	mult = InputParser.getDouble("multiplier", el,1);
 	is_sigma = InputParser.getBoolean("is_sigma", el,false);
 	 
 	rate_model = InteractionsModule.getSigma(rate_type, coeffs, el);
@@ -79,6 +77,11 @@ public class RateParser
 	dep_var_name = InputParser.getValue("dep_var",el);
 	String input_wrapper_names[]= InputParser.getList("input_wrappers", el);
 	String output_wrapper_names[] = InputParser.getList("output_wrappers",el);
+	
+	/*check for multipliers*/
+	String multiplier = InputParser.getValue("multiplier",el,"");
+	if (!multiplier.isEmpty()) 
+	    Log.error("<multiplier> has been replaced by <output_wrappers>");
 	
 	/*convert string wrapper names to data objects*/
 	for (String name:input_wrapper_names)

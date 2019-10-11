@@ -167,8 +167,8 @@ public class SurfaceInteraction
 	    
 	    //did the particle stick?
 	    /*TODO: make user input.*/
-	    if (v_mag<1e-4)
-		return false;				
+	    //if (v_mag<1e-4)
+	    //	return false;				
 				   			    
 	    /*if we are producing a new material, kill the source and create new ones
 	    this used to call SpawnParticles but moved the code here so we can re-avaluate the Maxwellian

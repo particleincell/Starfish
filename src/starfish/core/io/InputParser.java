@@ -358,6 +358,8 @@ public class InputParser implements Iterable
     public static double getDouble(String key, Element element, double default_value)
     {
 	try {
+		String val = getValueInternal(key,element);
+		if (val.contains(",")) Log.error(String.format("Found a comma in '%s' in <%s>. Please use a dot to deliminate the fractional part.",val,key));
 	    return Double.parseDouble(getValueInternal(key,element));
 	}
 	catch (NoSuchElementException e)

@@ -192,15 +192,22 @@ public class FieldCollection2D
 		    {
 			if (mesh.boundaryType(face,i)==DomainBoundaryType.MESH)
 			{
-			    Mesh nm = bc[i].neighbor;
-			    if (nm == null) continue;
-			    
-			    double x[] = mesh.pos(i,j);
-			    if (nm.containsPos(x))
-			    {
-				double lc[]=nm.XtoL(x);
-				bc[i].buffer+=getField(nm).gather_safe(lc);
-			    }							
+				int n_neighbors = 0;
+				double d_buff = 0;
+				
+				for (int m=0;m<2;m++) {
+				    Mesh nm = bc[i].neighbor[m];
+				    if (nm == null) continue;
+				    
+				    double x[] = mesh.pos(i,j);
+				    if (nm.containsPos(x))
+				    {
+				    	double lc[]=nm.XtoL(x);
+				    	d_buff+=getField(nm).gather_safe(lc);
+				    	n_neighbors++;
+				    }					
+				}
+				if (n_neighbors>0)	bc[i].buffer+=d_buff/n_neighbors;
 			}
 			else if (mesh.boundaryType(face,i)==DomainBoundaryType.PERIODIC)
 			{
@@ -219,13 +226,20 @@ public class FieldCollection2D
 		    {
 			if (mesh.boundaryType(face,j)==DomainBoundaryType.MESH)
 			{
-			    Mesh nm = bc[j].neighbor;
-			    double x[] = mesh.pos(i,j);
-			    if (nm.containsPos(x))
-			    {
-				double lc[]=nm.XtoL(x);
-				bc[j].buffer+=getField(nm).gather_safe(lc);
-			    }				
+				int n_neighbors = 0;
+				double d_buff = 0;
+				for (int m=0;m<2;m++) {
+					Mesh nm = bc[j].neighbor[m];
+					if (nm==null) continue;
+					double x[] = mesh.pos(i,j);
+					if (nm.containsPos(x))
+					{
+						double lc[]=nm.XtoL(x);
+						d_buff+=getField(nm).gather_safe(lc);
+						n_neighbors++;
+					}
+				}
+				if (n_neighbors>0) bc[j].buffer += d_buff/n_neighbors;
 			} /*if mesh*/
 			else if (mesh.boundaryType(face,j)==DomainBoundaryType.PERIODIC)
 			{

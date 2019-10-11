@@ -66,6 +66,9 @@ public class PoissonSolver extends PotentialSolver
 	    //these are only used to compute the debye length
 	    den0=InputParser.getDouble("n0", element,1e15);
 	    kTe0=InputParser.getDouble("Te0", element,1);
+	    
+	    //get "rho moat" width
+	    rho_moat = InputParser.getInt("rho_moat", element,0);
 	    /*log*/
 	    Log.log("Added LINEAR POISSON solver");
 	}

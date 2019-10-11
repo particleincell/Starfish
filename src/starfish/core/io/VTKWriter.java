@@ -938,7 +938,8 @@ public class VTKWriter extends Writer
 	    while(it.hasNext())
 	    {
 		Particle part = it.next();
-		if (Starfish.rnd()<prob) parts.add(part);
+		if (prob>=1.0 || Starfish.rnd()<prob) 
+			parts.add(part);
 	    }
 	}
 	
@@ -1001,6 +1002,16 @@ public class VTKWriter extends Writer
 	}
 	outputDataArrayVec(pw,"velocity",vec);
 	
+	double s[] = new double[parts.size()];
+	a=0;
+	for (int i=0;i<parts.size();i++)
+	{
+	    Particle part = parts.get(i);
+	    s[a++] = part.radius;
+	}
+	outputDataArrayScalar(pw,"radius",s);
+	
+	
 	pw.println("</PointData>");	
 	 
 	pw.println("</Piece>");
@@ -1019,6 +1030,8 @@ public class VTKWriter extends Writer
     @Override
     public void writeTrace(ArrayList<Particle> particles, ArrayList<Integer>time_steps)
     {
+    	if (particles.isEmpty()) return;
+    	
 	PrintWriter pw = open(file_name);
         appended_data = new ByteArrayOutputStream();
 

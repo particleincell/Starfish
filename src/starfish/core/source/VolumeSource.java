@@ -89,7 +89,7 @@ public class VolumeSource extends Source
     @Override 
     public boolean hasParticles()
     {
-	return num_rem>spwt0;
+    	return num_rem>spwt0;
     }
     
     @Override
@@ -146,10 +146,10 @@ public class VolumeSource extends Source
     @Override
     public void regenerate()
     {
-	sample_mesh=Starfish.getMeshList().get(0);		
-	//System.out.printf("%g\n",getDn(sample_mesh).data[24][8]);
-
-	findNextCell(0,0);
+		sample_mesh=Starfish.getMeshList().get(0);		
+		//System.out.printf("%g\n",getDn(sample_mesh).data[24][8]);
+	
+		findNextCell(0,0);
     }
     
     protected Field2D dn_f;

@@ -159,8 +159,8 @@ public class DomainModule extends CommandModule
         /*add default fields*/
 	field_manager.add("NodeVol", "m^-3",null);
 	field_manager.add("phi", "V",null);
-        field_manager.add("rho", "C/m^3",null);
-        field_manager.add("efi", "V/m",null);
+    field_manager.add("rho", "C/m^3",null);
+    field_manager.add("efi", "V/m",null);
 	field_manager.add("efj", "V/m",null);
 	field_manager.add("bfi", "T",null);
 	field_manager.add("bfj", "T",null);

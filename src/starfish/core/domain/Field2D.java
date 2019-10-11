@@ -233,7 +233,7 @@ public class Field2D
      */
     public void scatter(double fi[], double val)
     {
-	scatter(fi[0], fi[1], val);
+    	scatter(fi[0], fi[1], val);
     }
     
     /** Scatter
@@ -243,37 +243,54 @@ public class Field2D
      * @param val*/
     public void scatter(double fi, double fj, double val)
     {
-	int i = (int)fi;
+		int i = (int)fi;
         int j = (int)fj;
         double di = fi-i;
         double dj = fj-j;
+		
+		/*make sure we are not out of bounds*/
+		if (i<0 || j<0 || i>=ni-1 || j>=nj-1) return;
 	
-	/*make sure we are not out of bounds*/
-	if (i<0 || j<0 || i>=ni-1 || j>=nj-1) return;
+		if (Starfish.domain_module.domain_type==DomainType.RZ)
+		{  
+			
+			//compute correction factors
+			/*double ri = mesh.R(i, j);
+			double dr = mesh.R(i+1, j)-ri;
+			
+			double f1 = (ri+0.5*dj*dr)/(ri+0.5*dr);   
+			double f2 = (ri+0.5*(dj+1)*dr)/(ri+0.5*dr);
 
-	if (Starfish.domain_module.domain_type==DomainType.RZ)
-	{   /*equation 4.2 in Ruyten (93)*/
-	    double rp = mesh.R(i+1, fj);
-	    double rm = mesh.R(i,fj);
-	    double r = mesh.R(fi, fj);
-	    di = 1-(0.5*(rp-r)*(2*rp+3*rm-r)/(rp*rp-rm*rm));
-	}
-	else if (Starfish.domain_module.domain_type==DomainType.ZR)
-	{   /*equation 4.2 in Ruyten (93)*/
-	    double rp = mesh.R(fi, j+1);
-	    double rm = mesh.R(fi,j);
-	    double r = mesh.R(fi, fj);
-	    di = fi-i;
-	    dj = 1-(0.5*(rp-r)*(2*rp+3*rm-r)/(rp*rp-rm*rm));
-	}
-	
-	if (Double.isNaN(dj) || Double.isNaN(di) || Double.isNaN(val))
-	    System.out.println("Nan in scatter");
-	
-	data[i][j] += (1-di)*(1-dj)*val;
-	data[i+1][j] += di*(1-dj)*val;
-	data[i+1][j+1] += di*dj*val;
-	data[i][j+1] += (1-di)*dj*val;
+			data[i][j] += val*(1-di)*(1-dj)*f2;
+			data[i+1][j] += val*(di)*(1-dj)*f2;
+			data[i+1][j+1] += val*(di)*(dj)*f1;
+			data[i][j+1] += val*(1-di)*(dj)*f1;
+			return;		
+			*/
+			
+			
+			/*equation 4.2 in Ruyten (93)*/
+		    double rp = mesh.R(i+1, fj);
+		    double rm = mesh.R(i,fj);
+		    double r = mesh.R(fi, fj);
+		    di = 1-(0.5*(rp-r)*(2*rp+3*rm-r)/(rp*rp-rm*rm));
+		}
+		else if (Starfish.domain_module.domain_type==DomainType.ZR)
+		{   /*equation 4.2 in Ruyten (93)*/
+		    double rp = mesh.R(fi, j+1);
+		    double rm = mesh.R(fi,j);
+		    double r = mesh.R(fi, fj);
+		    di = fi-i;
+		    dj = 1-(0.5*(rp-r)*(2*rp+3*rm-r)/(rp*rp-rm*rm));
+		}
+		
+		if (Double.isNaN(dj) || Double.isNaN(di) || Double.isNaN(val))
+		    System.out.println("Nan in scatter");
+		
+		data[i][j] += (1-di)*(1-dj)*val;
+		data[i+1][j] += di*(1-dj)*val;
+		data[i+1][j+1] += di*dj*val;
+		data[i][j+1] += (1-di)*dj*val;
 	
     }
     
@@ -300,12 +317,30 @@ public class Field2D
      */
     public double gather(double fi, double fj)
     {
-	int i = (int)fi;
+    	int i = (int)fi;
         int j = (int)fj;
         double di = fi-i;
         double dj = fj-j;
         double v;
-        
+       /* 
+        if (Starfish.domain_module.domain_type==DomainType.RZ)
+		{  
+				   
+	    	//compute correction factors
+        	double ri = mesh.R(i, j);
+			double dr = mesh.R(i+1, j)-ri;
+			
+			double f1 = (ri+0.5*dj*dr)/(ri+0.5*dr);   
+			double f2 = (ri+0.5*(dj+1)*dr)/(ri+0.5*dr);
+			
+			//gather electric field onto particle position
+			return data[i][j]*(1-di)*(1-dj)*f2+
+					data[i+1][j]*(di)*(1-dj)*f2+
+					data[i+1][j+1]*(di)*(dj)*f1+
+					data[i][j+1]*(1-di)*(dj)*f1;
+		}
+    */
+		
         v = (1-di)*(1-dj)*data[i][j];
         v+= di*(1-dj)*data[i+1][j];
         v+= di*dj*data[i+1][j+1];
@@ -497,13 +532,7 @@ public class Field2D
 			if (lc[0]<0 || lc[1]<0 ||
 			    lc[0]>in_mesh.ni || lc[1]>in_mesh.nj)
 			    continue;
-			
-			if(i<10 && j>38)
-			{
-			    QuadrilateralMesh q = (QuadrilateralMesh) in_mesh;
-			    q.XtoLrecursive(pos[0], pos[1], (int)lc[0], (int)lc[1], lc);
-			}
-			
+						
 			out.scatter(fi, fj, in.gather(lc));
 			count.scatter(fi, fj, 1);
 		    }		

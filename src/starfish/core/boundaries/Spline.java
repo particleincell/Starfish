@@ -581,61 +581,62 @@ public class Spline
     /** @return random parametric position*/
     public double randomT() 
     {
-	/*sample uniformly from total spline area*/
-	double A1 = Starfish.rnd()*spline_area;
-	int i = Vector.binarySearch(cum_area, A1); //map distance to segment
-	
-	/*compute parametric position along this segment*/
-	double seg_area = segments.get(i).area;
-	double frac = (A1-cum_area[i])/seg_area;
-	
-	//area of a conical frustrum 
-	
-	if (Starfish.getDomainType()!=DomainType.XY)
-	{
-	    /*for axisymmetric domain we need to search for "t" that will produce
-	    the desired fractional area. My attempt for analytical solution has so far
-	    been unfruitful as this gives an ugly equation containing sqrt(t) terms
-	    */
-	    
-	    Segment seg = segments.get(i);
-	    	    
-	    /*
-	    this is my attempt at searching for the solution. This is probably the same
-	    as Newton's method.	    
-	    */
-	    final int max_steps = 10;
-	    final double tol = 1e-6;
-	    double x[] = new double[max_steps];
-	    double f[] = new double[max_steps];
-	    double f_goal = frac*seg_area;   //what we are looking
-	    
-	    //initialize. With assume that t ~ area fraction 
-	    x[0] = frac;
-	    f[0] = seg.area(x[0]);
-	    
-	    double diff = Math.abs(f[0]-f_goal);
-	    
-	    int k=1;
-	    //set x[1] since this is the final that is used if initial guess is right
-	    x[1] = x[0] + (f_goal-f[0]);    
-	    	
-	    if (diff>tol)
-	    	f[1] = seg.area(x[1]);		
-	    	    
-	    while (diff>tol && k<max_steps-1)
-	    {
-		x[k+1] = (x[k]-x[k-1])*(f_goal-f[k-1])/(f[k]-f[k-1]) + x[k-1];
-		f[k+1] = seg.area(x[k+1]);
-		diff = Math.abs(f[k+1]-f_goal);	 
-		k++;		
-	    }
-	    
-	   frac = x[k];
-	}
-	
-	/*add random distance along the segment*/
-	return i+frac;
+		/*sample uniformly from total spline area*/
+		double A1 = Starfish.rnd()*spline_area;
+		int i = Vector.binarySearch(cum_area, A1); //map distance to segment
+		
+		/*compute parametric position along this segment*/
+		double seg_area = segments.get(i).area;
+		double frac = (A1-cum_area[i])/seg_area;
+		
+		//area of a conical frustrum 
+		
+		if (Starfish.getDomainType()!=DomainType.XY)
+		{
+		    /*for axisymmetric domain we need to search for "t" that will produce
+		    the desired fractional area. My attempt for analytical solution has so far
+		    been unfruitful as this gives an ugly equation containing sqrt(t) terms
+		    */
+		    
+		    Segment seg = segments.get(i);
+		    	    
+		    /*
+		    this is my attempt at searching for the solution. This is probably the same
+		    as Newton's method.	    
+		    */
+		    final int max_steps = 10;
+		    final double tol = 1e-6;
+		    double x[] = new double[max_steps];
+		    double f[] = new double[max_steps];
+		    double f_goal = frac*seg_area;   //what we are looking
+		    
+		    //initialize. With assume that t ~ area fraction 
+		    x[0] = frac;
+		    f[0] = seg.area(x[0]);
+		    
+		    double diff = Math.abs(f[0]-f_goal)/seg_area;
+		    
+		    int k=1;
+		    //set x[1] since this is the final that is used if initial guess is right
+		    x[1] = x[0] + (f_goal-f[0]);    
+		    	
+		    if (diff>tol)
+		    	f[1] = seg.area(x[1]);		
+		    	    
+		    while (diff>tol && k<max_steps-1)
+		    {
+				x[k+1] = (x[k]-x[k-1])*(f_goal-f[k-1])/(f[k]-f[k-1]) + x[k-1];
+				f[k+1] = seg.area(x[k+1]);
+				diff = Math.abs(f[k+1]-f_goal)/seg_area;	 
+				k++;		
+		    }
+		    if (k==max_steps) Log.warning("Failed to find spline random position");
+		    
+		   frac = x[k];
+		}
+		
+		/*add random distance along the segment*/
+		return i+frac;
     }
 
     /** @return random parametric position for uniform sampling on RZ mesh*/

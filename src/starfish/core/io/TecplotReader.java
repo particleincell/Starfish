@@ -19,6 +19,8 @@ import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldManager2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.QuadrilateralMesh;
+import starfish.core.domain.UniformMesh;
+import starfish.core.domain.DomainModule.DomainType;
 
 /** reader for simple ASCII Tecplot(r) - formatted files*/
 public class TecplotReader extends Reader
@@ -31,12 +33,16 @@ public class TecplotReader extends Reader
      */
     public TecplotReader(String file_name, Element element)
     {
-	this.file_name = file_name;
-	try {
-	    sc = new Scanner(new FileInputStream(file_name));
-	} catch (FileNotFoundException ex) {
-	    Log.error("file not found "+file_name);
-	}		
+    	super(element);
+    	
+    	uniform = InputParser.getBoolean("uniform", element, false);	//if true, will create Cartesian mesh for faster interpolation
+    	
+		this.file_name = file_name;
+		try {
+		    sc = new Scanner(new FileInputStream(file_name));
+		} catch (FileNotFoundException ex) {
+		    Log.error("file not found "+file_name);
+		}		
     }
     
     /**
@@ -48,6 +54,7 @@ public class TecplotReader extends Reader
      *
      */
     protected Scanner sc = null;
+    boolean uniform;		//use uniform mesh for interpolation?
 			
     @Override
     public void parse(String coord_vars[], String field_vars[])
@@ -154,17 +161,25 @@ public class TecplotReader extends Reader
 		    {
 			String pieces[] = sc.nextLine().trim().split("\\s+");
 
-			IPOS[i][j] = Double.parseDouble(pieces[vi]);
-			JPOS[i][j] = Double.parseDouble(pieces[vj]);
+			IPOS[i][j] = Double.parseDouble(pieces[vi])*dim_scale;
+			JPOS[i][j] = Double.parseDouble(pieces[vj])*dim_scale;
 
 			for (int v=0;v<fv_index.length;v++)
-			    FVAR[v][i][j] = Double.parseDouble(pieces[fv_index[v]]);
+			    FVAR[v][i][j] = Double.parseDouble(pieces[fv_index[v]])*var_scale;
 		    }
 
 		/*create a new mesh*/
 		int nn[] = {ni,nj};
-		Mesh mesh = new QuadrilateralMesh(nn,IPOS,JPOS,"TecplotReaderMesh",Starfish.domain_module.getDomainType());	
+		Mesh mesh;
+		if (!uniform) mesh = new QuadrilateralMesh(nn,IPOS,JPOS,"TecplotReaderMesh",Starfish.domain_module.getDomainType());	
+		else 
+		{
+			double x0[] = {IPOS[0][0],JPOS[0][0]};
+			double dh[] = {IPOS[1][0]-x0[0],JPOS[0][1]-x0[1]};
 
+			mesh = new UniformMesh(nn, x0, dh, "TecplotReaderMesh", Starfish.domain_module.getDomainType());
+		}
+		
 		/*presently supporting only one mesh*/
 		field_manager = new FieldManager2D(mesh);
 

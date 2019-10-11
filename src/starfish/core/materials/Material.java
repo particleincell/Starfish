@@ -61,21 +61,22 @@ public abstract class Material
      */
     public Material(String name, Element element)
     {
-	this(name);
-	charge = InputParser.getDouble("charge", element,0)*Constants.QE;
-	mass = InputParser.getDouble("molwt", element)*Constants.AMU;
-	frozen = InputParser.getBoolean("frozen", element, false);
-	work_function = InputParser.getDouble("work_function",element, 0.0)*Constants.EVtoJ;
-	double def[] = {0.0, 0.0, 0.0};
-	p_vap_coeffs = InputParser.getDoubleList("p_vap_coeffs", element, def);
-	ionization_energy = InputParser.getDouble("ionization_energy",element, -1);
-	
-	/*try to get DSMC data*/
-	ref_temp = InputParser.getDouble("ref_temp", element,275);
-	visc_temp_index = InputParser.getDouble("visc_temp_index",element,0.85);
-	vss_alpha = InputParser.getDouble("vss_alpha",element,1);
-	diam = InputParser.getDouble("diam",element,5e-10);
-	
+		this(name);
+		charge = InputParser.getDouble("charge", element,0)*Constants.QE;
+		mass = InputParser.getDouble("molwt", element)*Constants.AMU;
+		frozen = InputParser.getBoolean("frozen", element, false);
+		work_function = InputParser.getDouble("work_function",element, 0.0)*Constants.EVtoJ;
+		double def[] = {0.0, 0.0, 0.0};
+		p_vap_coeffs = InputParser.getDoubleList("p_vap_coeffs", element, def);
+		ionization_energy = InputParser.getDouble("ionization_energy",element, -1);
+		density = InputParser.getDouble("density", element, 0.0);
+		
+		/*try to get DSMC data*/
+		ref_temp = InputParser.getDouble("ref_temp", element,275);
+		visc_temp_index = InputParser.getDouble("visc_temp_index",element,0.85);
+		vss_alpha = InputParser.getDouble("vss_alpha",element,1);
+		diam = InputParser.getDouble("diam",element,0);
+		
     }
     
     /**

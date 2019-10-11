@@ -35,8 +35,10 @@ public class TableReader extends Reader
      */
     public TableReader(String file_name, Element element)
     {
-	/*open file*/
-	Log.log("Opening file "+file_name);
+    	super(element);
+	
+		/*open file*/
+		Log.log("Opening file "+file_name);
 
 	Scanner file = null;
 	try {
@@ -62,11 +64,11 @@ public class TableReader extends Reader
 	while (file.hasNextLine())
 	{
 	    line = new Scanner(file.nextLine());
-	    z[i][j] = line.nextDouble();
-	    r[i][j] = line.nextDouble();
-	    B[i][j] = line.nextDouble();
-	    Bz[i][j] = line.nextDouble();
-	    Br[i][j] = line.nextDouble();
+	    z[i][j] = line.nextDouble()*dim_scale;
+	    r[i][j] = line.nextDouble()*dim_scale;
+	    B[i][j] = line.nextDouble()*var_scale*Math.sqrt(2.0);
+	    Bz[i][j] = line.nextDouble()*var_scale;
+	    Br[i][j] = line.nextDouble()*var_scale;
 
 	    j++;
 	    if (j>=nj) {j=0;i++;}

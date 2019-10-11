@@ -29,6 +29,7 @@ abstract public class PotentialSolver extends Solver
      */
     public double den0 = 1e15;  /* reference values of ion density along bottom edge */
     
+    protected int rho_moat;		//if positive, number of cells over which rho should decay quadratically
     public ArrayList<double[]> den0_pos = null;	/*positions for sampling reference density */
     
     /** updates den0 if sampling positions are specified*/

@@ -105,11 +105,20 @@ public class BoundaryModule extends CommandModule
     @Override
     public void process(Element element) 
     {	
-	/*grab transformation if set*/
-	double scaling[] = {1,1};
-	double translation[] = {0,0};
-	double rotation = 0;
-	boolean flip_normals = false;
+
+    	//check for units
+    	double def_scale = 1;
+    	String units_name = InputParser.getValue("units", element,"m").toUpperCase();
+    	if (units_name.startsWith("IN")) def_scale = 0.0254;
+    	else if (units_name.startsWith("CM")) def_scale = 0.01;
+    	else if (units_name.startsWith("MM")) def_scale = 0.001;
+    	    	
+    	/*grab transformation if set*/
+		double scaling[] = {def_scale,def_scale};
+		double translation[] = {0,0};
+		double rotation = 0;
+		boolean flip_normals = false;
+	
 	
 	/*default*/
 	Matrix G = Matrix.makeTransformationMatrix(scaling,rotation,translation);

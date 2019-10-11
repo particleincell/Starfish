@@ -26,7 +26,7 @@ public class VolumeMaxwellianSource extends VolumeSource
 {
 
     protected double v_th;
-    protected double vdrift[];
+    protected double v_drift[];
     protected int start_it;
     protected int end_it;
     
@@ -51,10 +51,19 @@ public class VolumeMaxwellianSource extends VolumeSource
     {
 	super(name, source_mat);
 
-	mdot0 = InputParser.getDouble("mdot",element);
+	mdot0 = InputParser.getDouble("mdot",element,0);
+	double current = InputParser.getDouble("current", element, 0);
+	if (mdot0!=0.0 && current!=0.0) 
+		Log.error("only one of <mdot> and <current> can be specified");
+	if (current!=0.0) 
+	{
+		if (source_mat.charge==0.0) Log.error("Cannot use <current> with neutral materials");
+		mdot0 = Math.abs(current/source_mat.charge*source_mat.mass);
+	}
 	
 	/*drift velocity and temperature*/
-	vdrift = InputParser.getDoubleList(name, element,new double[]{0.0,0.0});
+	v_drift = InputParser.getDoubleList("v_drift", element,new double[]{0.0,0.0});
+	if (v_drift.length!=2) Log.error("v_drift needs to be a 2D list");	
 	
 	double T = Double.parseDouble(InputParser.getValue("temperature", element));
 	start_it = InputParser.getInt("start_it",element,0);
@@ -102,37 +111,61 @@ public class VolumeMaxwellianSource extends VolumeSource
     //checks if the specified point is inside the shape
     protected boolean inShape(double x[])
     {
-	switch (shape)
-	{
-	    case RECT: return (x[0]>=x0[0] && x[0]<=x1[0] && x[1]>=x0[1] && x[1]<=x1[1]); 
-	    case CIRCLE: 
-		double dx = x[0]-x0[0];
-		double dy = x[1]-x0[1];
-		return (dx*dx+dy*dy)<=radius*radius;	
-	    default: return false;
-	}	
+		switch (shape)
+		{
+		    case RECT: return (x[0]>=x0[0] && x[0]<=x1[0] && x[1]>=x0[1] && x[1]<=x1[1]); 
+		    case CIRCLE: 
+			double dx = x[0]-x0[0];
+			double dy = x[1]-x0[1];
+			return (dx*dx+dy*dy)<=radius*radius;	
+		    default: return false;
+		}	
+    }
+    
+    //samples random position in a rectangle
+    protected static double[] samplePosRect(double x1[], double x2[]) {
+    	double pos[] = new double[2];
+    	
+    	if (Starfish.getDomainType()==DomainType.XY) { 
+	    	pos[0] = x1[0] + Starfish.rnd()*(x2[0]-x1[0]);
+			pos[1] = x1[1] + Starfish.rnd()*(x2[1]-x1[1]);
+    	}
+    	else if (Starfish.getDomainType()==DomainType.RZ) {
+    		double r1 = x1[0]; double r2 = x2[0];
+    		pos[0] = Math.sqrt(Starfish.rnd()*(r2*r2-r1*r1)+r1*r1);
+    		pos[1] = x1[1] + Starfish.rnd()*(x2[1]-x1[1]);
+    	}
+    	else if (Starfish.getDomainType()==DomainType.ZR) {
+    		double r1 = x1[1]; double r2 = x2[1];
+    		pos[0] = x1[0] + Starfish.rnd()*(x2[0]-x1[0]);
+    		pos[1] = Math.sqrt(Starfish.rnd()*(r2*r2-r1*r1)+r1*r1);
+    	}
+    	else Log.error("Unsupported domain type");
+    	
+    	return pos;
+    	
     }
     
     //samples random position in the shape
     protected double[] samplePos()
     {
-	double pos[] = new double[2];
-	switch (shape)
-	{
-	    case RECT: 
-		pos[0] = x0[0] + Starfish.rnd()*(x1[0]-x0[0]);
-		pos[1] = x0[1] + Starfish.rnd()*(x1[1]-x0[1]);
-		break;
-	    case CIRCLE:
-		do
+		double pos[] = new double[2];
+		
+		switch (shape)
 		{
-		    //pick random position in square, check if in bounds
-		   pos[0] = x0[0]-radius+Starfish.rnd()*2*radius;
-		   pos[1] = x0[1]-radius+Starfish.rnd()*2*radius;
-		} while (!inShape(pos));	    
-	}
-	
-	return pos;
+		    case RECT:
+		    	pos = samplePosRect(x0,x1);
+		    	break;
+		    case CIRCLE:
+			do
+			{
+			    //pick random position in square, check if in bounds
+				double x1[] = {x0[0]-0.5*radius,x0[1]-0.5*radius};
+				double x2[] = {x0[0]+0.5*radius,x0[1]+0.5*radius};
+				pos = samplePosRect(x1,x2);					
+			} while (!inShape(pos));	    
+		}
+		return pos;
     }
     
     /*
@@ -176,7 +209,7 @@ public class VolumeMaxwellianSource extends VolumeSource
     public void regenerate()
     {
 	/*check for injection interval*/
-	if (Starfish.getIt()<start_it || Starfish.getIt()>end_it)
+	if (Starfish.getIt()<start_it || (end_it>0 && Starfish.getIt()>end_it))
 	{
 	    num_mp = 0;
 	    num_rem = 0;
@@ -214,8 +247,8 @@ public class VolumeMaxwellianSource extends VolumeSource
 	part.vel = Utils.SampleMaxw3D(v_th);
 	
 	/*add drifting velocity*/
-	part.vel[0] += vdrift[0];
-	part.vel[1] += vdrift[1];
+	part.vel[0] += v_drift[0];
+	part.vel[1] += v_drift[1];
 	
 	num_mp-=1;
 

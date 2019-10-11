@@ -196,7 +196,9 @@ public class Utils
      */
     public static int minmax(int val, int min, int max)
     {
-	return ((val<min?min:val)>max?max:val);
+    	if (val<min) return min;
+    	else if (val>max) return max;
+    	return val;
     }
     
     

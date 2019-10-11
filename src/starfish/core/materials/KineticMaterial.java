@@ -45,7 +45,7 @@ public class KineticMaterial extends Material
 	super(name, element);
 
 	/*kinetic material also need spwt*/
-	spwt0 = InputParser.getDouble("spwt", element);
+	spwt0 = InputParser.getDouble("spwt", element,1.0);
 	
 	/*support for particle merging*/
 	particle_merge_skip = InputParser.getInt("particle_merge_skip", element,-1);
@@ -89,36 +89,36 @@ public class KineticMaterial extends Material
     @Override
     public void init()
     {
-	/*call up*/
-	super.init();
-
-	/*allocate memory*/
-	ArrayList<Mesh> mesh_list = Starfish.getMeshList();
-	mesh_data = new MeshData[mesh_list.size()];
-	for (int m = 0; m < mesh_list.size(); m++)
-	{
-	    mesh_data[m] = new MeshData(mesh_list.get(m));
-	}
+		/*call up*/
+		super.init();
 	
-	/*fields used to hold sampled data*/
-	field_manager2d.add_nosync("count-sum", "#", null);	
-	field_manager2d.add_nosync("u-sum", "m/s", null);
-	field_manager2d.add_nosync("v-sum", "m/s", null);
-	field_manager2d.add_nosync("w-sum", "m/s", null);
-	field_manager2d.add_nosync("uu-sum", "m/s", null);
-	field_manager2d.add_nosync("vv-sum", "m/s", null);
-	field_manager2d.add_nosync("ww-sum", "m/s", null);
+		/*allocate memory*/
+		ArrayList<Mesh> mesh_list = Starfish.getMeshList();
+		mesh_data = new MeshData[mesh_list.size()];
+		for (int m = 0; m < mesh_list.size(); m++)
+		{
+		    mesh_data[m] = new MeshData(mesh_list.get(m));
+		}
+	
+		/*fields used to hold sampled data*/
+		field_manager2d.add_nosync("count-sum", "#", null);	
+		field_manager2d.add_nosync("u-sum", "m/s", null);
+		field_manager2d.add_nosync("v-sum", "m/s", null);
+		field_manager2d.add_nosync("w-sum", "m/s", null);
+		field_manager2d.add_nosync("uu-sum", "m/s", null);
+		field_manager2d.add_nosync("vv-sum", "m/s", null);
+		field_manager2d.add_nosync("ww-sum", "m/s", null);
+			
+		/*temperature components*/
+		field_manager2d.add("t1","K",null);
+		field_manager2d.add("t2","K",null);
+		field_manager2d.add("t3","K",null);
 		
-	/*temperature components*/
-	field_manager2d.add("t1","K",null);
-	field_manager2d.add("t2","K",null);
-	field_manager2d.add("t3","K",null);
-	
-	/*macroparticles per cell*/
-	field_manager2d.add_nosync("mpc-sum","#",null);
-	field_manager2d.add_nosync("mpc","#",null); //since cell-based
-	
-	
+		/*macroparticles per cell*/
+		field_manager2d.add_nosync("mpc-sum","#",null);
+		field_manager2d.add_nosync("mpc","#",null); //since cell-based
+		
+		
     }
 
     boolean first_time = true;
@@ -177,7 +177,7 @@ public class KineticMaterial extends Material
     /**
      * uses final particle positions to update fields
      */
-    void updateFields(MeshData md)
+    protected void updateFields(MeshData md)
     {
 	Field2D Den = getDen(md.mesh);
 	Field2D U = getU(md.mesh);
@@ -329,7 +329,6 @@ public class KineticMaterial extends Material
 		    iterator.remove();
 		    continue;
 		}
-
 		
 		/*increment particle time and velocity*/
 		if (!particle_transfer)
@@ -351,7 +350,7 @@ public class KineticMaterial extends Material
 			part.vel[1] += q_over_m * ef[1] * part.dt;
 		    } else
 		    {		
-			UpdateVelocityBoris(part, ef, bf);
+		    	UpdateVelocityBoris(part, ef, bf);
 		    }
 		}
 	    
@@ -391,10 +390,15 @@ public class KineticMaterial extends Material
 
 		    /*check if particle hit anything or left the domain*/		
 		    alive = ProcessBoundary(part, mesh, old, old_lc);
+		    
+		    if (!alive )
+		    {
+		    //	ProcessBoundary(part_old, mesh, old, old_lc);
+		    }
 
 		    /*add post push/surface impact position to trace*/
 		    if (part.trace_id>=0)
-			Starfish.particle_trace_module.addTrace(part);
+		    	Starfish.particle_trace_module.addTrace(part);
 
 		    if (!alive)
 		    {
@@ -492,47 +496,47 @@ public class KineticMaterial extends Material
      */
     boolean ProcessBoundary(Particle part, Mesh mesh, double old[], double lc_old[])
     {
-	Face exit_face;
-	boolean alive=true;
-
-	double dt0 = part.dt;	/*initial time step*/
-	part.dt = 0;		/*default, used up all time*/
-
-	/*capture bounding box of particle motion and particle position before pushing
-	 *particle into domain*/
-	double lc_min[] = new double[2];
-	double lc_max[] = new double[2];
-	lc_min[0] = Math.min(part.lc[0], lc_old[0]);
-	lc_min[1] = Math.min(part.lc[1], lc_old[1]);
-	lc_max[0] = Math.max(part.lc[0], lc_old[0]);
-	lc_max[1] = Math.max(part.lc[1], lc_old[1]);
-
-	int i_min = (int) lc_min[0];
-	int i_max = (int) lc_max[0];
-	int j_min = (int) lc_min[1];
-	int j_max = (int) lc_max[1];
+		Face exit_face;
+		boolean alive=true;
+		
+		double dt0 = part.dt;	/*initial time step*/
+		part.dt = 0;		/*default, used up all time*/
 	
-	/*verify above min/max are in range*/
-	if (i_min<0) i_min=0;
-	if (j_min<0) j_min=0;
-	if (i_max>=mesh.ni) i_max=mesh.ni-1;
-	if (j_max>=mesh.nj) j_max=mesh.nj-1;
+		/*capture bounding box of particle motion and particle position before pushing
+		 *particle into domain*/
+		double lc_min[] = new double[2];
+		double lc_max[] = new double[2];
+		lc_min[0] = Math.min(part.lc[0], lc_old[0]);
+		lc_min[1] = Math.min(part.lc[1], lc_old[1]);
+		lc_max[0] = Math.max(part.lc[0], lc_old[0]);
+		lc_max[1] = Math.max(part.lc[1], lc_old[1]);
 	
-	/*assemble a list of segments in this block, using a set to avoid duplicates*/
-	Set<Segment> segments = new HashSet();
+		int i_min = (int) lc_min[0];
+		int i_max = (int) lc_max[0];
+		int j_min = (int) lc_min[1];
+		int j_max = (int) lc_max[1];
+		
+		/*verify above min/max are in range*/
+		if (i_min<0) i_min=0;
+		if (j_min<0) j_min=0;
+		if (i_max>=mesh.ni) i_max=mesh.ni-1;
+		if (j_max>=mesh.nj) j_max=mesh.nj-1;
+		
+		/*assemble a list of segments in this block, using a set to avoid duplicates*/
+		Set<Segment> segments = new HashSet();
+		
+		/*make a set of all segments in the bounding box*/
+		for (int i = i_min; i <= i_max; i++)
+		    for (int j = j_min; j <= j_max; j++)
+		    {
+			Node node = mesh.getNode(i, j);
 	
-	/*make a set of all segments in the bounding box*/
-	for (int i = i_min; i <= i_max; i++)
-	    for (int j = j_min; j <= j_max; j++)
-	    {
-		Node node = mesh.getNode(i, j);
-
-		for (Segment seg : node.segments)
-		    if (seg.getBoundaryType() == BoundaryType.DIRICHLET ||
-			seg.getBoundaryType() == BoundaryType.VIRTUAL ||
-			seg.getBoundaryType() == BoundaryType.SINK)
-			segments.add(seg);
-	    }
+			for (Segment seg : node.segments)
+			    if (seg.getBoundaryType() == BoundaryType.DIRICHLET ||
+				//seg.getBoundaryType() == BoundaryType.VIRTUAL ||   /*9/2019 disabled virtual here, not sure why being added, causes particle leaks
+				seg.getBoundaryType() == BoundaryType.SINK)
+				segments.add(seg);
+		    }
 
 	/*iterate over the segments and find the first one to be hit*/
 	double tp_min=2.0,tsurf_min=0;
@@ -606,157 +610,160 @@ public class KineticMaterial extends Material
 
 	    if (!alive)
 	    {
-		/*we will multiply by mass in "finish"*/		
-		addSurfaceMassDeposit(boundary_hit, boundary_t, part.spwt);
-		return alive;
+			/*we will multiply by mass in "finish"*/		
+			addSurfaceMassDeposit(boundary_hit, boundary_t, part.spwt);
+			return alive;
 	    }	    
 	}
   
 	/*particle still alive, did it leave the domain*/
 	if (part.lc[0] < 0 || part.lc[1] < 0
 	    || part.lc[0] >= mesh.ni - 1 || part.lc[1] >= mesh.nj - 1)
-	{
-	    /*determine exit face*/
-	    double t_right = 99, t_top = 99, t_left = 99, t_bottom = 99;
-
-	    if (part.lc[0] >= mesh.ni - 1)
-	    {
-		/*using >1.0 to place particle inside domain*/
-		t_right = (mesh.ni - 1.0 - lc_old[0]) / (part.lc[0] - lc_old[0]);
-	    }
-	    if (part.lc[1] >= mesh.nj - 1)
-	    {
-		t_top = (mesh.nj - 1.0 - lc_old[1]) / (part.lc[1] - lc_old[1]);
-	    }
-	    if (part.lc[0] < 0)
-	    {
-		t_left = lc_old[0] / (lc_old[0] - part.lc[0]);		
-	    }
-	    if (part.lc[1] < 0)
-	    {
-		t_bottom = lc_old[1] / (lc_old[1] - part.lc[1]);
-	    }
-
-	    exit_face = Face.RIGHT;
-	    double t = t_right;
-
-	    if (t_top < t)
-	    {
-		exit_face = Face.TOP;
-		t = t_top;
-	    }
-	    if (t_left < t)
-	    {
-		exit_face = Face.LEFT;
-		t = t_left;
-	    }
-	    if (t_bottom < t)
-	    {
-		exit_face = Face.BOTTOM;
-		t = t_bottom;
-	    }
-
-	    /*find boundary position, cannot use linear expression on position since
-	     mapping from physical to logical may not be linear*/
-	    part.lc[0] = lc_old[0] + t * (part.lc[0] - lc_old[0]);
-	    part.lc[1] = lc_old[1] + t * (part.lc[1] - lc_old[1]);
-	    
-	    //take care of round off errors, particle should be on mesh boundary
-	    if (part.lc[0]<0) part.lc[0] = 0;
-	    else if (part.lc[0]>mesh.ni-1) part.lc[0] = mesh.ni-1;
-	    if (part.lc[1]<0) part.lc[1] = 0;
-	    else if (part.lc[1]>mesh.nj-1) part.lc[1] = mesh.nj-1;
-	    
-	    double x[] = mesh.pos(part.lc);
-
-	    /*update particle position, part.pos is double[3], wall pos is double[2]*/
-	    part.pos[0] = x[0];
-	    part.pos[1] = x[1];
-
-	    part.dt = dt0 * (1 - t);	/*update remaining dt*/
-
-	    int i = (int)part.lc[0];
-	    int j = (int)part.lc[1];
-	    if (exit_face==Face.TOP) j++;
-	    if (exit_face==Face.RIGHT) i++;
-	    
-	    if (i<0) i=0;
-	    if (j<0) j=0;
-	    if (i>=mesh.ni-1) i=mesh.ni-1;
-	    if (j>=mesh.nj-1) j=mesh.nj-1;
-	    
-	    /*process boundary*/
-	    DomainBoundaryType type;
-	    
-	    if (exit_face == Face.LEFT || exit_face == Face.RIGHT) 
-		type = mesh.boundaryType(exit_face,j);
-	    else
-	    	type = mesh.boundaryType(exit_face,i);
-	    
-	    switch (type)
-	    {
-		case OPEN:
-		    return false;
-		case SYMMETRY: 
-		    /*grab normal vector*/
-		    double n[] = mesh.faceNormal(exit_face,part.pos);
-		    part.vel = Vector.mirror(part.vel,n);
-		    return true;
-		case PERIODIC: /*TODO: implemented only for single mesh*/
-		    UniformMesh um = (UniformMesh)mesh;
-		    if (exit_face == Face.LEFT)
-		  	part.pos[0] += (um.xd[0]-um.x0[0]);
-		    else if (exit_face ==Face.RIGHT)
-		    	part.pos[0] -= (um.xd[0]-um.x0[0]);
-		    else if (exit_face== Face.BOTTOM)
-			part.pos[1] += (um.xd[1]-um.x0[1]);
-		    else
-			part.pos[1] -= (um.xd[1]-um.x0[1]);
-		    return true;
-		case MESH: /*add to neighbor*/
-		    int index;
-		    if (exit_face==Face.LEFT || exit_face==Face.RIGHT)
-			index=(int)part.lc[1];
-		    else index=(int)part.lc[0];
-		    MeshBoundaryData bc = mesh.boundaryData(exit_face, index);
-		    if (bc.neighbor.containsPos(part.pos))
-		    {
-			    Mesh next = bc.neighbor;
-			    part.lc = next.XtoL(part.pos);
-			    getMeshData(next).addTransferParticle(part);
-		    }
-		    return false;
-		case CIRCUIT:	//energy boundary for electrons
-		    if (charge>=0) return false;
-		    //double T = this.getT(mesh).gather(part.lc);
-		    double T = 1*Constants.EVtoK;
-		    double vth = Math.sqrt(2*Constants.K*T/mass);
-		    double phi_b = Starfish.domain_module.getPhi(mesh).gather(part.lc);
-		    double v = Vector.mag3(part.vel);
-		    double KE = 0.5*mass*v*v;
-		    double PE = Constants.QE*(phi_b-0);
-		    //if (Vector.mag3(part.vel)<=vth)
-		    
-		    //absorb particle if ions collected on the wall
-		    if (Starfish.source_module.boundary_charge/(-charge)>part.spwt)
-		    {
-			Starfish.source_module.boundary_charge += part.spwt*charge;	
-			return false;
-		    }
-		    else 
-		    {
-			part.vel=Vector.mult(part.vel, -1);  //flip
-			return true;
-		    }
-		    
-		    
-
-		default:
-		    return false;
-	    }
-	}   //left mesh
+		{
+		    /*determine exit face*/
+		    double t_right = 99, t_top = 99, t_left = 99, t_bottom = 99;
 	
-	return true;
+		    if (part.lc[0] >= mesh.ni - 1)
+		    {
+			/*using >1.0 to place particle inside domain*/
+			t_right = (mesh.ni - 1.0 - lc_old[0]) / (part.lc[0] - lc_old[0]);
+		    }
+		    if (part.lc[1] >= mesh.nj - 1)
+		    {
+			t_top = (mesh.nj - 1.0 - lc_old[1]) / (part.lc[1] - lc_old[1]);
+		    }
+		    if (part.lc[0] < 0)
+		    {
+			t_left = lc_old[0] / (lc_old[0] - part.lc[0]);		
+		    }
+		    if (part.lc[1] < 0)
+		    {
+			t_bottom = lc_old[1] / (lc_old[1] - part.lc[1]);
+		    }
+	
+		    exit_face = Face.RIGHT;
+		    double t = t_right;
+	
+		    if (t_top < t)
+		    {
+			exit_face = Face.TOP;
+			t = t_top;
+		    }
+		    if (t_left < t)
+		    {
+			exit_face = Face.LEFT;
+			t = t_left;
+		    }
+		    if (t_bottom < t)
+		    {
+			exit_face = Face.BOTTOM;
+			t = t_bottom;
+		    }
+	
+		    /*find boundary position, cannot use linear expression on position since
+		     mapping from physical to logical may not be linear*/
+		    part.lc[0] = lc_old[0] + t * (part.lc[0] - lc_old[0]);
+		    part.lc[1] = lc_old[1] + t * (part.lc[1] - lc_old[1]);
+		    
+		    //take care of round off errors, particle should be on mesh boundary
+		    if (part.lc[0]<0) part.lc[0] = 0;
+		    else if (part.lc[0]>mesh.ni-1) part.lc[0] = mesh.ni-1;
+		    if (part.lc[1]<0) part.lc[1] = 0;
+		    else if (part.lc[1]>mesh.nj-1) part.lc[1] = mesh.nj-1;
+		    
+		    double x[] = mesh.pos(part.lc);
+	
+		    /*update particle position, part.pos is double[3], wall pos is double[2]*/
+		    part.pos[0] = x[0];
+		    part.pos[1] = x[1];
+	
+		    part.dt = dt0 * (1 - t);	/*update remaining dt*/
+	
+		    int i = (int)part.lc[0];
+		    int j = (int)part.lc[1];
+		    if (exit_face==Face.TOP) j++;
+		    if (exit_face==Face.RIGHT) i++;
+		    
+		    if (i<0) i=0;
+		    if (j<0) j=0;
+		    if (i>=mesh.ni-1) i=mesh.ni-1;
+		    if (j>=mesh.nj-1) j=mesh.nj-1;
+		    
+		    /*process boundary*/
+		    DomainBoundaryType type;
+		    
+		    if (exit_face == Face.LEFT || exit_face == Face.RIGHT) 
+			type = mesh.boundaryType(exit_face,j);
+		    else
+		    	type = mesh.boundaryType(exit_face,i);
+		    
+		    switch (type)
+		    {
+			case OPEN:
+			    return false;
+			case SYMMETRY: 
+			    /*grab normal vector*/
+			    double n[] = mesh.faceNormal(exit_face,part.pos);
+			    part.vel = Vector.mirror(part.vel,n);
+			    return true;
+			case PERIODIC: /*TODO: implemented only for single mesh*/
+			    UniformMesh um = (UniformMesh)mesh;
+			    if (exit_face == Face.LEFT)
+			    	part.pos[0] += (um.xd[0]-um.x0[0]);
+			    else if (exit_face ==Face.RIGHT)
+			    	part.pos[0] -= (um.xd[0]-um.x0[0]);
+			    else if (exit_face== Face.BOTTOM)
+			    	part.pos[1] += (um.xd[1]-um.x0[1]);
+			    else
+			    	part.pos[1] -= (um.xd[1]-um.x0[1]);
+			    return true;
+			case MESH: /*add to neighbor*/
+			    int index;
+			    if (exit_face==Face.LEFT || exit_face==Face.RIGHT)
+				index=(int)part.lc[1];
+			    else index=(int)part.lc[0];
+			    MeshBoundaryData bc = mesh.boundaryData(exit_face, index);
+			    for (int m=0;m<2;m++)
+			    {
+			    	if (bc.neighbor[m]!=null && bc.neighbor[m].containsPos(part.pos))
+				    {
+					    Mesh next = bc.neighbor[m];
+					    part.lc = next.XtoL(part.pos);
+					    getMeshData(next).addTransferParticle(part);
+				    }
+			    }
+			    return false;
+			case CIRCUIT:	//energy boundary for electrons
+			    if (charge>=0) return false;
+			    //double T = this.getT(mesh).gather(part.lc);
+			    double T = 1*Constants.EVtoK;
+			    double vth = Math.sqrt(2*Constants.K*T/mass);
+			    double phi_b = Starfish.domain_module.getPhi(mesh).gather(part.lc);
+			    double v = Vector.mag3(part.vel);
+			    double KE = 0.5*mass*v*v;
+			    double PE = Constants.QE*(phi_b-0);
+			    //if (Vector.mag3(part.vel)<=vth)
+			    
+			    //absorb particle if ions collected on the wall
+			    if (Starfish.source_module.boundary_charge/(-charge)>part.spwt)
+			    {
+			    	Starfish.source_module.boundary_charge += part.spwt*charge;	
+			    	return false;
+			    }
+			    else 
+			    {
+			    	part.vel=Vector.mult(part.vel, -1);  //flip
+			    	return true;
+			    }
+			    
+			    
+	
+			default:
+			    return false;
+		    }
+		}   //left mesh
+		
+		return true;
     }
 
     /**
@@ -1142,10 +1149,10 @@ public class KineticMaterial extends Material
 		    /*finish computations, based on my AdvPIC Lesson 2 slides*/
 		    for(int d=0;d<3;d++)
 		    {
-			p0[d] /= n0;	    //average velocity
-			t0[d] = t0[d]/n0 - p0[d]*p0[d];
-			if (t0[d]<0) t0[d] = 0;
-			x0[d] /= n0;	    //average position;
+				p0[d] /= n0;	    //average velocity
+				t0[d] = t0[d]/n0 - p0[d]*p0[d];
+				if (t0[d]<0) t0[d] = 0;
+				x0[d] /= n0;	    //average position;
 		    }
 
 		    /*add two new particles corresponding to the vel cell population*/
@@ -1154,10 +1161,10 @@ public class KineticMaterial extends Material
 		    double vel2[] = new double[3];
 		    for (int d=0;d<3;d++)
 		    {
-			//assign random sign to each dimension
-			int sign = (Starfish.rnd()<0.5)?1:-1;			
-			vel1[d] = p0[d] + sign*Math.sqrt(t0[d]);
-			vel2[d] = p0[d] - sign*Math.sqrt(t0[d]);
+				//assign random sign to each dimension
+				int sign = (Starfish.rnd()<0.5)?1:-1;			
+				vel1[d] = p0[d] + sign*Math.sqrt(t0[d]);
+				vel2[d] = p0[d] - sign*Math.sqrt(t0[d]);
 		    }
 		    Particle part1 = new Particle(x0, vel1, w, this);
 		    Particle part2 = new Particle(x0, vel2, w, this);
@@ -1167,7 +1174,7 @@ public class KineticMaterial extends Material
 		    
 		    /*destroy old particles in the vel cell*/
 		    for (Particle part:vel_parts_in_cell)
-			removeParticle(part);
+		    	removeParticle(part);
 		}
 	
 	
@@ -1245,6 +1252,7 @@ public class KineticMaterial extends Material
 	public double mass;		/*mass of the physical particle*/
 	public double lc[];		/*logical coordinate of current position*/
 	public double dt;		/*remaining dt to move through*/
+	public double radius;	//particle radius, currently used only by droplets
 	public int id;			/*particle id*/
 	public int born_it;
 	public int trace_id = -1;		/*set to >=0 if particle is being traced*/
@@ -1280,6 +1288,7 @@ public class KineticMaterial extends Material
 	    mass = mat.mass;
 	    born_it = Starfish.getIt();
 	    trace_id = -1;
+	    radius = mat.diam*0.5;
 	}
 
 	/**
@@ -1351,41 +1360,41 @@ public class KineticMaterial extends Material
      */
     public class MeshData 
     {
-	MeshData(Mesh mesh)
-	{
-	    this.mesh = mesh;
-
-	    /*save references*/
-	    Efi = Starfish.domain_module.getEfi(mesh);
-	    Efj = Starfish.domain_module.getEfj(mesh);
-	    Bfi = Starfish.domain_module.getBfi(mesh);
-	    Bfj = Starfish.domain_module.getBfj(mesh);
-	    
-	    num_blocks = Starfish.getNumProcessors();
-	    
-	    particle_block = new ParticleBlock[num_blocks];
-	    transfer_block = new ParticleBlock[num_blocks];
-	    
-	    /*init particle lists*/
-	    for (int i=0;i<particle_block.length;i++)
-	    {
-		particle_block[i]=new ParticleBlock();
-		transfer_block[i]=new ParticleBlock();
-	    }    
-	}
+		public MeshData(Mesh mesh)
+		{
+		    this.mesh = mesh;
+	
+		    /*save references*/
+		    Efi = Starfish.domain_module.getEfi(mesh);
+		    Efj = Starfish.domain_module.getEfj(mesh);
+		    Bfi = Starfish.domain_module.getBfi(mesh);
+		    Bfj = Starfish.domain_module.getBfj(mesh);
+		    
+		    num_blocks = Starfish.getNumProcessors();
+		    
+		    particle_block = new ParticleBlock[num_blocks];
+		    transfer_block = new ParticleBlock[num_blocks];
+		    
+		    /*init particle lists*/
+		    for (int i=0;i<particle_block.length;i++)
+		    {
+				particle_block[i]=new ParticleBlock();
+				transfer_block[i]=new ParticleBlock();
+		    }    
+		}
 	
 	/**
 	 *
 	 */
 	public int num_blocks;
-	Mesh mesh;
-	Field2D Efi, Efj;
-	Field2D Bfi, Bfj;
+	public Mesh mesh;
+	public Field2D Efi, Efj;
+	public Field2D Bfi, Bfj;
 	
-	CellData[][] cell_data;
+	public CellData[][] cell_data;
 	
-	ParticleBlock particle_block[];
-	ParticleBlock transfer_block[];	/*particles transferred into this mesh from a neighboring one during the transfer*/
+	public ParticleBlock particle_block[];
+	public ParticleBlock transfer_block[];	/*particles transferred into this mesh from a neighboring one during the transfer*/
 
 	/**add particle to the list, attempting to keep block sizes equal
 	 * @param part*/

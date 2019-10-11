@@ -20,8 +20,17 @@ public abstract class Reader
     /**
      *
      */
-    protected Reader()
+	double dim_scale = 1.0;		//scaling for dimensions
+	double var_scale = 1.0;
+    protected Reader(Element element)
     {
+    	String dim_units = InputParser.getValue("dim_units",element,"m").toUpperCase();
+    	if (dim_units.startsWith("IN")) dim_scale = 0.0254;
+    	else if (dim_units.startsWith("CM")) dim_scale = 0.01;
+    	else if (dim_units.startsWith("MM")) dim_scale = 0.001;
+    	
+    	var_scale = InputParser.getDouble("scale",element,var_scale);
+    	
     }
 
     public interface ReaderFactory

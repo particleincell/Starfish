@@ -47,20 +47,29 @@ public class UniformMesh extends Mesh
      */
     public UniformMesh (int nn[], Element element, String name, DomainType domain_type)
     {
-	super(nn, name,domain_type);
-	
-	String origin[] = InputParser.getList("origin", element);
-	String spacing[] = InputParser.getList("spacing", element);
-	double x0[] = {Double.parseDouble(origin[0]), Double.parseDouble(origin[1])};
-	double dh[] = {Double.parseDouble(spacing[0]), Double.parseDouble(spacing[1])};	    
-	
-	setMetrics(x0,dh);
-	
-	/*log*/
-	Starfish.Log.log("Added UNIFORM_MESH");
-	Starfish.Log.log("> nodes   = "+nn[0]+" : "+nn[1]);
-	Starfish.Log.log("> origin  = "+origin[0]+" : "+origin[1]);
-	Starfish.Log.log("> spacing = "+spacing[0]+" : "+spacing[1]);	
+    	super(nn, name,domain_type);
+
+		String origin[] = InputParser.getList("origin", element);
+		String spacing[] = InputParser.getList("spacing", element);
+		double x0[] = {Double.parseDouble(origin[0]), Double.parseDouble(origin[1])};
+		double dh[] = {Double.parseDouble(spacing[0]), Double.parseDouble(spacing[1])};	  
+		setMetrics(x0,dh);
+		/*log*/
+		Starfish.Log.log("Added UNIFORM_MESH");
+		Starfish.Log.log("> nodes   = "+nn[0]+" : "+nn[1]);
+		Starfish.Log.log("> origin  = "+x0[0]+" : "+x0[1]);
+		Starfish.Log.log("> spacing = "+dh[0]+" : "+dh[1]);
+    }
+    
+    //another constructor that doesn't read element
+    public UniformMesh(int nn[], double x0[], double dh[], String name, DomainType domain_type) {
+    	super(nn, name,domain_type);
+		setMetrics(x0,dh);
+		/*log*/
+		Starfish.Log.log("Added UNIFORM_MESH");
+		Starfish.Log.log("> nodes   = "+nn[0]+" : "+nn[1]);
+		Starfish.Log.log("> origin  = "+x0[0]+" : "+x0[1]);
+		Starfish.Log.log("> spacing = "+dh[0]+" : "+dh[1]);
     }
     
     /*
