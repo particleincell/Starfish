@@ -9,14 +9,8 @@ package starfish.core.domain;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import starfish.core.boundaries.Boundary;
-import starfish.core.boundaries.Field1D;
 import starfish.core.boundaries.Segment;
 import starfish.core.boundaries.Spline;
 import starfish.core.common.Constants;
