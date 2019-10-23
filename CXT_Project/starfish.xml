@@ -1,0 +1,44 @@
+<simulation>    
+<note>Starfish Tutorial: Part 1</note>
+
+<!-- load input files -->
+<load>domain.xml</load>
+<load>materials.xml</load>
+<load>boundaries.xml</load>
+
+<!-- set potential solver -->
+<solver type="poisson">
+<method>gs</method>
+<n0>1e10</n0>
+<Te0>1.5</Te0>
+<phi0>0</phi0>
+<max_it>5e4</max_it>
+</solver>
+
+<!-- set time parameters -->
+<time>
+<num_it>0</num_it>
+<dt>5e-7</dt>
+</time>	
+	
+<!-- run simulation -->
+<starfish />
+
+<!-- save mesh-based results in VTK format-->
+<output type="2D" file_name="results/field.vts" format="vtk">
+<scalars>phi, rho, nd.O+</scalars>
+<vectors>[efi, efj]</vectors>
+</output>
+
+<!-- save data along a single mesh grid line -->
+<output type="1D" file_name="results/profile.vts" format="vtk">
+<mesh>mesh1</mesh>
+<index>J=0</index>
+<scalars>phi, rho, nd.o+</scalars>
+<vectors>[efi, efj]</vectors>
+</output>
+
+<!-- save geometry in VTK format -->
+<output type="boundaries" file_name="results/boundaries.vtp" format="vtk" />
+
+</simulation>
