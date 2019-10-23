@@ -1,3 +1,6 @@
+<!-- tbm with body fitted elliptics -->
+
+
 <domain type="xy">
 
 <mesh type="uniform" name="mesh1">
@@ -6,5 +9,5 @@
 <nodes>81, 41</nodes>
 <mesh-bc wall="left" type="dirichlet" value="0" />
 <mesh-bc wall="bottom" type="symmetry"/>
-</mesh> 
+</mesh>
 </domain

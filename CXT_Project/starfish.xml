@@ -19,7 +19,7 @@
 
 <!-- set time parameters -->
 <time>
-<num_it>0</num_it>
+<num_it>100</num_it>
 <dt>5e-7</dt>
 </time>
 
