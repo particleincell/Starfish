@@ -5,7 +5,6 @@
 	<rate>const</rate>
 	<rate_coeffs>1e-18</rate_coeffs>
 </chemical_reaction>
-
 <mcc_collision process="scatter">
 	<source>Xe+</source>
 	<target>Xe</target>
