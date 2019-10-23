@@ -13,6 +13,7 @@ dist
 *.lay
 *.dat
 *.xlsx
+*.jar
 
 # Windows image file caches
 Thumbs.db
