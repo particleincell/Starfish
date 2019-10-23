@@ -1,5 +1,7 @@
-<simulation>    
-<note>Starfish Tutorial: Part 1</note>
+<simulation>
+<note>Simulation 1</note>
+
+<!-- Insert date here and comments -->
 
 <!-- load input files -->
 <load>domain.xml</load>
@@ -19,8 +21,8 @@
 <time>
 <num_it>0</num_it>
 <dt>5e-7</dt>
-</time>	
-	
+</time>
+
 <!-- run simulation -->
 <starfish />
 
