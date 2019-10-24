@@ -1,0 +1,13 @@
+<material_interactions>
+<surface_hit source="N2" target="SS">
+<product>N2</product>
+<model>diffuse</model>
+<prob>1.0</prob>
+</surface_hit>
+
+<dsmc model="elastic">
+<pair>N2,N2</pair>
+<sigma>Bird463</sigma>
+</dsmc>
+
+</material_interactions>

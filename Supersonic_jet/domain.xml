@@ -1,0 +1,8 @@
+<domain type="zr">
+<mesh type="uniform" name="mesh">
+<origin>-5e-4,0</origin>
+<spacing>1.0e-4, 1.0e-4</spacing>
+<nodes>256, 111</nodes>
+<mesh-bc wall="bottom" type="symmetry"/>
+</mesh>
+</domain>
