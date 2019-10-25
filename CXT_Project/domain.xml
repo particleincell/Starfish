@@ -10,4 +10,4 @@
 <mesh-bc wall="left" type="dirichlet" value="0" />
 <mesh-bc wall="bottom" type="symmetry"/>
 </mesh>
-</domain
+</domain>
