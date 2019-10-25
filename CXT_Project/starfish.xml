@@ -1,7 +1,7 @@
 <simulation>
 <note>Simulation 1</note>
 
-<!-- Insert date here and comments -->
+<!-- 24/10/2019  -->
 
 <!-- load input files -->
 <load>domain.xml</load>
@@ -17,10 +17,20 @@
 <max_it>5e4</max_it>
 </solver>
 
+<sources>
+<boundary_source name="space">
+<type>uniform</type>
+<material>O+</material>
+<boundary>inlet</boundary>
+<mdot>3.72e-13</mdot>
+<v_drift>7000</v_drift>
+</boundary_source>
+</sources>
+
 <!-- set time parameters -->
 <time>
-<num_it>100</num_it>
-<dt>5e-7</dt>
+<num_it>400</num_it>
+<dt>1e-7</dt>
 </time>
 
 <!-- run simulation -->
