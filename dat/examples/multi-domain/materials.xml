@@ -1,0 +1,20 @@
+<!-- materials file -->
+<materials>
+
+<material name="Ar+" type="kinetic">
+	<molwt>39.9</molwt> 
+	<charge>1</charge>
+	<spwt>1e3</spwt>
+</material>
+
+<material name="pipe" type="solid">
+	<molwt>52.3</molwt> 
+	<density>8000</density>
+</material>
+
+<material name="floor" type="solid">
+	<molwt>52.3</molwt> 
+	<density>8000</density>
+</material>
+
+</materials>

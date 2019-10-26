@@ -1,0 +1,19 @@
+<!-- material interactions file -->
+<material_interactions>
+
+<surface_hit source="e-" target="ss">
+<model>absorb</model>
+</surface_hit>
+
+<surface_hit source="O+" target="grid">
+<model>absorb</model>
+<prob>1.0</prob>
+</surface_hit>
+
+<surface_hit source="e-" target="grid">
+<model>none</model>
+<prob>1.0</prob>
+</surface_hit>
+
+
+</material_interactions>

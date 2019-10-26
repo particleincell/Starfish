@@ -1,0 +1,30 @@
+<!-- boundaries file -->
+<boundaries>
+
+<transform>
+<scaling>1e-2,1e-2</scaling>
+<translation>0,0</translation>
+<reverse>true</reverse>
+</transform>
+
+<boundary name="tube" type="solid" value="0">
+<material>pipe</material>
+<path>M 0.5,3.2 l 0.0,-2.2 0.2,0.0 0.0,2.0 0.4,0.0 0.0,1.0 -0.4,0.0 0.0,1.0 -0.2,0.0 0.0,-1.2</path>
+</boundary>
+
+<boundary name="valve" type="solid" value="1">
+<material>pipe</material>
+<path>M tube:last l 0.4,0.0 0.0,-0.6 -0.4,0</path>
+</boundary>
+
+<boundary name="floor" type="solid" value="0">
+<material>floor</material>
+<path>M 1.65,0 L 0.2,0.0</path>
+</boundary>
+
+<boundary name="spot" type="solid" value="0">
+<material>floor</material>
+<path>M floor:last L 0.0,0.0</path>
+</boundary>
+
+</boundaries>

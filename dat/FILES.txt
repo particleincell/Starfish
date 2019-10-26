@@ -1,7 +1,11 @@
 This folder contains input files for various examples.
 
-1) tutorial/: these are the inputs for the five step tutorial described in more detail at https://www.particleincell.com/2012/starfish-tutorial-part1/
-2) dsmc/jet: simulation of an atmospheric pressure jet expanding to a low pressure cavity
-3) dsmc/diffusion: computation of the self-diffusion coefficient of Argon. This, and the above example are discussed in more detail at https://www.particleincell.com/2017/starfish-tutorial-dsmc/
-4) multi-domain: example of a simulation utilizing multiple meshes. It simulates ions flowing through a sectioned tube. The middle section has a 1V potential on it, which prevents ions from passing, when the field solver is turned on
-5) IEEEfullpic: a subset of simulation inputs used for the http://ieeexplore.ieee.org/document/8287799/ paper 
+** tutorial/: these are the inputs for the five step "flow around a sphere" tutorial described in more detail at https://www.particleincell.com/2012/starfish-tutorial-part1/
+
+** examples/DSMC/jet: simulation of an atmospheric pressure jet expanding to a low pressure cavity
+
+** examples/DSMC/diffusion: computation of the self-diffusion coefficient of Argon. This, and the above example are discussed in more detail at https://www.particleincell.com/2017/starfish-tutorial-dsmc/
+
+** examples/multi-domain: example of a simulation utilizing multiple meshes. It simulates ions flowing through a sectioned tube. The middle section has a 1V potential on it, which prevents ions from passing, when the field solver is turned on
+
+** papers/IEEEfullpic: a subset of simulation inputs used for the http://ieeexplore.ieee.org/document/8287799/ paper 

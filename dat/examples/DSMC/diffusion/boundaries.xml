@@ -1,0 +1,15 @@
+<boundaries>
+
+<boundary name="left" type="virtual">
+<material>SS</material>
+<path>M 0, 0.2 L 0 0</path>
+<temp>273</temp>
+</boundary>
+
+<boundary name="right" type="virtual">
+<material>SS</material>
+<path>M 1.0, 0 L 1.0 0.2</path>
+<temp>273</temp>
+</boundary>
+
+</boundaries>

@@ -1,0 +1,23 @@
+<sources>
+
+<boundary_source name="left" type="ambient">
+<enforce>density</enforce>
+<material>Ar1</material>
+<boundary>left</boundary>
+<drift_velocity>0,0,0</drift_velocity>
+<temperature>273</temperature>
+<density>1.4e20</density>
+</boundary_source>
+
+<boundary_source name="right" type="ambient">
+<enforce>density</enforce>
+<material>Ar2</material>
+<boundary>right</boundary>
+<drift_velocity>0,0,0</drift_velocity>
+<temperature>273</temperature>
+<density>1.4e20</density>
+</boundary_source>
+
+</sources>
+
+
