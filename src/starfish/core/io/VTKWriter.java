@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.diagnostics.ParticleTraceModule.ParticleTrace;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Mesh;
 import starfish.core.materials.KineticMaterial;
@@ -905,13 +906,15 @@ public class VTKWriter extends Writer {
 				switch (Starfish.getDomainType()) {
 				case RZ:
 					pos[0] = part.pos[0] * Math.cos(part.pos[2]);
-					pos[1] = 0;
-					pos[2] = -part.pos[0] * Math.sin(part.pos[2]);
+					pos[1] = part.pos[1];
+					pos[2] = part.pos[0] * Math.sin(part.pos[2]);
 					break;
 				case ZR:
-					pos[0] = 0;
+					pos[0] = part.pos[0];
 					pos[1] = part.pos[1] * Math.cos(part.pos[2]);
 					pos[2] = part.pos[1] * Math.sin(part.pos[2]);
+					break;
+				default:
 					break;
 				}
 			}
@@ -961,59 +964,89 @@ public class VTKWriter extends Writer {
 	 * @param time_steps
 	 */
 	@Override
-	public void writeTrace(ArrayList<Particle> particles, ArrayList<Integer> time_steps) {
-		if (particles.isEmpty())
+	public void writeTraces(ParticleTrace traces[]) {
+		if (traces.length==0)
 			return;
 
+		//count total number of points
+		int num_points = 0;
+		for (ParticleTrace trace:traces) 
+			num_points+=trace.samples.size();
+		
 		PrintWriter pw = open(file_name);
 		appended_data = new ByteArrayOutputStream();
 
 		pw.println("<?xml version=\"1.0\"?>");
 		pw.println("<VTKFile type=\"PolyData\"" + endianess + ">");
 		pw.println("<PolyData>");
-		pw.printf(
-				"<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"0\" "
+		pw.printf("<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"0\" "
 						+ "NumberOfLines=\"%d\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n",
-				particles.size(), particles.size() - 1);
+				num_points, traces.length);
 
-		pw.println("<Points>");
-		double vec[] = new double[particles.size() * 3];
-		int a = 0;
+		double pos[] = new double[num_points*3];
+		double vel[] = new double[num_points*3];
+		int ids[] = new int[num_points];
+		int con[] = new int[num_points];
+		int time_steps[] = new int[num_points];
+		
+		int a1 = 0;
+		int a3 = 0;
 
-		for (int i = 0; i < particles.size(); i++) {
-			Particle part = particles.get(i);
-			switch (Starfish.getDomainType()) {
-			case RZ:
-				vec[a++] = part.pos[0] * Math.cos(part.pos[2]);
-				vec[a++] = part.pos[1];
-				vec[a++] = -part.pos[0] * Math.sin(part.pos[2]);
-				break;
-			case ZR:
-				vec[a++] = part.pos[0];
-				vec[a++] = part.pos[1] * Math.cos(part.pos[2]);
-				vec[a++] = part.pos[1] * Math.sin(part.pos[2]);
-				break;
-			default:
-				vec[a++] = part.pos[0];
-				vec[a++] = part.pos[1];
-				vec[a++] = part.pos[2];
-				break;
+		for (ParticleTrace trace:traces) {	
+			for (Particle part:trace.samples) {
+				switch (Starfish.getDomainType()) {
+				case RZ:
+					pos[a3] = part.pos[0] * Math.cos(part.pos[2]);
+					pos[a3+1] = part.pos[1];
+					pos[a3+2] = -part.pos[0] * Math.sin(part.pos[2]);
+					break;
+				case ZR:
+					pos[a3] = part.pos[0];
+					pos[a3+1] = part.pos[1] * Math.cos(part.pos[2]);
+					pos[a3+2] = part.pos[1] * Math.sin(part.pos[2]);
+					break;
+				default:
+					pos[a3] = part.pos[0];
+					pos[a3+1] = part.pos[1];
+					pos[a3+2] = part.pos[2];
+					break;
+				}
+				
+				//TODO: this is likely incorrect for axisymmetric
+				vel[a3] = part.vel[0];
+				vel[a3+1] = part.vel[1];
+				vel[a3+2] = part.vel[2];
+				
+				ids[a1] = part.id;
+				con[a1] = a1;		//connectivity are just the node indexes
+				a1+=1;	//update indexes
+				a3+=3;								
 			}
 		}
-		outputDataArrayVec(pw, "pos", vec);
+		
+		//also collect time steps
+		a1=0;
+		for (ParticleTrace trace:traces) {	
+			for (int ts:trace.time_steps) {
+				time_steps[a1++] = ts;
+			}
+		}
+		
+		
+		pw.println("<Points>");
+		outputDataArrayVec(pw, "pos", pos);
 		pw.println("</Points>");
 
 		pw.println("<Lines>");
-		int con[] = new int[particles.size() * 2];
-		for (int i = 0; i < particles.size() - 1; i++) {
-			con[2 * i] = i;
-			con[2 * i + 1] = i + 1;
-		}
+		
 		outputDataArrayScalar(pw, "connectivity", con);
 
-		int offsets[] = new int[particles.size() - 1];
-		for (int i = 0; i < particles.size() - 1; i++)
-			offsets[i] = 2 * i;
+		int offsets[] = new int[traces.length];
+		for (int i=0;i<traces.length;i++) {
+			ParticleTrace trace = traces[i];
+			if (i==0) offsets[i] = trace.samples.size();
+			else offsets[i] = offsets[i-1]+trace.samples.size();
+		}
 		outputDataArrayScalar(pw, "offsets", offsets);
 
 		pw.println("</Lines>");
@@ -1021,29 +1054,9 @@ public class VTKWriter extends Writer {
 		/* data */
 		pw.println("<PointData>");
 
-		/* velocities */
-		a = 0;
-		for (int i = 0; i < particles.size(); i++) {
-			Particle part = particles.get(i);
-			vec[a++] = part.vel[0];
-			vec[a++] = part.vel[1];
-			vec[a++] = part.vel[2];
-		}
-		outputDataArrayVec(pw, "vel", vec);
-
-		double data[] = new double[particles.size()];
-		for (int i = 0; i < particles.size(); i++) {
-			data[i] = time_steps.get(i);
-		}
-		outputDataArrayScalar(pw, "time_step", data);
-
-		int data_i[] = new int[particles.size()];
-		for (int i = 0; i < particles.size(); i++) {
-			Particle part = particles.get(i);
-			data_i[i] = part.id;
-		}
-
-		outputDataArrayScalar(pw, "part_id", data_i);
+		outputDataArrayVec(pw, "vel", vel);
+		outputDataArrayScalar(pw, "time_step", time_steps);
+		outputDataArrayScalar(pw, "part_id", ids);
 
 		pw.println("</PointData>");
 

@@ -302,15 +302,15 @@ public class ChemicalReaction extends VolumeInteraction
 		    double dn_cons;
 		    if (dm>0)
 		    {
-			if (dm>=part.spwt)
+			if (dm>=part.mpw)
 			{
-			    dn_cons=part.spwt;
+			    dn_cons=part.mpw;
 			    iterator.remove();
-			    num_consumed+=part.spwt;
+			    num_consumed+=part.mpw;
 			}
 			else
 			{
-			    part.spwt -= dm;
+			    part.mpw -= dm;
 			    dn_cons = dm;
 			    num_consumed+=dm;
 			}

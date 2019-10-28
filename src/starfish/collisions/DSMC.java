@@ -340,7 +340,7 @@ public class DSMC extends VolumeInteraction
 		model.perform(part1, part2,vss_inv);
 		
 		sums[0]+=1.0;
-		sums[1]+=0.5*(part1.spwt+part2.spwt);		
+		sums[1]+=0.5*(part1.mpw+part2.mpw);		
 	    }
 	}
 
@@ -426,7 +426,7 @@ public class DSMC extends VolumeInteraction
 
 	    //the post-collision rel. velocity components are based on eqn (2.22)
 	    //use Boyd's probability algorithm if variable weight
-	    if (part1.spwt==part2.spwt)
+	    if (part1.mpw==part2.mpw)
 	    {
 		for (int i=0;i<3;i++)
 		{
@@ -437,8 +437,8 @@ public class DSMC extends VolumeInteraction
 	    else
 	    {
 		/*variable weight*/
-		double Pab = part2.spwt/part1.spwt;
-		double Pba = part1.spwt/part2.spwt;	     
+		double Pab = part2.mpw/part1.mpw;
+		double Pba = part1.mpw/part2.mpw;	     
 
 		if (Starfish.rnd()<Pab)
 		    for (int i=0;i<3;i++)

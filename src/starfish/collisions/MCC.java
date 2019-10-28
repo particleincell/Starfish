@@ -202,13 +202,13 @@ public class MCC extends VolumeInteraction
 	    double E2 = 0.5*source.mass*Vector.mag3(part.vel);
 	    double vol = mesh.nodeVol(part.lc[0], part.lc[1]);
 	    /*compute power density rate J/m^3/s*/
-	    double dS = part.spwt*(E1-E2)/(dt*vol);	// J/s/m^3
+	    double dS = part.mpw*(E1-E2)/(dt*vol);	// J/s/m^3
 	    target.getS(mesh).scatter(part.lc, dS);
 	    
 	    int i = (int) part.lc[0];
 	    int j = (int) part.lc[1];
 	    count_sum.add(i,j,1);	    //cell data
-	    real_sum.add(i,j,part.spwt);
+	    real_sum.add(i,j,part.mpw);
 	}	
     }
     
@@ -323,7 +323,7 @@ public class MCC extends VolumeInteraction
 	    	    
 	    /*create new ion and electron*/
 	    double vel2b[] = Utils.isotropicVel(speed2a);
-	    mcc.source.getParticleListSource().addParticle(new Particle(source.pos, vel2b, source.spwt, mcc.source));
+	    mcc.source.getParticleListSource().addParticle(new Particle(source.pos, vel2b, source.mpw, mcc.source));
 	    	    
 	    /*TODO: need to destroy the target particle, for now assuming den_target>>den_source*/
 	    if (mcc.product instanceof KineticMaterial)

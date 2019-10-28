@@ -77,10 +77,7 @@ public class KineticMaterial extends Material {
 		return spwt0;
 	}
 
-	/**
-	 *
-	 */
-	protected int part_id_counter = 0;
+	protected int part_id_counter = 0;		//counter for assigning consecutive particle ids, unique for each material
 
 	@Override
 	public void init() {
@@ -184,10 +181,10 @@ public class KineticMaterial extends Material {
 		while (iterator.hasNext()) {
 			Particle part = iterator.next();
 
-			Den.scatter(part.lc, part.spwt);
-			U.scatter(part.lc, part.vel[0] * part.spwt);
-			V.scatter(part.lc, part.vel[1] * part.spwt);
-			W.scatter(part.lc, part.vel[2] * part.spwt);
+			Den.scatter(part.lc, part.mpw);
+			U.scatter(part.lc, part.vel[0] * part.mpw);
+			V.scatter(part.lc, part.vel[1] * part.mpw);
+			W.scatter(part.lc, part.vel[2] * part.mpw);
 		}
 
 		/* first get average velocities */
@@ -212,7 +209,8 @@ public class KineticMaterial extends Material {
 				
 					/* don't bother adding empty blocks */
 					if (iterator.hasNext()) {
-						ParticleMover mover = new ParticleMover(md, iterator, particle_transfer, "PartMover" + block);
+						
+						ParticleMover mover = new ParticleMover(md, this,  iterator, particle_transfer, "PartMover" + block);
 						movers.add(mover);
 					}
 				} //block
@@ -226,7 +224,7 @@ public class KineticMaterial extends Material {
 				//make a local copy so that we can add particles as needed without invalidating iterator
 				ArrayList<Particle> tp_copy = new ArrayList<>(md.transfer_particles);				
 				md.transfer_particles.clear();	//clear out the original list (this does not touch tp_copy - checked				
-				ParticleMover mover = new ParticleMover(md, tp_copy.iterator(), particle_transfer, "PartMover_tp" );
+				ParticleMover mover = new ParticleMover(md, this, tp_copy.iterator(), particle_transfer, "PartMover_tp" );
 				movers.add(mover);				
 			}
 			
@@ -283,13 +281,15 @@ public class KineticMaterial extends Material {
 		double N_sum; // total number of physical particles
 		double P_sum[] = new double[3]; // total momentum
 		double E_sum; // total energy
+		protected KineticMaterial km;	// the associated km
 
-		private ParticleMover(MeshData md, Iterator<Particle> iterator, boolean particle_transfer, String thread_name) {
+		private ParticleMover(MeshData md, KineticMaterial km, Iterator<Particle> iterator, boolean particle_transfer, String thread_name) {
 			super(thread_name);
 
 			this.md = md;
 			this.iterator = iterator;
 			this.particle_transfer = particle_transfer;
+			this.km = km;
 			N_sum = 0; // clear sums
 			Vector.set(P_sum, 0);
 			E_sum = 0;
@@ -368,8 +368,8 @@ public class KineticMaterial extends Material {
 					alive = ProcessBoundary(part, mesh, old, old_lc);
 
 					/* add post push/surface impact position to trace */
-					if (part.trace_id >= 0)
-						Starfish.particle_trace_module.addTrace(part);
+					if (part.has_trace)
+						Starfish.particle_trace_module.addTrace(km, part);
 
 					if (!alive) {
 						iterator.remove();
@@ -386,11 +386,11 @@ public class KineticMaterial extends Material {
 				 */
 				if (alive) {
 					/* save momentum for diagnostics, will be multiplied by mass in updatefields */
-					N_sum += part.spwt;
-					P_sum[0] += part.spwt * part.vel[0];
-					P_sum[1] += part.spwt * part.vel[1];
-					P_sum[2] += part.spwt * part.vel[2];
-					E_sum += part.spwt * Vector.mag3(part.vel);
+					N_sum += part.mpw;
+					P_sum[0] += part.mpw * part.vel[0];
+					P_sum[1] += part.mpw * part.vel[1];
+					P_sum[2] += part.mpw * part.vel[2];
+					E_sum += part.mpw * Vector.mag3(part.vel);
 				}
 
 				//add the particle to the main population if it is in the particle_transfer list
@@ -412,7 +412,7 @@ public class KineticMaterial extends Material {
 			double sin = A / R;
 
 			/* update particle theta, only used for visualization */
-			part.pos[2] += Math.asin(sin);
+			part.pos[2] -= Math.asin(sin);
 
 			/* rotate velocity through theta */
 			double v1 = part.vel[0];
@@ -564,21 +564,21 @@ public class KineticMaterial extends Material {
 
 			/* perform surface interaction */
 			if (target_mat != null)
-				alive = target_mat.performSurfaceInteraction(part.vel, part.spwt, mat_index, seg_min, tsurf_min);
+				alive = target_mat.performSurfaceInteraction(part.vel, part.mpw, mat_index, seg_min, tsurf_min);
 
 			// track boundary charge for use with the circuit model
 			if (!alive)
-				Starfish.source_module.boundary_charge += part.spwt * charge;
+				Starfish.source_module.boundary_charge += part.mpw * charge;
 
 			if (boundary_hit.getType() == BoundaryType.SINK)
 				alive = false;
 
 			/* deposit flux and deposit, if stuck */
-			addSurfaceMomentum(boundary_hit, boundary_t, part.vel, part.spwt);
+			addSurfaceMomentum(boundary_hit, boundary_t, part.vel, part.mpw);
 
 			if (!alive) {
 				/* we will multiply by mass in "finish" */
-				addSurfaceMassDeposit(boundary_hit, boundary_t, part.spwt);
+				addSurfaceMassDeposit(boundary_hit, boundary_t, part.mpw);
 				return alive;
 			}
 		}
@@ -714,8 +714,8 @@ public class KineticMaterial extends Material {
 				// if (Vector.mag3(part.vel)<=vth)
 
 				// absorb particle if ions collected on the wall
-				if (Starfish.source_module.boundary_charge / (-charge) > part.spwt) {
-					Starfish.source_module.boundary_charge += part.spwt * charge;
+				if (Starfish.source_module.boundary_charge / (-charge) > part.mpw) {
+					Starfish.source_module.boundary_charge += part.mpw * charge;
 					return false;
 				} else {
 					part.vel = Vector.mult(part.vel, -1); // flip
@@ -741,6 +741,8 @@ public class KineticMaterial extends Material {
 		if (part.lc == null) {
 			Mesh mesh = md.mesh;
 			part.lc = mesh.XtoL(part.pos);
+			
+			
 
 			/*
 			 * particles could be added on the plus edge by a source, make sure LC is in
@@ -775,10 +777,8 @@ public class KineticMaterial extends Material {
 		part.dt = 0;
 		part.id = part_id_counter++;
 
-		/* set trace_id, will be set to -1 if no trace */
-		part.trace_id = Starfish.particle_trace_module.getTraceId(part.id);
-		if (part.trace_id >= 0)
-			Starfish.particle_trace_module.addTrace(part);
+		/* add particle trace, returns false if not traced */
+		part.has_trace = Starfish.particle_trace_module.addTrace(this,part);
 
 		md.addParticle(part);
 		return true;
@@ -824,7 +824,7 @@ public class KineticMaterial extends Material {
 	 * @param part particle to remove
 	 */
 	public void removeParticle(Particle part) {
-		part.spwt = 0;
+		part.mpw = 0;
 	}
 
 	private void UpdateVelocityBoris(Particle part, double[] E, double[] B) {
@@ -903,7 +903,7 @@ public class KineticMaterial extends Material {
 					out.writeDouble(part.lc[i]);
 
 				out.writeDouble(part.dt);
-				out.writeDouble(part.spwt);
+				out.writeDouble(part.mpw);
 				out.writeDouble(part.mass);
 				out.writeInt(part.born_it);
 				out.writeInt(part.id);
@@ -953,7 +953,7 @@ public class KineticMaterial extends Material {
 					part.lc[i] = in.readDouble();
 
 				part.dt = in.readDouble();
-				part.spwt = in.readDouble();
+				part.mpw = in.readDouble();
 				part.mass = in.readDouble();
 				part.born_it = in.readInt();
 				part.id = in.readInt();
@@ -1082,11 +1082,11 @@ public class KineticMaterial extends Material {
 
 					/* first compute n0 and accumulate data for p0 and t0 */
 					for (Particle part : vel_parts_in_cell) {
-						n0 += part.spwt;
+						n0 += part.mpw;
 						for (int d = 0; d < 3; d++) {
-							p0[d] += part.spwt * part.vel[d];
-							t0[d] += part.spwt * part.vel[d] * part.vel[d];
-							x0[d] += part.spwt * part.pos[d];
+							p0[d] += part.mpw * part.vel[d];
+							t0[d] += part.mpw * part.vel[d] * part.vel[d];
+							x0[d] += part.mpw * part.pos[d];
 						}
 					}
 
@@ -1185,16 +1185,16 @@ public class KineticMaterial extends Material {
 	 */
 
 	static public class Particle {
-		public double pos[];
-		public double vel[];
-		public double spwt;
-		public double mass; /* mass of the physical particle */
-		public double lc[]; /* logical coordinate of current position */
-		public double dt; /* remaining dt to move through */
-		public double radius; // particle radius, currently used only by droplets
-		public int id; /* particle id */
-		public int born_it;
-		public int trace_id = -1; /* set to >=0 if particle is being traced */
+		public double pos[] = new double[3]; //the 3rd dimension is the "depth", xy: (x,y,z), rz: (r,z,theta), zr (z,r,theta)
+		public double vel[] = new double[3]; //cartesian system velocities, 
+		public double mpw = 0;	//macroparticle weight: number of real particles represented by this sim particle
+		public double mass = 0; // mass of the physical particle
+		public double lc[] = new double[2]; // logical coordinate of current position
+		public double dt = 0;  // remaining dt to move through 
+		public double radius = 0; // particle radius, currently used only by droplets
+		public int id = -1; 	// particle id for plotting
+		public int born_it = -1;	// time step born for possible diagnostics
+		public boolean has_trace = false; // indicates whether the particle is being traced
 
 		/**
 		 * copy constructor
@@ -1212,12 +1212,12 @@ public class KineticMaterial extends Material {
 			for (int i = 0; i < 2; i++) {
 				lc[i] = part.lc[i];
 			}
-			spwt = part.spwt;
+			mpw = part.mpw;
 			mass = part.mass;
 			dt = part.dt;
 			id = part.id;
 			born_it = part.born_it;
-			trace_id = part.trace_id;
+			has_trace = part.has_trace;
 		}
 
 		/**
@@ -1225,25 +1225,21 @@ public class KineticMaterial extends Material {
 		 * @param mat
 		 */
 		public Particle(KineticMaterial mat) {
-			pos = new double[3];
-			vel = new double[3];
-			lc = null; /* null LC will trigger addParticle to compute LC */
-			dt = 0;
-			spwt = mat.spwt0;
+			mpw = mat.spwt0;
 			mass = mat.mass;
 			born_it = Starfish.getIt();
-			trace_id = -1;
 			radius = mat.diam * 0.5;
+			lc = null;		//to force recompute
 		}
 
 		/**
 		 *
-		 * @param spwt
+		 * @param mpw macroparticle weight
 		 * @param mat
 		 */
-		public Particle(double spwt, KineticMaterial mat) {
+		public Particle(double mpw, KineticMaterial mat) {
 			this(mat);
-			this.spwt = spwt;
+			this.mpw = mpw;
 		}
 
 		/**
@@ -1549,13 +1545,13 @@ public class KineticMaterial extends Material {
 		while (iterator.hasNext()) {
 			Particle part = iterator.next();
 
-			u_sum.scatter(part.lc, part.spwt * part.vel[0]);
-			v_sum.scatter(part.lc, part.spwt * part.vel[1]);
-			w_sum.scatter(part.lc, part.spwt * part.vel[2]);
-			uu_sum.scatter(part.lc, part.spwt * part.vel[0] * part.vel[0]);
-			vv_sum.scatter(part.lc, part.spwt * part.vel[1] * part.vel[1]);
-			ww_sum.scatter(part.lc, part.spwt * part.vel[2] * part.vel[2]);
-			count_sum.scatter(part.lc, part.spwt);
+			u_sum.scatter(part.lc, part.mpw * part.vel[0]);
+			v_sum.scatter(part.lc, part.mpw * part.vel[1]);
+			w_sum.scatter(part.lc, part.mpw * part.vel[2]);
+			uu_sum.scatter(part.lc, part.mpw * part.vel[0] * part.vel[0]);
+			vv_sum.scatter(part.lc, part.mpw * part.vel[1] * part.vel[1]);
+			ww_sum.scatter(part.lc, part.mpw * part.vel[2] * part.vel[2]);
+			count_sum.scatter(part.lc, part.mpw);
 
 			// mpc is cell data
 			mpc_sum.add((int) part.lc[0], (int) part.lc[1], 1);
