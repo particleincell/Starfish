@@ -147,7 +147,7 @@ public class SampleVDFModule extends CommandModule
 			int vbin = (int)((part.vel[d]-vmin[d])/dv[d]);
 			if (vbin<0) vbin=0;
 			if (vbin>=vel_bins[d]) vbin=vel_bins[d]-1;
-			hist_vel[d][vbin] += part.spwt;
+			hist_vel[d][vbin] += part.mpw;
 		    }
 		    double speed = Vector.mag3(part.vel);
 		    if (speed<speed_min) speed_min = speed;
@@ -155,8 +155,8 @@ public class SampleVDFModule extends CommandModule
 		    int sbin = (int)((speed-speed_min)/ds);
 		    if (sbin<0) sbin=0;
 		    if (sbin>=speed_bins) sbin = speed_bins-1;
-		    hist_speed[sbin] += part.spwt;
-		    weight_sum += part.spwt;
+		    hist_speed[sbin] += part.mpw;
+		    weight_sum += part.mpw;
 		}		
 	    }	/*if sample*/
 	    

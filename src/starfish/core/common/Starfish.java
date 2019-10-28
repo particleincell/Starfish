@@ -4,7 +4,7 @@ package starfish.core.common;
  * Starfish is a general 2D plasma/fluid hybrid Cartesian/axi-symmetric code
  * Copyright (c) 2012-2019, Particle In Cell Consulting LLC
  * 
- * Version 0.21, Development Version
+ * Version 0.22, Development Version
  * Contact Info: info@particleincell.com
  * 
  * The most recent version can be downloaded from:
@@ -29,17 +29,18 @@ package starfish.core.common;
  *    prior approval of the copyright holder.
  */
 
-import java.awt.GraphicsEnvironment;
-import java.io.Console;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.*;
+
+
 import org.w3c.dom.Element;
+
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.BoundaryModule;
 import starfish.core.diagnostics.AnimationModule;
 import starfish.core.diagnostics.AveragingModule;
 import starfish.core.diagnostics.DiagnosticsModule;
-import starfish.core.diagnostics.ParticleTracer;
+import starfish.core.diagnostics.ParticleTraceModule;
 import starfish.core.diagnostics.SampleVDFModule;
 import starfish.core.diagnostics.StatsModule;
 import starfish.core.domain.DomainModule;
@@ -113,19 +114,8 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 		/* initialize logger */
 		logger_module = new LoggerModule();
 		modules.put("log", logger_module);
-
-		Console console = System.console();
-		if (console != null) {
-			console.format("Running from command line\n");
-		} else if (!GraphicsEnvironment.isHeadless()) {
-			// JOptionPane.showMessage(null, "Running in Windowed system");
-		} else {
-			// Put it in the log
-		}
-
+	    
 		/*
-		 * SwingUtilities.invokeLater(new Runnable() { public void run() {
-		 * GUI.createAndShowGUI(args); }});
 		 */
 		PrintHeader();
 
@@ -284,7 +274,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	/**
 	 *
 	 */
-	public static ParticleTracer particle_trace_module;
+	public static ParticleTraceModule particle_trace_module;
 
 	/**
 	 *
@@ -354,6 +344,11 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 		} while (r == -1.0);
 		return r;
 	} // (-1,1)
+	
+	//returns integer in [0,max)
+	static public int rndi(int max) {
+		return random.nextInt(max);
+	}
 
 	/* code version */
 	static String VERSION = "v0.22";
@@ -647,7 +642,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 		modules.put("starfish", this);
 
 		/* particle tracing */
-		particle_trace_module = new ParticleTracer();
+		particle_trace_module = new ParticleTraceModule();
 		modules.put("particle_trace", particle_trace_module);
 
 		/* animation */

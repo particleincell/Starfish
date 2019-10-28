@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.diagnostics.ParticleTraceModule.ParticleTrace;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Mesh;
 import starfish.core.materials.KineticMaterial.Particle;
@@ -378,7 +379,7 @@ public abstract class Writer {
 	/**
 	 *
 	 */
-	public abstract void writeTrace(ArrayList<Particle> particles, ArrayList<Integer> time_steps);
+	public abstract void writeTraces(ParticleTrace traces[]);
 
 	/** placeholder for file close out operations to be overriden as needed */
 	public void close() {

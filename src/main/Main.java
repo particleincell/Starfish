@@ -27,27 +27,42 @@
 
 package main;
 
+import java.awt.EventQueue;
 import java.util.ArrayList;
+
+import javax.swing.JFrame;
+
 import starfish.collisions.CollisionsPlugin;
 import starfish.core.common.Plugin;
 import starfish.core.common.Starfish;
+import starfish.gui.GUI;
 
-/**wrapper to launch starfish with no plugin*/
-public class Main
-{
- 
-    /** Execution entry point. Creates a new instance of Starfish class and calls
-     * its start function with a list of optional plugins.
-     * @param args Command line arguments
-     */
-    public static void main(String args[]) 
-    {
-	/*demo of starting Starfish with plugins*/
-	ArrayList<Plugin> plugins = new ArrayList<Plugin>();
-	plugins.add(new CollisionsPlugin());
-	
-	/*make a new instance*/
-	new Starfish().start(args, plugins);		
-    }
-   
+/** wrapper to launch starfish with no plugin */
+public class Main {
+
+	/**
+	 * Execution entry point. Creates a new instance of Starfish class and calls its
+	 * start function with a list of optional plugins.
+	 * 
+	 * @param args Command line arguments
+	 */
+	public static void main(String args[]) {
+		/* demo of starting Starfish with plugins */
+		ArrayList<Plugin> plugins = new ArrayList<Plugin>();
+		plugins.add(new CollisionsPlugin());
+
+		//if running from the console
+	    if (System.console() != null)
+	    {
+	    	new Starfish().start(args, plugins);
+	    }
+	    else
+	    { 
+	    	GUI.makeNewGUI();
+	    }
+	    
+	    
+		
+	}
+
 }
