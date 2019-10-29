@@ -54,12 +54,11 @@ public class Main {
 		//if running from the console
 	    if (System.console() != null)
 	    {
-	    	new Starfish().start(args, plugins);
+	    	new Starfish().start(args, plugins,null);
 	    }
 	    else
 	    { 
-	    	GUI.makeNewGUI();
-	    	System.out.println("GUI exiting");
+	    	GUI.makeNewGUI(args, plugins);
 	    }
 	    
 	    

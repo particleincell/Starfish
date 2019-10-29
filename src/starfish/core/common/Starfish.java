@@ -32,7 +32,6 @@ package starfish.core.common;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.*;
 
-
 import org.w3c.dom.Element;
 
 import starfish.core.boundaries.Boundary;
@@ -60,11 +59,15 @@ import starfish.core.materials.Material;
 import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
 import starfish.core.source.SourceModule;
+import starfish.gui.GUI;
+import starfish.gui.GUI.SimStatus;
 
 public final class Starfish extends CommandModule implements UncaughtExceptionHandler {
 	/** simulation main loop */
 	public void MainLoop() {
 		Log.message("Starting main loop");
+		
+		status = SimStatus.RUNNING;
 
 		restart_module.load();
 
@@ -72,6 +75,20 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 		solver_module.updateFields();
 
 		while (time_module.hasTime()) {
+			
+			if (status==SimStatus.STOP) break; 
+			else if (status==SimStatus.PAUSED) 
+			{
+				//Thread.yield();
+				try {
+					Thread.sleep(1000);		//pause for 1 sec
+				} catch (InterruptedException e) {
+					//don't do anything
+				}
+				continue;
+			}
+			
+			
 			/* update boundary spline temperatures and values */
 			boundary_module.updateBoundaries();
 
@@ -110,36 +127,43 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	 * @param args
 	 * @param plugins
 	 */
-	public void start(final String[] args, List<Plugin> plugins) {
-		/* initialize logger */
-		logger_module = new LoggerModule();
-		modules.put("log", logger_module);
-	    
-		/*
-		 */
-		PrintHeader();
-
-		/* register modules */
-		RegisterModules();
-
-		if (plugins != null)
-			for (Plugin plugin : plugins)
-				plugin.register();
-
-		/* init modules */
-		InitModules();
-
-		/* command line settings */
-		ProcessCommandLineArgs(args);
-
-		/* process input file */
-		ProcessInputFile(sim_file);
-
-		/* exit modules */
-		ExitModules();
-
-		/* terminate */
-		Log.message("Done!");
+	public void start(final String[] args, List<Plugin> plugins, GUI gui) {
+		try {
+			parent_gui = gui;
+		    
+			/* initialize logger */
+			logger_module = new LoggerModule();
+			modules.put("log", logger_module);
+			
+			/*
+			 */
+			PrintHeader();
+	
+			/* register modules */
+			RegisterModules();
+	
+			if (plugins != null)
+				for (Plugin plugin : plugins)
+					plugin.register();
+	
+			/* init modules */
+			InitModules();
+	
+			/* command line settings */
+			ProcessCommandLineArgs(args);
+	
+			/* process input file */
+			ProcessInputFile(sim_file);
+	
+			/* exit modules */
+			ExitModules();
+	
+			/* terminate */
+			Log.message("Done!");
+		}
+		catch (RuntimeException e) {
+			setStatus(SimStatus.STOP);
+		}
 	}
 
 	/**
@@ -179,12 +203,13 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	 */
 	protected void ProcessCommandLineArgs(String args[]) {
 		for (String arg : args) {
-			if (arg.startsWith("-dir")) {
+			//gui will set working dir and sim file so ignore those parameters
+			if (parent_gui==null && arg.startsWith("-dir")) {
 				wd = arg.substring(5);
 				if (!wd.endsWith("/") && !wd.endsWith("\\")) wd +="/";	//add terminating slash if not present
 				Log.log("Setting working directory to "+wd);
 			}
-			else if (arg.startsWith("-sf")) {
+			else if (parent_gui == null && arg.startsWith("-sf")) {
 				sim_file = arg.substring(4);
 			}
 			else if (arg.startsWith("-randomize")) {
@@ -213,8 +238,13 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	}
 	/* module instances */
 
+	public void setSimFile(String wd, String sim_file) {
+		Starfish.wd = wd; 
+		this.sim_file =sim_file;
+	}
 	public static String wd="";		//working directory
-	
+	protected String sim_file = "starfish.xml";
+
 	/**
 	 *
 	 */
@@ -283,6 +313,12 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
 	public static DiagnosticsModule diagnostics_module;
 
+	public static GUI parent_gui;	
+	SimStatus status;
+	
+	public void setStatus(SimStatus status) {this.status=status;}
+	public SimStatus getStatus() {return status;}
+	
 	/*
 	 * iterable list of registered modules, using LinkedHashMap to get predictable
 	 * ordering
@@ -728,12 +764,12 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 		StartModules();
 		MainLoop();
 		FinishModules();
+		status = SimStatus.READY;
 	}
 	
 	//command line options
 	protected boolean randomize = false;
 	protected int max_cores = Runtime.getRuntime().availableProcessors();
-	protected String sim_file = "starfish.xml";
 	
 	@Override
 	public void exit() {

@@ -16,6 +16,7 @@ import java.util.Date;
 import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
+import starfish.core.common.Starfish.Log;
 
 /**
  *
@@ -52,8 +53,7 @@ public class LoggerModule extends CommandModule {
 		try {
 			log_file = new PrintWriter(new FileWriter(Starfish.wd+file_name));
 		} catch (IOException ex) {
-			System.err.println("Failed to open log file " + Starfish.wd+file_name);
-			System.exit(-1);
+			Log.error("Failed to open log file " + Starfish.wd+file_name);
 		}
 
 		/* save date and time */
@@ -149,16 +149,30 @@ public class LoggerModule extends CommandModule {
 
 		/* output to screen */
 		if (level == Level.WARNING || level == Level.ERROR || level == Level.EXCEPTION)
-			System.err.println(full_message);
-		else if (level.ordinal() > Level.LOG.ordinal())
-			System.out.println(full_message);
-
+		{
+			if (Starfish.parent_gui==null)
+				System.err.println(full_message);
+			else
+				Starfish.parent_gui.printErrorMessage(full_message);
+		}
+			else if (level.ordinal() > Level.LOG.ordinal())
+		{
+			if (Starfish.parent_gui==null)
+				System.out.println(full_message);
+			else
+				Starfish.parent_gui.printMessage(full_message);
+		}
 		/* output to file */
 		log_file.println(full_message);
 		log_file.flush();
 
 		/* exit if error */
 		if (level == Level.ERROR)
-			System.exit(-1);
+			if (Starfish.parent_gui==null)
+				System.exit(-1);
+			else 
+			{
+				throw new RuntimeException(full_message);
+			}
 	}
 }
