@@ -29,7 +29,9 @@ public class ParticleTraceModule extends CommandModule {
 	@Override
 	public void process(Element element) {
 
-		tracers.add(new Tracer(element));
+		Tracer tracer = new Tracer(element);
+		if (tracer.traces!=null)		//add if we have active traces
+			tracers.add(new Tracer(element));
 	}
 
 	//list of existing "particle_trace" commands
