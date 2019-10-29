@@ -59,6 +59,7 @@ public class Main {
 	    else
 	    { 
 	    	GUI.makeNewGUI();
+	    	System.out.println("GUI exiting");
 	    }
 	    
 	    
