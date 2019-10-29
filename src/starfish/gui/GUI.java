@@ -44,8 +44,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JLabel;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
@@ -210,13 +213,19 @@ public class GUI extends JFrame {
 		mntmDocumentation.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
 		mntmDocumentation.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (Desktop.isDesktopSupported()) {
-				    try {
-				        File myFile = new File(GUI.class.getResource("/starfish/gui/Starfish-UG.pdf").getFile());
-				        Desktop.getDesktop().open(myFile);
-				} catch (IOException ex) {
-				   System.out.println(ex.getMessage());
+		        if (Desktop.isDesktopSupported()) {
+		        	try {
+		        	String path = ClassLoader.getSystemClassLoader().getResource(".").getPath()+"../doc/Starfish-UG.pdf";
+		        	URL url = new URL("file://"+path);
+		        	File myFile = new File(url.getPath());
+        			Desktop.getDesktop().open(myFile);
+						
+			    } catch (IOException ex) {
+				    	System.err.println(ex.getMessage());
+				    
+					JOptionPane.showMessageDialog(frame, ex.getMessage());
 				}
+				       
 				}
 			}
 		});

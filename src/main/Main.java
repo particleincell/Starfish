@@ -51,8 +51,13 @@ public class Main {
 		ArrayList<Plugin> plugins = new ArrayList<Plugin>();
 		plugins.add(new CollisionsPlugin());
 
+		boolean gui=false;
+		for (String arg:args) {
+			if (arg.startsWith("-gui")) gui=true;			
+		}
+		
 		//if running from the console
-	    if (System.console() != null)
+	    if (!gui && System.console() != null)
 	    {
 	    	new Starfish().start(args, plugins,null);
 	    }

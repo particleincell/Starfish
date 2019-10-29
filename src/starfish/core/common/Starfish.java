@@ -225,10 +225,10 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 				max_cores = Integer.parseInt(opt);
 			}
 			else if (arg.startsWith("-gui")) {
-				String opt = arg.substring(5);
-				if (!opt.equalsIgnoreCase("off")) {
-					Log.warning("Currently only -gui=off is supported");
-				}
+			//	String opt = arg.substring(5);
+			//	if (!opt.equalsIgnoreCase("off")) {
+			//		Log.warning("Currently only -gui=off is supported");
+			//	}
 			}
 			else if (arg.startsWith("-nr")) {randomize=false;}
 			else if (arg.startsWith("-serial")) {max_cores = 1;}

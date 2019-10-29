@@ -16,6 +16,7 @@ import starfish.core.boundaries.Field1D;
 import starfish.core.boundaries.Segment;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.diagnostics.ParticleTraceModule.ParticleTrace;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.Mesh;
@@ -318,12 +319,11 @@ public class TecplotWriter extends Writer
 	pw.flush();	
     }
     
-    @Override
-    public void writeTrace(ArrayList<Particle> particles, ArrayList<Integer>time_steps)
-    {
-	Log.error("writeTrace not yet defined for TECPLOT");
-	if (pw==null)
-	    writeHeader();	
-    }
+	@Override
+	public void writeTraces(ParticleTrace[] traces) {
+	 	Log.error("writeTrace not yet defined for TECPLOT");
+			
+	}
+
 
 }
