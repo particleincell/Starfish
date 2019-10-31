@@ -34,6 +34,7 @@ import java.util.*;
 
 import org.w3c.dom.Element;
 
+import main.Main.Options;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.BoundaryModule;
 import starfish.core.diagnostics.AnimationModule;
@@ -127,9 +128,10 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	 * @param args
 	 * @param plugins
 	 */
-	public void start(final String[] args, List<Plugin> plugins, GUI gui) {
+	public void start(Options options, List<Plugin> plugins, GUI gui) {
 		try {
 			parent_gui = gui;
+			this.options = options;
 		    
 			/* initialize logger */
 			logger_module = new LoggerModule();
@@ -148,12 +150,9 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	
 			/* init modules */
 			InitModules();
-	
-			/* command line settings */
-			ProcessCommandLineArgs(args);
-	
+		
 			/* process input file */
-			ProcessInputFile(sim_file);
+			ProcessInputFile();
 	
 			/* exit modules */
 			ExitModules();
@@ -162,6 +161,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 			Log.message("Done!");
 		}
 		catch (RuntimeException e) {
+			Log.error(e.getMessage());
 			setStatus(SimStatus.STOP);
 		}
 	}
@@ -171,8 +171,8 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	 * 
 	 * @param file_name
 	 */
-	protected void ProcessInputFile(String file_name) {
-		InputParser parser = new InputParser(file_name, wd);
+	protected void ProcessInputFile() {
+		InputParser parser = new InputParser(options.sim_file, options.wd);
 
 		/* process input file */
 		Iterator<Element> iterator = parser.iterator();
@@ -189,62 +189,9 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 		}
 	}
 
-	/* processes command line arguments
-	 * -dir
-	 * -sf
-	 * -randomize
-	 * -log_level
-	 * -nr
-	 * -serial
-	 * -gui
-	 * -nr
-	 * -serial
-	 * 
-	 */
-	protected void ProcessCommandLineArgs(String args[]) {
-		for (String arg : args) {
-			//gui will set working dir and sim file so ignore those parameters
-			if (parent_gui==null && arg.startsWith("-dir")) {
-				wd = arg.substring(5);
-				if (!wd.endsWith("/") && !wd.endsWith("\\")) wd +="/";	//add terminating slash if not present
-				Log.log("Setting working directory to "+wd);
-			}
-			else if (parent_gui == null && arg.startsWith("-sf")) {
-				sim_file = arg.substring(4);
-			}
-			else if (arg.startsWith("-randomize")) {
-				String opt = arg.substring(11);
-				if (opt.equalsIgnoreCase("true")) randomize=true;
-			}
-			else if (arg.startsWith("-log_level")) {
-				String level_name = arg.substring(10);
-				logger_module.setLevel(level_name);
-			}
-			else if (arg.startsWith("-max_threads")) {
-				String opt = arg.substring(12);
-				max_cores = Integer.parseInt(opt);
-			}
-			else if (arg.startsWith("-gui")) {
-			//	String opt = arg.substring(5);
-			//	if (!opt.equalsIgnoreCase("off")) {
-			//		Log.warning("Currently only -gui=off is supported");
-			//	}
-			}
-			else if (arg.startsWith("-nr")) {randomize=false;}
-			else if (arg.startsWith("-serial")) {max_cores = 1;}
-			
-			
-		}
-	}
-	/* module instances */
 
-	public void setSimFile(String wd, String sim_file) {
-		Starfish.wd = wd; 
-		this.sim_file =sim_file;
-	}
-	public static String wd="";		//working directory
-	protected String sim_file = "starfish.xml";
-
+	public static Options options;
+	
 	/**
 	 *
 	 */

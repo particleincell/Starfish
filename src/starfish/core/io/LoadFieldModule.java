@@ -38,7 +38,7 @@ public class LoadFieldModule extends CommandModule {
 	@Override
 	public void process(Element element) {
 		String format = InputParser.getValue("format", element, "TECPLOT");
-		String file_name = Starfish.wd+InputParser.getValue("file_name", element);
+		String file_name = Starfish.options.wd+InputParser.getValue("file_name", element);
 
 		Reader reader = Reader.getReader(file_name, format, element);
 

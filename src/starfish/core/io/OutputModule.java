@@ -52,7 +52,7 @@ public class OutputModule extends CommandModule {
 
 		try {
 			type = InputParser.getValue("type", element);
-			file_name = Starfish.wd + InputParser.getValue("file_name", element);
+			file_name = Starfish.options.wd + InputParser.getValue("file_name", element);
 			format = InputParser.getValue("format", element, "TECPLOT");
 		} catch (Exception e) {
 			Log.error("Syntax <output type=\"2D/1D/BOUNDARIES/PARTICLES\" file_name=\"...\" [format=\"TECPLOT\"]>");

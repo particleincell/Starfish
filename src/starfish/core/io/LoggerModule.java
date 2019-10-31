@@ -51,9 +51,9 @@ public class LoggerModule extends CommandModule {
 		if (log_file != null)
 			return;
 		try {
-			log_file = new PrintWriter(new FileWriter(Starfish.wd+file_name));
+			log_file = new PrintWriter(new FileWriter(Starfish.options.wd+file_name));
 		} catch (IOException ex) {
-			Log.error("Failed to open log file " + Starfish.wd+file_name);
+			Log.error("Failed to open log file " + Starfish.options.wd+file_name);
 		}
 
 		/* save date and time */

@@ -70,7 +70,7 @@ public abstract class Writer {
 
 	protected PrintWriter open(String file_name) {
 		PrintWriter pw = null;
-		String full_name = Starfish.wd+file_name;
+		String full_name = Starfish.options.wd+file_name;
 
 		try {
 			output_stream = new FileOutputStream(full_name);

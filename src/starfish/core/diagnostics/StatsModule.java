@@ -36,7 +36,7 @@ public class StatsModule extends CommandModule {
 	@Override
 	public void process(Element element) {
 		stats_skip = InputParser.getInt("skip", element, stats_skip);
-		file_name = Starfish.wd+InputParser.getValue("file_name", element, file_name);
+		file_name = Starfish.options.wd+InputParser.getValue("file_name", element, file_name);
 	}
 
 	@Override

@@ -17,6 +17,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
+import main.Main.Options;
 import starfish.core.common.Plugin;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
@@ -59,6 +60,7 @@ import java.awt.event.InputEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.ButtonGroup;
+import java.awt.Toolkit;
 
 public class GUI extends JFrame {
 
@@ -68,11 +70,11 @@ public class GUI extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 
-	String args[];
+	Options options;
 	ArrayList<Plugin> plugins;
 	static GUI gui;
 		
-	public static void makeNewGUI(String args[], ArrayList<Plugin> plugins) {
+	public static void makeNewGUI(Options options, ArrayList<Plugin> plugins) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -83,7 +85,7 @@ public class GUI extends JFrame {
 					}
 				
 				try {
-					gui = new GUI(args, plugins);
+					gui = new GUI(options, plugins);
 					gui.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -110,9 +112,10 @@ public class GUI extends JFrame {
 	JToggleButton btnPauseButton;
 	JToggleButton btnStopButton;
 	
-	public GUI(String args[], ArrayList<Plugin> plugins) {
+	public GUI(Options options, ArrayList<Plugin> plugins) {
+		setIconImage(Toolkit.getDefaultToolkit().getImage(GUI.class.getResource("/starfish/gui/starfish-100.png")));
 		
-		this.args = args;
+		this.options = options.clone();	//make our own copy, this will be useful when supporting multiple sims
 		this.plugins = plugins;
 		
 		setTitle("Starfish");
@@ -203,6 +206,8 @@ public class GUI extends JFrame {
 				btnStopButton.doClick();
 			}			
 		});
+		   
+
 
 		mnSimulation.add(mntmStop);
 		
@@ -339,9 +344,10 @@ public class GUI extends JFrame {
 			    public void run() {
 			        	//start the simulation
 			    		textPane.setText("");
+			    		options.sim_file = sim_file_name;
+			    		options.wd = sim_file_path;
 				    	sim = new Starfish();
-				    	sim.setSimFile(sim_file_path,sim_file_name);
-				    	sim.start(args, plugins,gui);
+				    	sim.start(options, plugins,gui);
                 }  
 			};
 
