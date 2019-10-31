@@ -55,6 +55,7 @@ import starfish.core.io.LoggerModule;
 import starfish.core.io.LoggerModule.Level;
 import starfish.core.io.NoteModule;
 import starfish.core.io.OutputModule;
+import starfish.core.io.SetFieldModule;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
 import starfish.core.materials.MaterialsModule;
@@ -161,6 +162,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 			Log.message("Done!");
 		}
 		catch (RuntimeException e) {
+			e.printStackTrace();
 			Log.error(e.getMessage());
 			setStatus(SimStatus.STOP);
 		}
@@ -613,6 +615,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
 		/* load field */
 		modules.put("load_field", new LoadFieldModule());
+		modules.put("set_field", new SetFieldModule());
 
 		/* restart */
 		restart_module = new RestartModule();
