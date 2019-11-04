@@ -113,6 +113,7 @@ public class SolverModule extends CommandModule {
 
 	@Override
 	public void exit() {
+		if (solver!=null)
 		solver.exit();
 	}
 
@@ -120,11 +121,13 @@ public class SolverModule extends CommandModule {
 	 *
 	 */
 	public void updateFields() {
-		if (solver.initial_only && !solver.first)
-			return;
 
 		/* update rho */
 		updateRho();
+
+		//return if solver not specified, or if solving only on the first call		
+		if (solver==null || (solver.initial_only && !solver.first))
+			return;
 
 		/* call solver */
 		solver.update();
@@ -169,6 +172,7 @@ public class SolverModule extends CommandModule {
 
 	@Override
 	public void start() {
-		solver.init();
+		if (solver!=null)
+			solver.init();
 	}
 }

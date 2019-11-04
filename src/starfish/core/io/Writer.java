@@ -301,8 +301,9 @@ public abstract class Writer {
 	 * 
 	 * @param element
 	 */
-	public void initTrace() {
+	public void initTrace(Element element) {
 		output_type = OutputType.TRACE;
+		rotate = InputParser.getBoolean("rotate", element, true);
 	}
 
 	/**

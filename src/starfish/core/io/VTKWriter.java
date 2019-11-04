@@ -994,22 +994,22 @@ public class VTKWriter extends Writer {
 
 		for (ParticleTrace trace:traces) {	
 			for (Particle part:trace.samples) {
-				switch (Starfish.getDomainType()) {
-				case RZ:
+				DomainType domt = Starfish.getDomainType();
+				
+				if (rotate && domt == DomainType.RZ) {
 					pos[a3] = part.pos[0] * Math.cos(part.pos[2]);
 					pos[a3+1] = part.pos[1];
 					pos[a3+2] = -part.pos[0] * Math.sin(part.pos[2]);
-					break;
-				case ZR:
+				}
+				else if (rotate && domt == DomainType.ZR) {
 					pos[a3] = part.pos[0];
 					pos[a3+1] = part.pos[1] * Math.cos(part.pos[2]);
 					pos[a3+2] = part.pos[1] * Math.sin(part.pos[2]);
-					break;
-				default:
+				}
+				else {
 					pos[a3] = part.pos[0];
 					pos[a3+1] = part.pos[1];
 					pos[a3+2] = part.pos[2];
-					break;
 				}
 				
 				//TODO: this is likely incorrect for axisymmetric

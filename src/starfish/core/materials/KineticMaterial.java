@@ -1252,10 +1252,9 @@ public class KineticMaterial extends Material {
 		public Particle(double pos[], double vel[], double spwt, KineticMaterial mat) {
 			this(spwt, mat);
 
-			/* copy the first two components of position */
 			this.pos[0] = pos[0];
 			this.pos[1] = pos[1];
-			this.pos[2] = 0;
+			this.pos[2] = pos[2];
 
 			this.vel[0] = vel[0];
 			this.vel[1] = vel[1];
