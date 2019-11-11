@@ -18,6 +18,7 @@
 </solver>
 
 <sources>
+  
 <boundary_source name="space">
 <type>uniform</type>
 <material>O+</material>
@@ -26,6 +27,9 @@
 <v_drift>7000</v_drift>
 </boundary_source>
 </sources>
+
+
+
 
 <!-- set time parameters -->
 <time>

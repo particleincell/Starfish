@@ -1,10 +1,13 @@
 <material_interactions>
+
+
 <chemical_reaction process="ionization">
-	<sources>Xe,e-</sources>
-	<products>Xe+,e-</products>
+	<sources>Kr,e-</sources>
+	<products>Kr+,e-</products>
 	<rate>const</rate>
 	<rate_coeffs>1e-18</rate_coeffs>
 </chemical_reaction>
+
 <mcc_collision process="scatter">
 	<source>Xe+</source>
 	<target>Xe</target>
@@ -12,7 +15,7 @@
 	<sigma_coeffs>1e-18</sigma_coeffs>
 </mcc_collision>
 
-<surface_impact source="Xe+" target="BN">
+<surface_impact source="Kr+" target="BN">
 	<emission>diffuse</emission>
 	<product>Xe</product>
 	<c_stick>0.5</c_stick>

@@ -1,13 +1,15 @@
 <!-- tbm with body fitted elliptics -->
 
 
-<domain type="xy">
+<domain type="zr">
 
 <mesh type="uniform" name="mesh1">
 <origin>-0.15,0</origin>
 <spacing>5e-3, 5e-3</spacing>
 <nodes>81, 41</nodes>
-<mesh-bc wall="left" type="dirichlet" value="0" />
+<mesh-bc wall="right" type="dirichlet" value="50" /> <!-- Cut the simulation  -->
 <mesh-bc wall="bottom" type="symmetry"/>
+
+
 </mesh>
 </domain>

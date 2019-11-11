@@ -1,4 +1,4 @@
-<simulation>    
+<simulation>
 <note>Starfish Tutorial: Part 2</note>
 
 <!-- load input files -->
@@ -7,7 +7,7 @@
 <load>boundaries.xml</load>
 
 <!-- set potential solver -->
-<solver type="poisson">
+ <solver type="poisson">
 <method>gs</method>
 <n0>1e10</n0>
 <Te0>1.5</Te0>
@@ -18,14 +18,13 @@
 <nl_tol>1e-4</nl_tol>
 </solver>
 
-<!--
-<solver type="constant-ef">
+
+ <solver type="constant-ef">
 <comps>0,-500</comps>
 </solver>
--->
 
 <!-- set sources -->
-<sources>
+<!-- <sources>
 <boundary_source name="space">
 <type>uniform</type>
 <material>O+</material>
@@ -33,17 +32,17 @@
 <mdot>3.72e-13</mdot>
 <v_drift>7000</v_drift>
 </boundary_source>
-</sources>
+</sources> -->
 
 <!-- set time parameters -->
 <time>
 <num_it>400</num_it>
 <dt>1e-7</dt>
-</time>	
+</time>
 
 <!-- save animation -->
 <animation start_it="1" frequency="10">
-<output type="2D" file_name="results/field_ani.vts" format="vtk"> 
+<output type="2D" file_name="results/field_ani.vts" format="vtk">
 <scalars>phi,rho, nd.O+, t.o+</scalars>
 <vectors>[u.O+,v.O+]</vectors>
 </output>
@@ -51,7 +50,7 @@
 
 <!-- run simulation -->
 <starfish />
-        
+
 <!-- save mesh-based results in VTK format-->
 <output type="2D" file_name="results/field.vts" format="vtk">
 <scalars>phi, rho, nd.O+</scalars>

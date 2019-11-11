@@ -1,7 +1,7 @@
 <!-- materials file -->
 <materials>
 
-<material name="Kr+" type="kinetic">
+<material name="O+" type="kinetic">
 	<molwt>83.798</molwt>
 	<charge>1</charge>
 	<spwt>1e3</spwt>
