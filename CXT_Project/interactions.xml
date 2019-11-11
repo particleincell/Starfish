@@ -9,15 +9,15 @@
 </chemical_reaction>
 
 <mcc_collision process="scatter">
-	<source>Xe+</source>
-	<target>Xe</target>
+	<source>Kr+</source>
+	<target>Kr</target>
 	<sigma>const</sigma>
 	<sigma_coeffs>1e-18</sigma_coeffs>
 </mcc_collision>
 
 <surface_impact source="Kr+" target="BN">
 	<emission>diffuse</emission>
-	<product>Xe</product>
+	<product>Kr</product>
 	<c_stick>0.5</c_stick>
 	<c_rest>1</c_rest>
 	<c_accom>0.5</c_accom>

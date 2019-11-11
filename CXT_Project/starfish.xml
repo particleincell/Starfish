@@ -3,9 +3,9 @@
 
 <!-- 24/10/2019  -->
 
-<!-- load input files -->
-<load>domain.xml</load>
 <load>materials.xml</load>
+<load>boundaries.xml</load>
+<load>domain.xml</load>
 <load>boundaries.xml</load>
 
 <!-- set potential solver -->
@@ -17,17 +17,7 @@
 <max_it>5e4</max_it>
 </solver>
 
-<sources>
-  
-<boundary_source name="space">
-<type>uniform</type>
-<material>O+</material>
-<boundary>inlet</boundary>
-<mdot>3.72e-13</mdot>
-<v_drift>7000</v_drift>
-</boundary_source>
-</sources>
-
+<load>sources.xml</load>
 
 
 
@@ -37,12 +27,20 @@
 <dt>1e-7</dt>
 </time>
 
+<!-- save animation -->
+<animation start_it="1" frequency="10">
+<output type="2D" file_name="results/field_ani.vts" format="vtk">
+<scalars>phi,rho, nd.Kr+, t.kr+</scalars>
+<vectors>[u.Kr+,v.Kr+]</vectors>
+</output>
+</animation>
+
 <!-- run simulation -->
 <starfish />
 
 <!-- save mesh-based results in VTK format-->
 <output type="2D" file_name="results/field.vts" format="vtk">
-<scalars>phi, rho, nd.O+</scalars>
+<scalars>phi, rho, nd.Kr+</scalars>
 <vectors>[efi, efj]</vectors>
 </output>
 
@@ -50,7 +48,7 @@
 <output type="1D" file_name="results/profile.vts" format="vtk">
 <mesh>mesh1</mesh>
 <index>J=0</index>
-<scalars>phi, rho, nd.o+</scalars>
+<scalars>phi, rho, nd.kr+</scalars>
 <vectors>[efi, efj]</vectors>
 </output>
 

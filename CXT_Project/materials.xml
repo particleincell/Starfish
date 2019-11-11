@@ -1,11 +1,17 @@
 <!-- materials file -->
 <materials>
 
-<material name="O+" type="kinetic">
+<material name="Kr+" type="kinetic">
 	<molwt>83.798</molwt>
 	<charge>1</charge>
 	<spwt>1e3</spwt>
 	<init>nd_back=1e4</init>
+</material>
+
+<material name="Kr" type="kinetic">
+	<molwt>83.798</molwt>
+	<charge>0</charge>
+	<spwt>5e2</spwt>
 </material>
 
 

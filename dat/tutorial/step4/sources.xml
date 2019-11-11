@@ -1,6 +1,6 @@
 <sources>
-<source name="ion_source" type="uniform">
-<species>ions</species>
+<source name="electron_source" type="uniform">
+<species>electrons</species>
 <spline>anode</spline>
 <mdot>4e-7</mdot>
 <v_drift>15000</v_drift>
@@ -8,4 +8,3 @@
 </source>
 
 </sources>
-   

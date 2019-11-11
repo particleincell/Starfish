@@ -2,9 +2,13 @@
   <sources>
   <boundary_source name="space">
   <type>uniform</type>
-  <material>O+</material>
+  <material>e</material>
   <boundary>inlet</boundary>
   <mdot>3.72e-13</mdot>
   <v_drift>7000</v_drift>
   </boundary_source>
   </sources>
+
+
+<!-- I have to compute the electron velocity and understand how to call electrons
+for source -->

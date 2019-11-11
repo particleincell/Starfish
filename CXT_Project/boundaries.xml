@@ -1,24 +1,8 @@
 <boundaries>
 
-  <boundary name="wall" type="solid">
-  <material>SS</material>
-  <path>M 0, 11e-3 L 0,8e-4 -1e-3,8e-4</path>
-  <temp>288</temp>
-  </boundary>
 
-  <boundary name="inlet" type="solid">
-  <material>SS</material>
-  <path>M wall:last L -1e-3,0</path>
-  <temp>288</temp>
-  </boundary>
-
-  <boundary name="ambient" type="virtual">
-  <path>M 25e-3,0 L 25e-3,11e-3 0,11e-3</path>
-  </boundary>
-
-<!--
 <boundary name="inlet" type="virtual">
 <path>M -0.15,0.20 L -0.15, 0</path>
-</boundary> -->
+</boundary>
 
 </boundaries>
