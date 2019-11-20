@@ -231,7 +231,11 @@ public class VolumeMaxwellianSource extends VolumeSource {
 		double pos[] = samplePos();
 		part.pos[0] = pos[0];
 		part.pos[1] = pos[1];
-		part.pos[2] = 0;
+		
+		if (Starfish.getDomainType()==DomainType.XY)
+			part.pos[2] = 0;
+		else
+			part.pos[2] = 0*Starfish.rnd()*2*Math.PI;		//random theta angle
 
 		/* velocity */
 		part.vel = Utils.SampleMaxw3D(v_th);

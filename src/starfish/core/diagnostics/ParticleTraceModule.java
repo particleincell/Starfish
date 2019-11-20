@@ -143,8 +143,8 @@ public class ParticleTraceModule extends CommandModule {
 			else if (format.equalsIgnoreCase("TECPLOT"))
 				writer = new TecplotWriter(element);
 			else
-				Log.error("Unsuported writer format " + format);
-			writer.initTrace();
+				Log.error("Unsupported writer format " + format);
+			writer.initTrace(element);
 
 		}
 
