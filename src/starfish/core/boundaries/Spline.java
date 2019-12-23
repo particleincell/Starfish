@@ -884,7 +884,8 @@ public class Spline
 	{
 	    for (Segment segment:segments)
 	    {
-		if (segment.boundary.type!=BoundaryType.DIRICHLET)
+		if (segment.boundary.type!=BoundaryType.DIRICHLET /*&&
+			segment.boundary.type!=BoundaryType.VIRTUAL*/)
 		    continue;
 
 		/*during first pass we look only for linear segments*/

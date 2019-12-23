@@ -118,7 +118,7 @@ public class GUI extends JFrame {
 		this.options = options.clone();	//make our own copy, this will be useful when supporting multiple sims
 		this.plugins = plugins;
 		
-		setTitle("Starfish");
+		setTitle("Starfish "+Starfish.VERSION);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 888, 576);
 		
