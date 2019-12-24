@@ -33,13 +33,14 @@ The code is under ongoing development and may contain numerous bugs. Please subm
 # License
 Please view LICENSE for license terms. 
 
-(c) 2012-2019 Particle In Cell Consulting LLC
+(c) 2012-2020 Particle In Cell Consulting LLC
 
 # Contact
 Contact us [by visiting the website](https://www.particleincell.com/contact/) 
 or on Twitter [@particleincell](https://twitter.com/particleincell).
 
 # Revision History
+- v0.22 GUI, multi-mesh support for multiple corners, command line arguments, trace command rewrite, cell "CFL" subcycling
 - v0.21 Support for sigmas to be used for chemical reaction rates
 - v0.20.5 Time dependent boundaries, fix to surface sampling
 - v0.20 Rename of Starfish-LE to Starfish, addition of thermionic emission, evaporation, and particle merge

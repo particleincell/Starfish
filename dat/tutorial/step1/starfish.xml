@@ -1,6 +1,8 @@
 <simulation>    
 <note>Starfish Tutorial: Part 1</note>
 
+<log level="debug" />
+
 <!-- load input files -->
 <load>domain.xml</load>
 <load>materials.xml</load>
