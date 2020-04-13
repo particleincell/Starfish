@@ -158,11 +158,11 @@ public class InteractionsModule extends CommandModule
      */
     public static Sigma getSigma(String type, double coeffs[], Element element)
     {
-	Sigma.SigmaFactory fac = sigma_list.get(type.toUpperCase());
+    	Sigma.SigmaFactory fac = sigma_list.get(type.toUpperCase());
 	
-	if (fac!= null) return fac.makeSigma(coeffs,element);
+    	if (fac!= null) return fac.makeSigma(coeffs,element);
 	
-	throw new UnsupportedOperationException("Collision cross-section "+type+" undefined");
+    	throw new UnsupportedOperationException("Collision cross-section "+type+" undefined");
     }
    
 }
