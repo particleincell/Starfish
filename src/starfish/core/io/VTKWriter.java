@@ -215,7 +215,7 @@ public class VTKWriter extends Writer {
 							vec3[a++] = data2[i][j];
 							vec3[a++] = 0;
 						}
-				outputDataArrayVec(pw, "(" + vars[0] + "," + vars[1] + ")", vec3);
+				outputDataArrayVec(pw, "" + vars[0] + "_" + vars[1] + "", vec3);
 			}
 
 			pw.println("</PointData>");
@@ -375,7 +375,7 @@ public class VTKWriter extends Writer {
 						vec[a++] = 0;
 					}
 
-				outputDataArrayVec(pw, "(" + vars[0] + "," + vars[1] + ")", vec);
+				outputDataArrayVec(pw, "" + vars[0] + "_" + vars[1] + "", vec);
 			}
 
 			pw.println("</PointData>");
@@ -578,7 +578,7 @@ public class VTKWriter extends Writer {
 						vdata[a++] = time_data[l][var][k];
 						vdata[a++] = time_data[l][var + 1][k];
 					}
-				outputDataArrayVec(pw, "(" + var_name[0] + "," + var_name[1] + ")", vdata);
+				outputDataArrayVec(pw, "" + var_name[0] + "_" + var_name[1] + "", vdata);
 				var += 2;
 			}
 

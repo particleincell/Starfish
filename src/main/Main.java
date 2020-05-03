@@ -27,11 +27,8 @@
 
 package main;
 
-import java.awt.EventQueue;
 import java.util.ArrayList;
-
-import javax.swing.JFrame;
-
+import java.util.Locale;
 import starfish.collisions.CollisionsPlugin;
 import starfish.core.common.Plugin;
 import starfish.core.common.Starfish;
@@ -48,6 +45,9 @@ public class Main {
 	 * @param args Command line arguments
 	 */
 	public static void main(String args[]) {
+		
+		Locale.setDefault(new Locale("en", "US"));	 //force the code to use dots for decimals
+		
 		/* demo of starting Starfish with plugins */
 		ArrayList<Plugin> plugins = new ArrayList<Plugin>();
 		plugins.add(new CollisionsPlugin());

@@ -310,7 +310,12 @@ public class KineticMaterial extends Material {
 			Field2D Bfi = md.Bfi;
 			Field2D Bfj = md.Bfj;
 			
+			int p=0;
 			while (iterator.hasNext()) {
+			
+				//periodically yield to prevent lock up
+				if (++p%25==0) yield();
+				
 				Particle part = iterator.next();
 
 				/* increment particle time and velocity */

@@ -931,7 +931,6 @@ public abstract class Mesh {
 		int e;
 		double V[][] = new double[4][];
 		double i, j;
-
 		double lcs[][] = this.controlVolumeLCs(i0, j0, delta);
 
 		/* first set the four corner positions, these may not be nodes */
@@ -1171,7 +1170,7 @@ public abstract class Mesh {
 		if (!boundary_list.isEmpty()) {
 			setNodeControlVolumes(boundary_list);
 			setInterfaceNodeLocation();
-		//	performFloodFill();
+			performFloodFill();
 		}
 	}
 
