@@ -300,7 +300,20 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
 	/**
 	 *
-	 * @return random value in (0,0)
+	 * @return random value in [0,1]
+	 * No idea if this is actually the correct way of doing this
+	 */
+	static public double rndInc() {
+		double val = 1.0000001*random.nextDouble();
+		if (val>1.0) val=1.0;
+		return val;
+		
+	} // [0,1)
+
+	
+	/**
+	 *
+	 * @return random value in (0,1)
 	 */
 	static public double rndEx0() {
 		double r;
@@ -336,7 +349,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	}
 
 	/* code version */
-	public static String VERSION = "v0.22";
+	public static String VERSION = "v0.23";
 
 	/**
 	 *
@@ -487,15 +500,12 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 		return time_module.steady_state;
 	}
 
-	/** returns number of available processors */
-	protected static int num_processors = 1;
-
 	/**
 	 *
 	 * @return
 	 */
 	public static int getNumProcessors() {
-		return num_processors;
+		return options.max_cores;
 	}
 
 	/** convenience functions for logging */
@@ -705,22 +715,18 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	@Override
 	public void process(Element element) {
 		/* check for parameters */
-		if (InputParser.getBoolean("randomize", element, randomize))
+		if (InputParser.getBoolean("randomize", element, options.randomize))
 			random = new Random(); /* without the seed, will randomize */
 
 		/* read number of processors */
-		num_processors = InputParser.getInt("max_cores", element, max_cores);
+		options.max_cores = InputParser.getInt("max_cores", element, options.max_cores);
 
 		StartModules();
 		MainLoop();
 		FinishModules();
 		status = SimStatus.READY;
 	}
-	
-	//command line options
-	protected boolean randomize = false;
-	protected int max_cores = Runtime.getRuntime().availableProcessors();
-	
+
 	@Override
 	public void exit() {
 		/* do nothing */

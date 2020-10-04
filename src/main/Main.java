@@ -122,7 +122,7 @@ public class Main {
 				} else if (arg.startsWith("-log_level")) {
 					log_level = arg.substring(10);
 				} else if (arg.startsWith("-max_threads")) {
-					String opt = arg.substring(12);
+					String opt = arg.substring(13);
 					max_cores = Integer.parseInt(opt);
 				} else if (arg.startsWith("-gui")) {
 					String opt = arg.substring(5);

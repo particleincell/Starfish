@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import starfish.core.boundaries.Boundary;
+import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.boundaries.Segment;
 import starfish.core.boundaries.Spline;
 import starfish.core.common.Constants;
@@ -108,6 +109,7 @@ public abstract class Mesh {
 
 		/** list of splines in this control volume */
 		public ArrayList<Segment> segments = new ArrayList<>();
+		public double surf_normal[];	// normal vector for insulator nodes
 	}
 
 	Field2D node_vol;
@@ -149,7 +151,7 @@ public abstract class Mesh {
 	/**
 	 */
 	static public enum NodeType {
-		BAD(-99), UNKNOWN(-2), OPEN(-1), DIRICHLET(0);
+		BAD(-99), UNKNOWN(-2), OPEN(-1), DIRICHLET(0), INSULATOR(1);
 
 		protected int val;
 
@@ -926,8 +928,9 @@ public abstract class Mesh {
 	 * @return
 	 */
 	public double area(double i0, double j0, boolean with_ghosts, double delta) {
+		int e;
 		double V[][] = new double[4][];
-
+		double i, j;
 		double lcs[][] = this.controlVolumeLCs(i0, j0, delta);
 
 		/* first set the four corner positions, these may not be nodes */
@@ -1316,10 +1319,19 @@ public abstract class Mesh {
 					/* no internal Dirichlet splines */
 					continue;
 				}
-						
+
 				if (Spline.isInternal(pos(i, j), seg)) {
-					node[i][j].type = NodeType.DIRICHLET;
-					node[i][j].bc_value = seg.boundary.getValue();
+					BoundaryType bnd_type = seg.boundary.getType();
+					if (bnd_type==BoundaryType.INSULATOR) {
+						node[i][j].type = NodeType.INSULATOR;
+						double t=0.5; // doesn't matter for linear segments
+						if (seg.isSmooth()) t = seg.nearestPosition(pos(i,j),5);
+						node[i][j].surf_normal = seg.normal(t);
+					}
+					else {
+						node[i][j].bc_value = seg.boundary.getValue();
+						node[i][j].type = NodeType.DIRICHLET;
+					}
 				} else if (node[i][j].type == NodeType.UNKNOWN) // do not overwrite MESH nodes
 				{
 					node[i][j].type = NodeType.OPEN;

@@ -1200,6 +1200,7 @@ public class KineticMaterial extends Material {
 		public int id = -1; 	// particle id for plotting
 		public int born_it = -1;	// time step born for possible diagnostics
 		public boolean has_trace = false; // indicates whether the particle is being traced
+		public boolean attached = false; // temporary, used by grain particles on surface layer
 
 		/**
 		 * copy constructor
