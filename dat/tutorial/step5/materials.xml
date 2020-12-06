@@ -25,7 +25,7 @@
 	<visc_temp_index>0.77</visc_temp_index>
 </material>
 
-<material name="e-" type="fluid_electrons">
+<material name="e-" type="boltzmann_electrons">
 	<model>qn</model>
 	<kTe0>1.5</kTe0>
 </material>
