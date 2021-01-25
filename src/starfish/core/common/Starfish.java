@@ -62,7 +62,6 @@ import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
 import starfish.core.source.SourceModule;
 import starfish.gui.GUI;
-import starfish.gui.GUI.SimStatus;
 
 public final class Starfish extends CommandModule implements UncaughtExceptionHandler {
 	/** simulation main loop */

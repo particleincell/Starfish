@@ -31,12 +31,12 @@ public class VTKWriter extends Writer {
 
 	ByteOrder byte_order = ByteOrder.LITTLE_ENDIAN;
 
-	enum OutputFormat {
+	public enum OutputFormat {
 		ASCII, BINARY, APPENDED
 	};
 
 	OutputFormat output_format;
-	ByteArrayOutputStream appended_data;
+	ByteArrayOutputStream appendedData;
 	String endianess; // for .xml header
 
 	public VTKWriter(Element element) {
@@ -59,6 +59,19 @@ public class VTKWriter extends Writer {
 			endianess += "\"";
 		}
 	}
+	public VTKWriter(String file_path, OutputFormat output_format) {
+		super(file_path);
+		endianess = "";
+		this.output_format = output_format;
+		if (output_format == OutputFormat.BINARY) {
+			endianess = " byte_order=\"";
+			if (byte_order == ByteOrder.BIG_ENDIAN)
+				endianess += "BigEndian";
+			else
+				endianess += "LittleEndian";
+			endianess += "\"";
+		}
+	}
 
 	/** writes 3D data (2D data rotated to 3D) */
 	@Override
@@ -72,7 +85,7 @@ public class VTKWriter extends Writer {
 		for (Mesh mesh : Starfish.getMeshList()) {
 			// split out extension from the file name
 
-			String substr[] = splitFileName(file_name);
+			String substr[] = splitFileName(fileName);
 			String name = substr[0] + "_" + mesh.getName();
 			if (animation)
 				name += String.format("_%06d", Starfish.getIt());
@@ -84,7 +97,7 @@ public class VTKWriter extends Writer {
 			collection.add(new CollectionData(Starfish.getIt(), part, substr[3] + substr[1]));
 
 			PrintWriter pw = open(name);
-			appended_data = new ByteArrayOutputStream();
+			appendedData = new ByteArrayOutputStream();
 
 			pw.println("<?xml version=\"1.0\"?>");
 
@@ -236,7 +249,7 @@ public class VTKWriter extends Writer {
 
 	}
 
-	protected enum VTK_Type {
+	public enum VTK_Type {
 		RECT, STRUCT, POLY
 	};
 
@@ -247,27 +260,24 @@ public class VTKWriter extends Writer {
 	 */
 	@Override
 	public void write2D(boolean animation) {
-
 		int part = 0;
-
 		for (Mesh mesh : Starfish.getMeshList()) {
 			// split out extension from the file name
-
-			String substr[] = splitFileName(file_name);
+			String substr[] = splitFileName(fileName);
 			String name = substr[0] + "_" + mesh.getName();
 			if (animation)
 				name += String.format("_%06d", Starfish.getIt());
 			name += substr[1];
 
-			VTK_Type vtk_type;
+			VTK_Type vtkType;
 
 			if (substr[1].equalsIgnoreCase(".vts"))
-				vtk_type = VTK_Type.STRUCT;
+				vtkType = VTK_Type.STRUCT;
 			else if (substr[1].equalsIgnoreCase(".vtr"))
-				vtk_type = VTK_Type.RECT;
+				vtkType = VTK_Type.RECT;
 			else {
 				Log.warning("Unrecognized VTK data type " + substr[1] + ", assuming VTS");
-				vtk_type = VTK_Type.STRUCT;
+				vtkType = VTK_Type.STRUCT;
 			}
 
 			// add to collection but remove path since relative to pvd file
@@ -275,120 +285,7 @@ public class VTKWriter extends Writer {
 			// collection.add(new CollectionData(time_step,part,substr[3]+substr[1]));
 			collection.add(new CollectionData(Starfish.getIt(), part, substr[3] + substr[1]));
 
-			PrintWriter pw = open(name);
-
-			appended_data = new ByteArrayOutputStream();
-
-			pw.println("<?xml version=\"1.0\"?>");
-
-			String close_tag = "";
-
-			if (vtk_type == VTK_Type.STRUCT) {
-				pw.println("<VTKFile type=\"StructuredGrid\"" + endianess + ">");
-				pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
-				pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
-				close_tag = "</StructuredGrid>";
-			} else if (vtk_type == VTK_Type.RECT) {
-				pw.println("<VTKFile type=\"RectilinearGrid\"" + endianess + ">");
-				pw.printf("<RectilinearGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
-				pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
-				close_tag = "</RectilinearGrid>";
-			}
-
-			int a = 0;
-
-			if (vtk_type == VTK_Type.STRUCT) {
-				pw.println("<Points>");
-
-				double pos[] = new double[mesh.ni * mesh.nj * 3];
-				a = 0;
-				for (int j = 0; j < mesh.nj; j++)
-					for (int i = 0; i < mesh.ni; i++) {
-						double x[] = mesh.pos(i, j);
-						pos[a++] = x[0];
-						pos[a++] = x[1];
-						pos[a++] = 0;
-					}
-				outputDataArrayVec(pw, "pos", pos);
-				pw.println("</Points>");
-			} else if (vtk_type == VTK_Type.RECT) {
-				pw.println("<Coordinates>");
-				double pos_x[] = new double[mesh.ni];
-				double pos_y[] = new double[mesh.nj];
-				double pos_z[] = new double[1];
-				for (int i = 0; i < mesh.ni; i++)
-					pos_x[i] = mesh.pos1(i, 0);
-				for (int j = 0; j < mesh.nj; j++)
-					pos_y[j] = mesh.pos1(j, 0);
-				pos_z[0] = 0;
-				outputDataArrayScalar(pw, "x", pos_x);
-				outputDataArrayScalar(pw, "y", pos_y);
-				outputDataArrayScalar(pw, "z", pos_z);
-				pw.println("</Coordinates>");
-			}
-
-			/*
-			 * hard coded for now until I get some more robust way to output cell and vector
-			 * data
-			 */
-			pw.println("<CellData>");
-
-			for (String var : cell_data) {
-				double data[][] = Starfish.domain_module.getField(mesh, var).getData();
-				double data_c[] = new double[(mesh.nj - 1) * (mesh.ni - 1)];
-				a = 0;
-				for (int j = 0; j < mesh.nj - 1; j++)
-					for (int i = 0; i < mesh.ni - 1; i++)
-						data_c[a++] = data[i][j];
-				outputDataArrayScalar(pw, var, data_c);
-			}
-			pw.println("</CellData>");
-
-			pw.println("<PointData>");
-			int type[] = new int[mesh.ni * mesh.nj];
-			a = 0;
-			for (int j = 0; j < mesh.nj; j++)
-				for (int i = 0; i < mesh.ni; i++)
-					type[a++] = mesh.getNode(i, j).type.value();
-			outputDataArrayScalar(pw, "type", type);
-
-			for (String var : scalars) {
-				/* make sure we have this variable */
-				double data3[] = new double[mesh.ni * mesh.nj];
-				a = 0;
-				double data[][] = Starfish.domain_module.getField(mesh, var).getData();
-				for (int j = 0; j < mesh.nj; j++)
-					for (int i = 0; i < mesh.ni; i++)
-						data3[a++] = data[i][j];
-				outputDataArrayScalar(pw, var, data3);
-			}
-
-			for (String[] vars : vectors) {
-				double data1[][] = Starfish.domain_module.getField(mesh, vars[0]).getData();
-				double data2[][] = Starfish.domain_module.getField(mesh, vars[1]).getData();
-				double vec[] = new double[mesh.ni * mesh.nj * 3];
-				a = 0;
-				for (int j = 0; j < mesh.nj; j++)
-					for (int i = 0; i < mesh.ni; i++) {
-						vec[a++] = data1[i][j];
-						vec[a++] = data2[i][j];
-						vec[a++] = 0;
-					}
-
-				outputDataArrayVec(pw, "" + vars[0] + "_" + vars[1] + "", vec);
-			}
-
-			pw.println("</PointData>");
-
-			pw.println("</Piece>");
-
-			pw.println(close_tag);
-
-			outputAppendedData(pw);
-
-			pw.println("</VTKFile>");
-			/* save output file */
-			pw.close();
+			write2DToFile(mesh, Starfish.options.wd + fileName, vtkType);
 
 			part++;
 		}
@@ -396,6 +293,138 @@ public class VTKWriter extends Writer {
 		/* write the collection file */
 		writeCollection(animation);
 	}
+
+	/**
+	 * @param mesh Mesh to write
+	 * @param outputFilePath absolute path to output file
+	 * @param vtk_type
+	 */
+	public void write2DToFile(Mesh mesh, String outputFilePath, VTK_Type vtk_type) {
+		PrintWriter pw = openAbsolutePath(outputFilePath);
+		appendedData = new ByteArrayOutputStream();
+
+		pw.println("<?xml version=\"1.0\"?>");
+
+		String close_tag = "";
+
+		if (vtk_type == VTK_Type.STRUCT) {
+			pw.println("<VTKFile type=\"StructuredGrid\"" + endianess + ">");
+			pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
+			pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
+			close_tag = "</StructuredGrid>";
+		} else if (vtk_type == VTK_Type.RECT) {
+			pw.println("<VTKFile type=\"RectilinearGrid\"" + endianess + ">");
+			pw.printf("<RectilinearGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
+			pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
+			close_tag = "</RectilinearGrid>";
+		}
+
+		int a = 0;
+
+		if (vtk_type == VTK_Type.STRUCT) {
+			pw.println("<Points>");
+
+			double pos[] = new double[mesh.ni * mesh.nj * 3];
+			a = 0;
+			for (int j = 0; j < mesh.nj; j++) {
+				for (int i = 0; i < mesh.ni; i++) {
+					double x[] = mesh.pos(i, j);
+					pos[a++] = x[0];
+					pos[a++] = x[1];
+					pos[a++] = 0;
+				}
+			}
+			outputDataArrayVec(pw, "pos", pos);
+			pw.println("</Points>");
+		} else if (vtk_type == VTK_Type.RECT) {
+			pw.println("<Coordinates>");
+			double pos_x[] = new double[mesh.ni];
+			double pos_y[] = new double[mesh.nj];
+			double pos_z[] = new double[1];
+			for (int i = 0; i < mesh.ni; i++) {
+				pos_x[i] = mesh.pos1(i, 0);
+			}
+			for (int j = 0; j < mesh.nj; j++) {
+				pos_y[j] = mesh.pos1(j, 0);
+			}
+			pos_z[0] = 0;
+			outputDataArrayScalar(pw, "x", pos_x);
+			outputDataArrayScalar(pw, "y", pos_y);
+			outputDataArrayScalar(pw, "z", pos_z);
+			pw.println("</Coordinates>");
+		}
+
+		/*
+		 * hard coded for now until I get some more robust way to output cell and vector
+		 * data
+		 */
+		pw.println("<CellData>");
+
+		for (String var : cell_data) {
+			double data[][] = Starfish.domain_module.getField(mesh, var).getData();
+			double data_c[] = new double[(mesh.nj - 1) * (mesh.ni - 1)];
+			a = 0;
+			for (int j = 0; j < mesh.nj - 1; j++) {
+				for (int i = 0; i < mesh.ni - 1; i++) {
+					data_c[a++] = data[i][j];
+				}
+			}
+			outputDataArrayScalar(pw, var, data_c);
+		}
+		pw.println("</CellData>");
+
+		pw.println("<PointData>");
+		int type[] = new int[mesh.ni * mesh.nj];
+		a = 0;
+		for (int j = 0; j < mesh.nj; j++) {
+			for (int i = 0; i < mesh.ni; i++) {
+				type[a++] = mesh.getNode(i, j).type.value();
+			}
+		}
+		outputDataArrayScalar(pw, "type", type);
+
+		for (String var : scalars) {
+			/* make sure we have this variable */
+			double data3[] = new double[mesh.ni * mesh.nj];
+			a = 0;
+			double data[][] = Starfish.domain_module.getField(mesh, var).getData();
+			for (int j = 0; j < mesh.nj; j++) {
+				for (int i = 0; i < mesh.ni; i++) {
+					data3[a++] = data[i][j];
+				}
+			}
+			outputDataArrayScalar(pw, var, data3);
+		}
+
+		for (String[] vars : vectors) {
+			double data1[][] = Starfish.domain_module.getField(mesh, vars[0]).getData();
+			double data2[][] = Starfish.domain_module.getField(mesh, vars[1]).getData();
+			double vec[] = new double[mesh.ni * mesh.nj * 3];
+			a = 0;
+			for (int j = 0; j < mesh.nj; j++) {
+				for (int i = 0; i < mesh.ni; i++) {
+					vec[a++] = data1[i][j];
+					vec[a++] = data2[i][j];
+					vec[a++] = 0;
+				}
+			}
+
+			outputDataArrayVec(pw, "" + vars[0] + "_" + vars[1] + "", vec);
+		}
+
+		pw.println("</PointData>");
+
+		pw.println("</Piece>");
+
+		pw.println(close_tag);
+
+		outputAppendedData(pw);
+
+		pw.println("</VTKFile>");
+		/* save output file */
+		pw.close();
+	}
+
 
 	/* colletor for generated files to add to collection */
 	class CollectionData {
@@ -418,7 +447,7 @@ public class VTKWriter extends Writer {
 	 * @param animation
 	 */
 	protected void writeCollection(boolean animation) {
-		String substr[] = splitFileName(file_name);
+		String substr[] = splitFileName(fileName);
 		String pvd_name = substr[0];
 		if (animation)
 			pvd_name += "_anim";
@@ -459,7 +488,7 @@ public class VTKWriter extends Writer {
 		 * data
 		 */
 		if (file_name_1d == null || !animation || (animation && time_data_current_line == 0)) {
-			String substr[] = splitFileName(file_name);
+			String substr[] = splitFileName(fileName);
 			file_name_1d = substr[0];
 			time_data_it0 = Starfish.getIt();
 			if (animation)
@@ -475,7 +504,7 @@ public class VTKWriter extends Writer {
 		if (!animation || (animation && (time_data_current_line % time_data_write_skip == 0
 				|| time_data_current_line == time_data_lines - 1))) {
 			PrintWriter pw = open(file_name_1d);
-			appended_data = new ByteArrayOutputStream();
+			appendedData = new ByteArrayOutputStream();
 
 			Mesh mesh = output_mesh;
 
@@ -745,8 +774,8 @@ public class VTKWriter extends Writer {
 			num_lines += boundary.numPoints() - 1;
 		}
 
-		PrintWriter pw = open(file_name);
-		appended_data = new ByteArrayOutputStream();
+		PrintWriter pw = open(fileName);
+		appendedData = new ByteArrayOutputStream();
 
 		pw.println("<?xml version=\"1.0\"?>");
 		pw.println("<VTKFile type=\"PolyData\"" + endianess + ">");
@@ -880,13 +909,13 @@ public class VTKWriter extends Writer {
 			}
 		}
 
-		String substr[] = splitFileName(file_name);
+		String substr[] = splitFileName(fileName);
 		String name = substr[0];
 		if (animation)
 			name += String.format("_%06d", Starfish.getIt());
 		name += substr[1];
 		PrintWriter pw = open(name);
-		appended_data = new ByteArrayOutputStream();
+		appendedData = new ByteArrayOutputStream();
 
 		pw.println("<?xml version=\"1.0\"?>");
 		pw.println("<VTKFile type=\"PolyData\"" + endianess + ">");
@@ -973,8 +1002,8 @@ public class VTKWriter extends Writer {
 		for (ParticleTrace trace:traces) 
 			num_points+=trace.samples.size();
 		
-		PrintWriter pw = open(file_name);
-		appended_data = new ByteArrayOutputStream();
+		PrintWriter pw = open(fileName);
+		appendedData = new ByteArrayOutputStream();
 
 		pw.println("<?xml version=\"1.0\"?>");
 		pw.println("<VTKFile type=\"PolyData\"" + endianess + ">");
@@ -1091,10 +1120,10 @@ public class VTKWriter extends Writer {
 				pw.println("</DataArray>");
 			} else { // save raw bites in appended section
 				pw.println("<DataArray Name=\"" + var_name + "\" type=\"Float64\" " + nc_string
-						+ " format=\"appeneded\" offset=\"" + appended_data.size() + "\">");
+						+ " format=\"appeneded\" offset=\"" + appendedData.size() + "\">");
 
 				try {
-					appended_data.write(bb.array());
+					appendedData.write(bb.array());
 				} catch (IOException ex) {
 					Log.error("Error in appended data write");
 				}
@@ -1128,10 +1157,10 @@ public class VTKWriter extends Writer {
 				pw.println("</DataArray>");
 			} else { // save raw bites in appended section
 				pw.println("<DataArray Name=\"" + var_name + "\" type=\"Int32\" " + nc_string
-						+ " format=\"appeneded\" offset=\"" + appended_data.size() + "\">");
+						+ " format=\"appeneded\" offset=\"" + appendedData.size() + "\">");
 
 				try {
-					appended_data.write(bb.array());
+					appendedData.write(bb.array());
 				} catch (IOException ex) {
 					Log.error("Error in appended data write");
 				}
@@ -1169,7 +1198,7 @@ public class VTKWriter extends Writer {
 				pw.println("<AppendedData encoding=\"raw\">");
 				pw.flush(); // write out the file;
 				output_stream.write('_');
-				output_stream.write(appended_data.toByteArray());
+				output_stream.write(appendedData.toByteArray());
 				pw.println("\n</AppendedData>");
 			} catch (IOException ex) {
 				Log.warning("Error writing binary data to the output file");
