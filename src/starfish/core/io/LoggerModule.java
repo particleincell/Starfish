@@ -150,17 +150,17 @@ public class LoggerModule extends CommandModule {
 		/* output to screen */
 		if (level == Level.WARNING || level == Level.ERROR || level == Level.EXCEPTION)
 		{
-			if (Starfish.parent_gui==null)
+			if (Starfish.parent_simulation_runner ==null)
 				System.err.println(full_message);
 			else
-				Starfish.parent_gui.printErrorMessage(full_message);
+				Starfish.parent_simulation_runner.getConsole().printErrorMessage(full_message);
 		}
 			else if (level.ordinal() > Level.LOG.ordinal())
 		{
-			if (Starfish.parent_gui==null)
+			if (Starfish.parent_simulation_runner ==null)
 				System.out.println(full_message);
 			else
-				Starfish.parent_gui.printMessage(full_message);
+				Starfish.parent_simulation_runner.getConsole().printMessage(full_message);
 		}
 		/* output to file */
 		log_file.println(full_message);
@@ -168,7 +168,7 @@ public class LoggerModule extends CommandModule {
 
 		/* exit if error */
 		if (level == Level.ERROR)
-			if (Starfish.parent_gui==null)
+			if (Starfish.parent_simulation_runner ==null)
 				System.exit(-1);
 			else 
 			{

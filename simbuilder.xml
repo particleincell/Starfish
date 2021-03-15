@@ -1,0 +1,75 @@
+<root name="simulation">
+
+    <!-- CORE -->
+
+    <blueprint name="time" required="true">
+        <entry name="dt" type="float" required="true"/>
+        <entry name="num_it" type="int" required="true"/>
+        <entry name="steady_state" type="string" default="auto"/>
+    </blueprint>
+
+    <blueprint name="boundaries" required="false" allows_children="true">
+
+    </blueprint>
+
+    <blueprint name="boundary">
+        <entry name="name" type="string"/>
+        <entry name="type" type="enum" required="true">
+            <enum_choice>SOLID</enum_choice>
+            <enum_choice>OPEN</enum_choice>
+            <enum_choice>SYMMETRY</enum_choice>
+            <enum_choice>VIRTUAL</enum_choice>
+        </entry>
+        <entry name="value" type="string" defualt="0"/>
+        <entry name="material" type="string"/>
+        <entry name="temperature" type="string" default="273.15"/>
+        <entry name="path" type="path" required="true"/>
+        <entry name="reverse" type="bool"/>
+    </blueprint>
+
+    <blueprint name="sources" required="false" allows_children="true">
+
+    </blueprint>
+
+    <blueprint name="animation" required="false">
+        <entry name="start_it" type="int" default="0" required="true"/>
+        <entry name="frequency" type="int" default="10" required="true"/>
+        <entry name="output" type="string"/>
+        <entry name="clear_samples" type="bool" default="true" required="true"/>
+    </blueprint>
+
+    <blueprint name="averaging" required="false">
+        <entry name="frequency" type="int" default="1"/>
+        <entry name="start_it" type="int" default="-1"/>
+        <entry name="variables" type="s_list"/>
+    </blueprint>
+
+    <blueprint name="load_field">
+        <entry name="format" type="enum">
+            <enum_choice>TECPLOT</enum_choice>
+            <enum_choice>TABLE</enum_choice>
+        </entry>
+        <entry name="file_name" type="string"/>
+        <entry name="coords" type="s_list"/>
+        <entry name="vars" type="s_pairs"/>
+    </blueprint>
+
+    <blueprint name="starfish" required="true" visible="false"/>
+
+    <blueprint name="particle_trace" required="false">
+        <entry name="file_name" type="string"/>
+        <entry name="format" type="enum">
+            <enum_choice>VTK</enum_choice>
+            <enum_choice>TECPLOT</enum_choice>
+        </entry>
+        <entry name="ids" type="i_list"/>
+        <entry name="random_ids" type="int2"/>
+        <entry name="start_it" type="int" default="0"/>
+        <entry name="end_it" type="int" default="-1"/>
+        <entry name="sample_skip" type="int" default="1"/>
+        <entry name="output_skip" type="int" default="50"/>
+    </blueprint>
+
+    <!-- CUSTOM PLUGINS BELOW HERE -->
+
+</root>

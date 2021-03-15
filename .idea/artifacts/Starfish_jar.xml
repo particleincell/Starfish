@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Starfish:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Starfish_jar</output-path>
+    <root id="archive" name="Starfish.jar">
+      <element id="module-output" name="Starfish" />
+      <element id="extracted-dir" path="D:/Program Files/VTK9/lib/java/vtk.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

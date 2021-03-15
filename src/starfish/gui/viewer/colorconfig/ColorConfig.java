@@ -1,25 +1,29 @@
-package starfish.gui.preview;
+package starfish.gui.viewer.colorconfig;
+
+import vtk.vtkColorSeries;
+import vtk.vtkLookupTable;
 
 import java.io.Serializable;
 
 /**
  * Data class for storing {@code vtkLookupTable} settings
  */
-public class ColorMapConfig implements Serializable, Cloneable {
+public class ColorConfig implements Serializable, Cloneable {
 
+    // I used the builder pattern so this class can easily be expanded if I want to add more customization options
     public static class Builder {
 
-        private ColorScheme colorScheme = ColorScheme.values()[0];
+        private ColorSchemePresets colorScheme = ColorSchemePresets.values()[0];
         private double min = 0, max = 1;
         private int numBuckets = 64;
         private boolean useLog = false;
 
-        public ColorMapConfig build() {
-            return new ColorMapConfig(colorScheme, min, max, numBuckets, useLog);
+        public ColorConfig build() {
+            return new ColorConfig(colorScheme, min, max, numBuckets, useLog);
         }
 
-        public Builder colorScheme(ColorScheme colorScheme) {
-            this.colorScheme = colorScheme;
+        public Builder colorScheme(ColorSchemePresets ColorSchemePresets) {
+            this.colorScheme = ColorSchemePresets;
             return this;
         }
 
@@ -44,13 +48,13 @@ public class ColorMapConfig implements Serializable, Cloneable {
 
     }
 
-    private ColorScheme colorScheme;
+    private ColorSchemePresets colorScheme;
     private double min, max;
     private int numBuckets;
     private boolean useLog;
 
     // Private because it should be initialized through the builder
-    private ColorMapConfig(ColorScheme colorScheme, double min, double max, int tableValues, boolean useLog) {
+    private ColorConfig(ColorSchemePresets colorScheme, double min, double max, int tableValues, boolean useLog) {
         this.colorScheme = colorScheme;
         this.min = min;
         this.max = max;
@@ -58,11 +62,20 @@ public class ColorMapConfig implements Serializable, Cloneable {
         this.useLog = useLog;
     }
 
-    public ColorScheme getColorScheme() {
+    public vtkLookupTable buildLookupTable() {
+        vtkLookupTable output = colorScheme.createLookupTable(numBuckets);
+        output.SetRange(min, max);
+        if (useLog) {
+            output.SetScaleToLog10();
+        }
+        return output;
+    }
+
+    public ColorSchemePresets getColorScheme() {
         return colorScheme;
     }
-    public void setColorScheme(ColorScheme colorScheme) {
-        this.colorScheme = colorScheme;
+    public void setColorScheme(ColorSchemePresets ColorSchemePresets) {
+        this.colorScheme = ColorSchemePresets;
     }
 
     public double getMin() {
@@ -91,6 +104,11 @@ public class ColorMapConfig implements Serializable, Cloneable {
     }
     public void setUseLog(boolean useLog) {
         this.useLog = useLog;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Scheme=%s,min=%s,max=%s,buckets=%s,log=%s", colorScheme, min, max, numBuckets, useLog);
     }
 
 }

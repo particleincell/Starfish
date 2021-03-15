@@ -34,7 +34,6 @@ import java.util.*;
 
 import org.w3c.dom.Element;
 
-import main.Main.Options;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.BoundaryModule;
 import starfish.core.diagnostics.AnimationModule;
@@ -61,7 +60,7 @@ import starfish.core.materials.Material;
 import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
 import starfish.core.source.SourceModule;
-import starfish.gui.GUI;
+import starfish.gui.runner.SimulationRunner;
 
 public final class Starfish extends CommandModule implements UncaughtExceptionHandler {
 	/** simulation main loop */
@@ -128,9 +127,9 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	 * @param args
 	 * @param plugins
 	 */
-	public void start(Options options, List<Plugin> plugins, GUI gui) {
+	public void start(Options options, List<Plugin> plugins, SimulationRunner runner) {
 		try {
-			parent_gui = gui;
+			parent_simulation_runner = runner;
 			this.options = options;
 		    
 			/* initialize logger */
@@ -261,8 +260,8 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
 	public static DiagnosticsModule diagnostics_module;
 
-	public static GUI parent_gui;	
-	SimStatus status;
+	public static SimulationRunner parent_simulation_runner;
+	private SimStatus status;
 	
 	public void setStatus(SimStatus status) {this.status=status;}
 	public SimStatus getStatus() {return status;}

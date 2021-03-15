@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="vtk-Windows-AMD64">
+    <CLASSES>
+      <root url="jar://D:/Program Files/VTK9/lib/java/vtk.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <NATIVE>
+      <root url="file://D:/Program Files/VTK9/lib/java/vtk-Windows-AMD64" />
+    </NATIVE>
+    <SOURCES />
+  </library>
+</component>
