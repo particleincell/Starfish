@@ -14,7 +14,6 @@ public class GUISettings extends JTabbedPane {
 
     // General settings
     // These correspond to some of the command line arguments
-    private JTextField workingDirectory;
     private JCheckBox randomize;
     private FilteredJTextField maxThreads;
     private JComboBox<String> logLevel;
@@ -26,9 +25,6 @@ public class GUISettings extends JTabbedPane {
         addTab("Viewer", null, createViewerSettingsPane());
     }
     private JPanel createGeneralSettingsPane() {
-        workingDirectory = new JTextField();
-        workingDirectory.setText(options.wd);
-
         randomize = new JCheckBox("Randomize");
         randomize.setToolTipText("If false, the random number generator will be seeded to the same value each time");
         randomize.setSelected(options.randomize);
@@ -37,7 +33,7 @@ public class GUISettings extends JTabbedPane {
         maxThreads = new FilteredJTextField(positiveIntRegex);
         maxThreads.setOnFail(s -> JOptionPane.showMessageDialog(this,
                 "Max Threads must be positive integer"));
-        maxThreads.setToolTipText("Controls (approximately) the maximum number of threads the code will use.");
+        maxThreads.setToolTipText("The maximum number of threads the code will use by default.");
         maxThreads.setText(Integer.toString(options.max_cores));
 
         logLevel = new JComboBox<>(new String[] {"info"});
@@ -49,11 +45,6 @@ public class GUISettings extends JTabbedPane {
 
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-
-        c.gridy += 1;
-        output.add(new JLabel("Working Directory:"), c);
-        c.gridy += 1;
-        output.add(workingDirectory, c);
 
         c.gridy += 1;
         output.add(randomize, c);
@@ -83,9 +74,6 @@ public class GUISettings extends JTabbedPane {
         return output;
     }
 
-    public String workingDirectory() {
-        return workingDirectory.getText();
-    }
     public boolean randomize() {
         return randomize.isSelected();
     }

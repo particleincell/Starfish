@@ -1,11 +1,18 @@
 package starfish.gui.runner;
 
 import starfish.core.common.Options;
+import starfish.gui.common.FilteredJTextField;
 import starfish.gui.common.GUIUtil;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.Vector;
+import java.util.prefs.Preferences;
 
 class SimQueue extends JPanel {
 
@@ -14,6 +21,7 @@ class SimQueue extends JPanel {
     private Vector<OptionsJListWrapper> selectionData;
 
     private JButton remove;
+    private JButton edit;
 
     public SimQueue() {
         super(new BorderLayout());
@@ -25,9 +33,18 @@ class SimQueue extends JPanel {
         JScrollPane listScroller = new JScrollPane(jList);
         add(listScroller, BorderLayout.CENTER);
 
+        JPanel buttons = new JPanel(new GridLayout(2, 1));
+        add(buttons, BorderLayout.SOUTH);
+
         remove = new JButton("Remove from queue");
         remove.addActionListener(arg0 -> removeFromQueueButtonAction());
-        add(remove, BorderLayout.SOUTH);
+        remove.setEnabled(false);
+        buttons.add(remove);
+
+        edit = new JButton("Edit");
+        edit.addActionListener(arg0 -> editItemAction());
+        edit.setEnabled(false);
+        buttons.add(edit);
     }
 
     public void enqueue(Options options) {
@@ -69,6 +86,7 @@ class SimQueue extends JPanel {
      */
     private void listEventAction() {
         remove.setEnabled(jList.getSelectedIndices().length > 0);
+        edit.setEnabled(jList.getSelectedIndices().length == 1);
     }
 
     /**
@@ -81,6 +99,27 @@ class SimQueue extends JPanel {
             selectionData.remove(indices[i] - i);
         }
         updateJList();
+    }
+
+    /**
+     * Function that is triggered when the "Edit" button is pressed
+     * Shows a dialog where the user can edit the Options item
+     */
+    private void editItemAction() {
+        int[] indices = jList.getSelectedIndices();
+        if (indices.length > 0) {
+            int index = indices[0];
+            Options options = selectionData.get(index).getOptions();
+            OptionsEditorPanel editor = new OptionsEditorPanel(options);
+            JDialog dialog = new JDialog();
+            dialog.getContentPane().add(editor);
+            dialog.setMinimumSize(new Dimension(500, 200));
+            dialog.setTitle("Edit simulation settings");
+            dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+            dialog.setVisible(true);
+        }
+        repaint();
     }
 
     private void updateJList() {
@@ -109,6 +148,90 @@ class SimQueue extends JPanel {
             return GUIUtil.truncateLeft(options.wd + options.sim_file, 47);
         }
 
+    }
+
+}
+class OptionsEditorPanel extends JPanel {
+
+    private Options options;
+
+    public OptionsEditorPanel(Options options) {
+        this.options = options;
+
+        setLayout(new GridBagLayout());
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL;
+
+        c.gridy += 1;
+        add(new JLabel("Starfish File"), c);
+        JPanel starfishFileChooser = new JPanel();
+        JTextField starfishFileTextArea = new JTextField(options.wd + options.sim_file);
+        starfishFileTextArea.addActionListener(arg0 -> {
+            File file = new File(starfishFileTextArea.getText());
+            if (file.exists()) {
+                options.sim_file = file.getName();
+            } else {
+                JOptionPane.showMessageDialog(this, file.getAbsolutePath() + " does not exist");
+            }
+        });
+        starfishFileChooser.add(starfishFileTextArea);
+        JButton chooseStarfishFileButton = new JButton("Choose file");
+        chooseStarfishFileButton.addActionListener(arg0 -> {
+            File chosenFile = openStarfishXMLFile(options.wd + options.sim_file);
+            if (chosenFile != null) {
+                starfishFileTextArea.setText(chosenFile.toString());
+                options.sim_file = chosenFile.getName();
+            }
+        });
+        starfishFileChooser.add(chooseStarfishFileButton);
+        c.gridy += 1;
+        add(starfishFileChooser, c);
+
+
+        c.gridy += 1;
+        add(new JLabel("Max Threads"), c);
+        String positiveIntRegex = "\\+?\\d*[1-9]";
+        FilteredJTextField maxThreads = new FilteredJTextField(positiveIntRegex);
+        maxThreads.setOnFail(s -> JOptionPane.showMessageDialog(this,
+                "Max Threads must be positive integer"));
+        maxThreads.setToolTipText("Controls (approximately) the maximum number of threads this simulation instance " +
+                "will use.");
+        maxThreads.setText(Integer.toString(options.max_cores));
+        maxThreads.addActionListener(arg0 -> {
+            options.max_cores = Integer.parseInt(maxThreads.getTrueValue());
+        });
+        c.gridy += 1;
+        add(maxThreads, c);
+
+
+        c.gridy += 1;
+        c.weighty = 1;
+        Component box = Box.createVerticalGlue();
+        box.setMinimumSize(new Dimension(400, 0)); // GridBagLayout shrinks all its contents to their minimum
+        // possible size, this this enforces the minimum width
+        add(box, c);
+    }
+
+    /**
+     * @return File of selected file, null if no file is selected
+     */
+    private File openStarfishXMLFile(String startingDir) {
+        UIManager.put("FileChooser.readOnly", Boolean.TRUE); //disable new folder button
+
+        //get last directory
+
+        JFileChooser fileChooser = new JFileChooser(startingDir);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        //fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(".xml files", "xml"));
+        fileChooser.setAcceptAllFileFilterUsed(true);
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            return selectedFile;
+        }
+        return null;
     }
 
 }

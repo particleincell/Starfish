@@ -112,9 +112,7 @@ public class SimulationRunner extends JPanel {
         if (file != null) {
             Options options = createOptions();
             options.sim_file = file.getName();
-            if (settings.workingDirectory().isEmpty()) {
-                options.wd = file.getParent() + "\\";
-            }
+            options.wd = file.getParent() + "\\";
             simQueue.enqueue(options);
         }
     }
@@ -128,7 +126,9 @@ public class SimulationRunner extends JPanel {
             status = SimStatus.READY;
         }
 
-        if (simQueue.enqueuedItemsCount() == 0) {
+        if (status == SimStatus.PAUSED) {
+            sim.setStatus(SimStatus.RUNNING);
+        } else if (simQueue.enqueuedItemsCount() == 0) {
             JOptionPane.showMessageDialog(this, "Please enqueue items before starting");
         } else if (status == SimStatus.READY || status == SimStatus.STOP) {
             simThread = new Thread(() -> {
@@ -141,8 +141,6 @@ public class SimulationRunner extends JPanel {
                 }
             });
             simThread.start();
-        } else if (status == SimStatus.PAUSED) {
-            sim.setStatus(SimStatus.RUNNING);
         }
     }
     public void pause() {
@@ -174,7 +172,6 @@ public class SimulationRunner extends JPanel {
 
     private Options createOptions() {
         Options output = new Options();
-        output.wd = settings.workingDirectory();
         output.run_mode = Options.RunMode.GUI_RUN;
         output.randomize = settings.randomize();
         output.max_cores = settings.maxThreads();
