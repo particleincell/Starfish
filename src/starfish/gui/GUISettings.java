@@ -3,14 +3,20 @@ package starfish.gui;
 import starfish.core.common.Options;
 import starfish.core.io.LoggerModule;
 import starfish.gui.common.FilteredJTextField;
+import starfish.gui.common.JTextFileChooserCombo;
 import starfish.gui.viewer.colorconfig.ColorConfigMap;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
+import java.io.File;
+import java.util.prefs.Preferences;
 
 public class GUISettings extends JTabbedPane {
 
     private Options options;
+
+    private JTextFileChooserCombo simBuilderChooser;
 
     // General settings
     // These correspond to some of the command line arguments
@@ -21,8 +27,24 @@ public class GUISettings extends JTabbedPane {
     public GUISettings(Options options) {
         this.options = options.clone();
 
-        addTab("General", null, createGeneralSettingsPane());
+        addTab("Builder", null, createBuilderSettingsPanel());
+        addTab("Simulations", null, createGeneralSettingsPane());
         addTab("Viewer", null, createViewerSettingsPane());
+    }
+    private JPanel createBuilderSettingsPanel() {
+        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+        String dir = prefs.get("sim_builder_blueprints", new File("simbuilder.xml").getAbsolutePath());
+        simBuilderChooser = new JTextFileChooserCombo(dir, ".xml files", "xml");
+        simBuilderChooser.setOnUpdate(file -> {
+            prefs.put("sim_builder_blueprints", file.getAbsolutePath());
+        });
+
+        JPanel output = new JPanel();
+        output.setLayout(new BoxLayout(output, BoxLayout.Y_AXIS));
+        output.add(new JLabel("Sim Blueprints Source File"));
+        output.add(simBuilderChooser);
+        output.add(new JLabel("You will need to restart in order for this change to take effect"));
+        return output;
     }
     private JPanel createGeneralSettingsPane() {
         randomize = new JCheckBox("Randomize");
@@ -82,6 +104,10 @@ public class GUISettings extends JTabbedPane {
     }
     public String logLevel() {
         return logLevel.toString();
+    }
+
+    public File getSimBuilderBlueprintFile() {
+        return simBuilderChooser.getValue();
     }
 
 }

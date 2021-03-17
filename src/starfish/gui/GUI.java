@@ -60,7 +60,7 @@ public class GUI extends JFrame {
         simulationResultViewer = new SimulationResultViewer(simulationRunner);
 
         try {
-            simulationFileBuilder.addCommandsFrom(new File("simbuilder.xml"));
+            simulationFileBuilder.addCommandsFrom(settings.getSimBuilderBlueprintFile());
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
                     "Something went wrong when loading sim builder blueprint file - \n"

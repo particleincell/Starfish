@@ -3,6 +3,7 @@ package starfish.gui.runner;
 import starfish.core.common.Options;
 import starfish.gui.common.FilteredJTextField;
 import starfish.gui.common.GUIUtil;
+import starfish.gui.common.JTextFileChooserCombo;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -145,7 +146,7 @@ class SimQueue extends JPanel {
 
         @Override
         public String toString() {
-            return GUIUtil.truncateLeft(options.wd + options.sim_file, 47);
+            return GUIUtil.truncateLeft(options.wd + options.sim_file, 46);
         }
 
     }
@@ -165,26 +166,11 @@ class OptionsEditorPanel extends JPanel {
 
         c.gridy += 1;
         add(new JLabel("Starfish File"), c);
-        JPanel starfishFileChooser = new JPanel();
-        JTextField starfishFileTextArea = new JTextField(options.wd + options.sim_file);
-        starfishFileTextArea.addActionListener(arg0 -> {
-            File file = new File(starfishFileTextArea.getText());
-            if (file.exists()) {
-                options.sim_file = file.getName();
-            } else {
-                JOptionPane.showMessageDialog(this, file.getAbsolutePath() + " does not exist");
-            }
+        JTextFileChooserCombo starfishFileChooser = new JTextFileChooserCombo(options.wd + options.sim_file,
+                ".xml files", "xml");
+        starfishFileChooser.setOnUpdate(file ->  {
+            options.sim_file = file.getName();
         });
-        starfishFileChooser.add(starfishFileTextArea);
-        JButton chooseStarfishFileButton = new JButton("Choose file");
-        chooseStarfishFileButton.addActionListener(arg0 -> {
-            File chosenFile = openStarfishXMLFile(options.wd + options.sim_file);
-            if (chosenFile != null) {
-                starfishFileTextArea.setText(chosenFile.toString());
-                options.sim_file = chosenFile.getName();
-            }
-        });
-        starfishFileChooser.add(chooseStarfishFileButton);
         c.gridy += 1;
         add(starfishFileChooser, c);
 
@@ -211,27 +197,6 @@ class OptionsEditorPanel extends JPanel {
         box.setMinimumSize(new Dimension(400, 0)); // GridBagLayout shrinks all its contents to their minimum
         // possible size, this this enforces the minimum width
         add(box, c);
-    }
-
-    /**
-     * @return File of selected file, null if no file is selected
-     */
-    private File openStarfishXMLFile(String startingDir) {
-        UIManager.put("FileChooser.readOnly", Boolean.TRUE); //disable new folder button
-
-        //get last directory
-
-        JFileChooser fileChooser = new JFileChooser(startingDir);
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        //fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(".xml files", "xml"));
-        fileChooser.setAcceptAllFileFilterUsed(true);
-        int result = fileChooser.showOpenDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            return selectedFile;
-        }
-        return null;
     }
 
 }

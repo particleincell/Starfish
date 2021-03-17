@@ -119,10 +119,12 @@ public class FormTreeBuilder extends JPanel {
         Object selectionObject = JOptionPane.showInputDialog(this,
                 "Choose command type of the new node", "Menu",
                 JOptionPane.PLAIN_MESSAGE, null, types, types[0]);
-        String selection = selectionObject.toString();
-        Supplier<FormNode> supplier = typeToSupplierMap.get(selection);
-        FormNode newFormNode = supplier.get();
-        addObject(newFormNode);
+        if (selectionObject != null) {
+            String selection = selectionObject.toString();
+            Supplier<FormNode> supplier = typeToSupplierMap.get(selection);
+            FormNode newFormNode = supplier.get();
+            addObject(newFormNode);
+        }
     }
 
     /** Add child to the currently selected node. */
