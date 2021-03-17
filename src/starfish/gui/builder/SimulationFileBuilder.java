@@ -30,6 +30,9 @@ public class SimulationFileBuilder extends JPanel {
     public SimulationFileBuilder()  {
         setLayout(new BorderLayout());
         content = new JSplitPane();
+        content.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
+        content.setResizeWeight(.5);
+
         formTreeBuilder = new FormTreeBuilder();
         content.setLeftComponent(formTreeBuilder);
         sectionEditorPanel = new JScrollPane();

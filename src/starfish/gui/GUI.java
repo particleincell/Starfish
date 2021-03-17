@@ -4,6 +4,7 @@ import starfish.core.common.Options;
 import starfish.core.common.Plugin;
 import starfish.core.common.Starfish;
 import starfish.gui.builder.SimulationFileBuilder;
+import starfish.gui.common.GUIUtil;
 import starfish.gui.runner.SimulationRunner;
 import starfish.gui.viewer.SimulationResultViewer;
 
@@ -50,6 +51,7 @@ public class GUI extends JFrame {
 
     // Instances should only be made through GUI.makeNewGUI()
     private GUI(Options options, ArrayList<Plugin> plugins) {
+        GUIUtil.setFontScale(2);
         settings = new GUISettings(options);
 
         applyFrameCustomization();

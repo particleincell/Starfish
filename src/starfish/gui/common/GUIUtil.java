@@ -1,5 +1,10 @@
 package starfish.gui.common;
 
+import javax.swing.*;
+import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
+
 public final class GUIUtil {
 
     /**
@@ -16,6 +21,36 @@ public final class GUIUtil {
     }
     public static String truncateLeft(String s, int maxLength) {
         return s.length() > maxLength ? "..." + s.substring(s.length() - maxLength + 3) : s;
+    }
+
+    private static Map<String, Font> originals;
+    public static void setFontScale(float scale) {
+
+        if (originals == null) {
+            originals = new HashMap<>(25);
+            for (Map.Entry entry : UIManager.getDefaults().entrySet()) {
+                Object key = entry.getKey();
+                if (key.toString().toLowerCase().contains(".font")) {
+                    Object value = entry.getValue();
+                    Font font = null;
+                    if (value instanceof Font) {
+                        font = (Font) value;
+                        originals.put(key.toString(), font);
+                    }
+                }
+            }
+        }
+
+        for (Map.Entry<String, Font> entry : originals.entrySet()) {
+            String key = entry.getKey();
+            Font font = entry.getValue();
+
+            float size = font.getSize();
+            size *= scale;
+
+            font = font.deriveFont(Font.PLAIN, size);
+            UIManager.put(key, font);
+        }
     }
 
 

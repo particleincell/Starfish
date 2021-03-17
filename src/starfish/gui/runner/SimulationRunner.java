@@ -150,7 +150,7 @@ public class SimulationRunner extends JPanel {
     }
     public void stop() {
         if (sim != null
-                && sim.getStatus() == SimStatus.RUNNING || sim.getStatus() == SimStatus.PAUSED) {
+                && (sim.getStatus() == SimStatus.RUNNING || sim.getStatus() == SimStatus.PAUSED)) {
             sim.setStatus(SimStatus.STOP);
         }
     }

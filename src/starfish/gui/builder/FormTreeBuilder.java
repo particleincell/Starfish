@@ -56,6 +56,7 @@ public class FormTreeBuilder extends JPanel {
         addNode.addActionListener(arg0 -> addNodeToSelectedNode());
         removeNode = new JButton("Remove node");
         removeNode.addActionListener(arg0 -> removeSelectedNode());
+        removeNode.setEnabled(false);
 
         add(new JScrollPane(tree), BorderLayout.CENTER);
 
