@@ -1,6 +1,9 @@
 package starfish.gui.viewer;
 
-import vtk.*;
+import vtk.vtkInteractorStyleImage;
+import vtk.vtkPanel;
+import vtk.vtkRenderWindow;
+import vtk.vtkRenderWindowInteractor;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

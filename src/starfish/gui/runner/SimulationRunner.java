@@ -4,9 +4,9 @@ import starfish.core.common.Options;
 import starfish.core.common.Plugin;
 import starfish.core.common.SimStatus;
 import starfish.core.common.Starfish;
-import starfish.gui.common.ConsoleOutputStream;
 import starfish.gui.GUI;
 import starfish.gui.GUISettings;
+import starfish.gui.common.ConsoleOutputStream;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;

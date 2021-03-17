@@ -6,14 +6,8 @@ import starfish.gui.common.GUIUtil;
 import starfish.gui.common.JTextFileChooserCombo;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.io.File;
 import java.util.Vector;
-import java.util.prefs.Preferences;
 
 class SimQueue extends JPanel {
 

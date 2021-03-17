@@ -7,9 +7,6 @@ import starfish.gui.builder.form.exceptions.InvalidDefaultValueFormatException;
 import starfish.gui.builder.form.exceptions.UnknownConfigFileTagNameException;
 import starfish.gui.builder.form.exceptions.UnknownTypeException;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-
 public class EntryFactory {
 
     public static Entry makeEntry(Element element) throws UnknownConfigFileTagNameException, UnknownTypeException,

@@ -7,7 +7,6 @@ import starfish.gui.common.JTextFileChooserCombo;
 import starfish.gui.viewer.colorconfig.ColorConfigMap;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.io.File;
 import java.util.prefs.Preferences;

@@ -1,6 +1,5 @@
 package starfish.gui.viewer.colorconfig;
 
-import vtk.vtkColorSeries;
 import vtk.vtkLookupTable;
 
 import java.io.Serializable;

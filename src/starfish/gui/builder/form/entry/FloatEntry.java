@@ -1,7 +1,5 @@
 package starfish.gui.builder.form.entry;
 
-import starfish.gui.common.FilteredJTextField;
-
 import javax.swing.*;
 
 class FloatEntry extends Entry {
