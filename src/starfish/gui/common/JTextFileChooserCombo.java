@@ -2,6 +2,7 @@ package starfish.gui.common;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
 import java.io.File;
 import java.util.function.Consumer;
 
@@ -28,7 +29,6 @@ public class JTextFileChooserCombo extends JPanel {
                 JOptionPane.showMessageDialog(this, file.getAbsolutePath() + " does not exist");
             }
         });
-        add(textField);
 
         JButton chooseFileButton = new JButton("Choose file");
         chooseFileButton.addActionListener(arg0 -> {
@@ -38,7 +38,17 @@ public class JTextFileChooserCombo extends JPanel {
                 tryToCallOnUpdate(file);
             }
         });
-        add(chooseFileButton);
+
+        setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL;
+
+        c.gridx += 1;
+        c.weightx = 1;
+        add(textField, c);
+        c.gridx += 1;
+        c.weightx = 0;
+        add(chooseFileButton, c);
     }
 
     public void setValue(File file) {

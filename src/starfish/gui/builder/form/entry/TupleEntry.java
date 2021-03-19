@@ -1,6 +1,7 @@
 package starfish.gui.builder.form.entry;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -35,15 +36,19 @@ public class TupleEntry<T extends Entry> extends Entry {
         this.elements = elements;
         this.delimiter = delimiter;
         this.elem = new ArrayList<>(elements);
+
+        setLayout(new GridLayout(2, 1));
         add(new JLabel(tagName));
-        populateWithEntries(supplier, elements);
+        add(createTextFieldRow(supplier, elements));
     }
-    private void populateWithEntries(Supplier<T> supplier, int num) {
+    private JPanel createTextFieldRow(Supplier<T> supplier, int num) {
+        JPanel output = new JPanel(new GridLayout(1, num));
         for (int i = 0; i < num; i++) {
             T newEntry = supplier.get();
-            add(newEntry);
+            output.add(newEntry);
             elem.add(newEntry);
         }
+        return output;
     }
 
     @Override

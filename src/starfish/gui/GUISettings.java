@@ -37,12 +37,20 @@ public class GUISettings extends JTabbedPane {
         simBuilderChooser.setOnUpdate(file -> {
             prefs.put("sim_builder_blueprints", file.getAbsolutePath());
         });
+        simBuilderChooser.setPreferredSize(new Dimension(500, 50));
 
         JPanel output = new JPanel();
-        output.setLayout(new BoxLayout(output, BoxLayout.Y_AXIS));
-        output.add(new JLabel("Sim Blueprints Source File"));
-        output.add(simBuilderChooser);
-        output.add(new JLabel("You will need to restart in order for this change to take effect"));
+        output.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+
+        c.gridy += 1;
+        output.add(new JLabel("Sim Blueprints Source File"), c);
+        c.gridy += 1;
+        output.add(simBuilderChooser, c);
+        c.gridy += 1;
+        output.add(new JLabel("You will need to restart in order for this change to take effect"), c);
+        c.gridy += 1;
+        output.add(Box.createVerticalBox());
         return output;
     }
     private JPanel createGeneralSettingsPane() {
@@ -50,12 +58,8 @@ public class GUISettings extends JTabbedPane {
         randomize.setToolTipText("If false, the random number generator will be seeded to the same value each time");
         randomize.setSelected(options.randomize);
 
-        String positiveIntRegex = "\\+?\\d*[1-9]";
-        maxThreads = new FilteredJTextField(positiveIntRegex);
-        maxThreads.setOnFail(s -> JOptionPane.showMessageDialog(this,
-                "Max Threads must be positive integer"));
+        maxThreads = FilteredJTextField.positiveIntegers(this, options.max_cores);
         maxThreads.setToolTipText("The maximum number of threads the code will use by default.");
-        maxThreads.setText(Integer.toString(options.max_cores));
 
         logLevel = new JComboBox<>(new String[] {"info"});
         logLevel.setSelectedItem(LoggerModule.Level.MESSAGE);

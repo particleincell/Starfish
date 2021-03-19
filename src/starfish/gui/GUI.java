@@ -21,7 +21,7 @@ public class GUI extends JFrame {
     public static void makeNewGUI(Options options, ArrayList<Plugin> plugins) {
         EventQueue.invokeLater(() -> {
             try {
-                UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                 //UIManager.setLookAndFeel("javax.swing.plaf.basic");
             } catch (Exception e) {
                 System.out.println("Error setting native LAF: " + e);
@@ -188,10 +188,10 @@ public class GUI extends JFrame {
             dialog = new JDialog();
             dialog.setTitle("Settings");
             dialog.getContentPane().add(settings);
-            dialog.setSize(500, 300);
+            dialog.setSize(550, 200);
             dialog.setLocation(this.getX() + this.getWidth() / 2 - dialog.getWidth() / 2,
                     this.getY() + this.getHeight() / 2 - dialog.getHeight() / 2);
-            dialog.setMinimumSize(new Dimension(400, 300));
+            dialog.setMinimumSize(new Dimension(550, 200));
             dialog.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
             dialog.addComponentListener(new ComponentAdapter() {
                 @Override

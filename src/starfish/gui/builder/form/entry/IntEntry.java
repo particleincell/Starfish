@@ -3,6 +3,7 @@ package starfish.gui.builder.form.entry;
 import starfish.gui.common.FilteredJTextField;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.function.Predicate;
 
 class IntEntry extends Entry {
@@ -12,8 +13,9 @@ class IntEntry extends Entry {
 
     public IntEntry(String tagName, int defaultValue) {
         this.tagName = tagName;
-        this.textField = new FilteredJTextField(s -> s.matches(DataTypeRegex.INTEGER));
-        textField.setText(Integer.toString(defaultValue));
+        this.textField = FilteredJTextField.integers(this, defaultValue);
+
+        setLayout(new GridLayout(2, 1));
         add(new JLabel(tagName));
         add(textField);
     }

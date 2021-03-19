@@ -17,29 +17,38 @@ public class EntryFactory {
 
         Entry output;
         // Types defined in section VI of Starfish user guide
-        /*if ("int".equals(type)) {
+        if ("int".equals(type)) {
             if (defaultValue.isEmpty()) {
                 defaultValue = "0";
             }
-            int initialValue;
+            int parsedDefaultValue;
             try {
-                initialValue = Integer.parseInt(defaultValue);
+                parsedDefaultValue = Integer.parseInt(defaultValue);
             } catch (NumberFormatException e) {
                 throw new InvalidDefaultValueFormatException(defaultValue, type,
                         "an integer in the range [-2^31, 2^31 - 1]");
             }
-            output = new IntEntry(name, initialValue);
-        } else if ("int2".equals(type)) {
+            output = new IntEntry(name, parsedDefaultValue);
+        }/* else if ("int2".equals(type)) {
             output = new Int2Entry(name);
         } else if ("i_list".equals(type)) { // elp
             output = new StringEntry(type);
-        } else if ("float".equals(type)) {
-            output = new FloatEntry(name);
-        } else if ("float2".equals(type)) {
+        }*/ else if ("float".equals(type)) {
+            if (defaultValue.isEmpty()) {
+                defaultValue = "0";
+            }
+            float parsedDefaultValue;
+            try {
+                parsedDefaultValue = Float.parseFloat(defaultValue);
+            } catch (NumberFormatException e) {
+                throw new InvalidDefaultValueFormatException(defaultValue, type, "A rational number");
+            }
+            output = new FloatEntry(name, parsedDefaultValue);
+        } /*else if ("float2".equals(type)) {
             output = new Float2Entry(name);
         } else if ("f_list".equals(type)) { // elp
             output = new StringEntry(name);*/
-        if (type.matches("int|int2|i_list|float|float2|f_list")) {
+        else if (type.matches("int|int2|i_list|float|float2|f_list")) {
             output = new StringEntry(name, defaultValue);
         } else if ("bool".equals(type)) {
             if (!defaultValue.matches(DataTypeRegex.BOOL) && !defaultValue.isEmpty()) {
@@ -58,8 +67,8 @@ public class EntryFactory {
         } else if ("enum".equals(type)) {
             String[] enumValues = getEnumValues(element);
             output = new EnumEntry(name, enumValues);
-        } else if ("path".equals(type)) { // elp
-            output = new StringEntry(name);
+        } else if ("path".equals(type)) {
+            output = new SVGEntry(name);
         } else {
             throw new UnknownTypeException(type);
         }

@@ -31,11 +31,12 @@ public class SimulationFileBuilder extends JPanel {
         setLayout(new BorderLayout());
         content = new JSplitPane();
         content.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
-        content.setResizeWeight(.5);
+        content.setResizeWeight(.2);
 
         formTreeBuilder = new FormTreeBuilder();
         content.setLeftComponent(formTreeBuilder);
         sectionEditorPanel = new JScrollPane();
+        sectionEditorPanel.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         content.setRightComponent(sectionEditorPanel);
         add(content, BorderLayout.CENTER);
 

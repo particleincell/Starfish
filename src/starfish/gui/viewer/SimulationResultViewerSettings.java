@@ -42,13 +42,10 @@ class SimulationResultViewerSettings extends JPanel {
             colorChooser.addItem(scheme);
         }
 
-        String positiveIntRegex = "^\\+?\\d*[1-9]$";
-        numBuckets = new FilteredJTextField(positiveIntRegex);
-
-        String intRegex = "(\\+|-)?[0-9]+";
-        String realNumberRegex = intRegex + "(\\.[0-9]+)?((e|E)" + intRegex + ")?"; //int or dec or sci. not.
-        min = new FilteredJTextField(realNumberRegex);
-        max = new FilteredJTextField(realNumberRegex);
+        // Default values will be overridden when file loaded, so they don't matter
+        numBuckets = FilteredJTextField.positiveIntegers(this, -1);
+        min = FilteredJTextField.rationals(this, 0);
+        max = FilteredJTextField.rationals(this, 0);
 
         useLogScale = new JCheckBox("Use logarithmic scale");
 
@@ -105,7 +102,7 @@ class SimulationResultViewerSettings extends JPanel {
 
         // Title
         JLabel title = new JLabel("Color Map Settings:");
-        title.setFont(new Font("Serif", Font.BOLD, 18));
+        title.setFont(new Font(UIManager.getDefaults().getFont("Label.font").getName(), Font.BOLD, 18));
         c.gridy += 1;
         add(title, c);
 

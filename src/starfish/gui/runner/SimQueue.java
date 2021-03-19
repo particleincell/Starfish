@@ -171,13 +171,9 @@ class OptionsEditorPanel extends JPanel {
 
         c.gridy += 1;
         add(new JLabel("Max Threads"), c);
-        String positiveIntRegex = "\\+?\\d*[1-9]";
-        FilteredJTextField maxThreads = new FilteredJTextField(positiveIntRegex);
-        maxThreads.setOnFail(s -> JOptionPane.showMessageDialog(this,
-                "Max Threads must be positive integer"));
+        FilteredJTextField maxThreads = FilteredJTextField.positiveIntegers(this, options.max_cores);
         maxThreads.setToolTipText("Controls (approximately) the maximum number of threads this simulation instance " +
                 "will use.");
-        maxThreads.setText(Integer.toString(options.max_cores));
         maxThreads.addActionListener(arg0 -> {
             options.max_cores = Integer.parseInt(maxThreads.getTrueValue());
         });
