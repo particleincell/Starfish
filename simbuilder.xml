@@ -1,34 +1,32 @@
 <root name="simulation">
 
-    <!-- CORE -->
+    <!-- GENERAL -->
+
+    <blueprint name="log" required="false" allows_children="false">
+        <entry name="level" type="enum">
+            <enum_choice>DEBUG</enum_choice>
+            <enum_choice>LOG_LOW</enum_choice>
+            <enum_choice>LOG</enum_choice>
+            <enum_choice>MESSAGE</enum_choice>
+            <enum_choice>WARNING</enum_choice>
+            <enum_choice>ERROR</enum_choice>
+            <enum_choice>EXCEPTION</enum_choice>
+        </entry>
+    </blueprint>
+
+    <bluzeprint name="restart" required="false" allows_children="false">
+        <entry name="it_save" type="int" default="500"/>
+        <entry name="nt_add" type="int" default="-1"/>
+        <entry name="load" type="bool" default="false"/>
+        <entry name="save" type="bool" default="false"/>
+    </bluzeprint>
+
+    <blueprint name="starfish" required="true" visible="false"/>
 
     <blueprint name="time" required="true">
         <entry name="dt" type="float" required="true"/>
         <entry name="num_it" type="int" required="true"/>
         <entry name="steady_state" type="string" default="auto"/>
-    </blueprint>
-
-    <blueprint name="boundaries" required="false" allows_children="true">
-
-    </blueprint>
-
-    <blueprint name="boundary">
-        <entry name="name" type="string"/>
-        <entry name="type" type="enum" required="true">
-            <enum_choice>SOLID</enum_choice>
-            <enum_choice>OPEN</enum_choice>
-            <enum_choice>SYMMETRY</enum_choice>
-            <enum_choice>VIRTUAL</enum_choice>
-        </entry>
-        <entry name="value" type="string" defualt="0"/>
-        <entry name="material" type="string"/>
-        <entry name="temperature" type="string" default="273.15"/>
-        <entry name="path" type="path" required="true"/>
-        <entry name="reverse" type="bool"/>
-    </blueprint>
-
-    <blueprint name="sources" required="false" allows_children="true">
-
     </blueprint>
 
     <blueprint name="animation" required="false">
@@ -54,7 +52,27 @@
         <entry name="vars" type="s_pairs"/>
     </blueprint>
 
-    <blueprint name="starfish" required="true" visible="false"/>
+    <blueprint name="output" required="false" allows_children="false">
+        <entry name="type" type="enum">
+            <enum_choice>1D</enum_choice>
+            <enum_choice>2D</enum_choice>
+            <enum_choice>boundaries</enum_choice>
+            <enum_choice>particles</enum_choice>
+        </entry>
+        <entry name="file_name" type="string"/>
+        <entry name="format" type="enum">
+            <enum_choice>VTK</enum_choice>
+            <enum_choice>TECPLOT</enum_choice>
+        </entry>
+        <entry name="output_for_mat" type="enum">
+            <enum_choice>ASCII</enum_choice>
+            <enum_choice>BINARY</enum_choice>
+            <enum_choice>APPENDED</enum_choice>
+        </entry>
+        <entry name="variables" type="s_list"/>
+        <entry name="cell_data" type="s_list"/>
+        <entry name="vectors" type="s_tuples"/>
+    </blueprint>
 
     <blueprint name="particle_trace" required="false">
         <entry name="file_name" type="string"/>
@@ -68,6 +86,148 @@
         <entry name="end_it" type="int" default="-1"/>
         <entry name="sample_skip" type="int" default="1"/>
         <entry name="output_skip" type="int" default="50"/>
+    </blueprint>
+
+    <blueprint name="stats" required="false">
+        <entry name="file_name" type="string" default="starfish_stats.csv"/>
+        <entry name="skip" type="int" default="1"/>
+    </blueprint>
+
+    <blueprint name="sample_vdf" required="false">
+        <entry name="material" type="string"/>
+        <entry name="xmin" type="float2"/>
+        <entry name="xmax" type="float2"/>
+        <entry name="speed_bins" type="int" default="20"/>
+        <entry name="vel_bins" type="int3" default="20,20,20"/>
+        <entry name="start_it" type="int" default="-1"/>
+        <entry name="skip_sample" type="int" default="100"/>
+        <entry name="skip_output" type="int" default="1000"/>
+        <entry name="file_name" type="string"/>
+    </blueprint>
+
+    <!-- MATERIALS -->
+
+    <blueprint name="materials" required="false" allows_children="true">
+
+    </blueprint>
+    <blueprint name="material" required="false">
+        <entry name="type" type="enum">
+            <enum_choice>solid</enum_choice>
+            <enum_choice>kinetic</enum_choice>
+            <enum_choice>fluid_diffusion</enum_choice>
+            <enum_choice>boltzmann_electrons</enum_choice>
+        </entry>
+        <entry name="name" type="string"/>
+        <entry name="init" type="s_list"/>
+        <entry name="molwt" type="float"/>
+        <entry name="charge" type="float"/>
+        <entry name="work_function" type="float"/>
+        <entry name="p_vap_coeffs" type="float3"/>
+        <entry name="ionization_energy" type="float" default="-1"/>
+
+    </blueprint>
+
+    <blueprint name="material_interactions" required="false" allows_children="true">
+
+    </blueprint>
+    <blueprint name="surface_hit">
+        <entry name="file_name" type="string" default="starfish_stats.csv"/>
+        <entry name=""/>
+    </blueprint>
+    <blueprint name="dsmc" required="false" allows_children="false">
+        <entry name="pair" type="s_list"/>
+        <entry name="model" type="enum">
+            <enum_choice>elastic</enum_choice>
+        </entry>
+        <entry name="frequency" type="int" default="1"/>
+        <entry name="sig_cr_max" type="float" default="1e-16"/>
+        <entry name="sigma" type="enum">
+            <enum_choice>const</enum_choice>
+            <enum_choice>inv</enum_choice>
+            <enum_choice>bird463</enum_choice>
+            <enum_choice>tabulated</enum_choice>
+        </entry>
+        <entry name="sigma_coeffs" type="f_list"/>
+        <entry name="sigma_tabulated" type="f2_list"/>
+        <entry name="sigma_dep_var" type="enum">
+            <enum_choice>VELOCITY</enum_choice>
+            <enum_choice>ENERGY</enum_choice>
+        </entry>
+    </blueprint>
+    <blueprint name="mcc" required="false" allows_children="false">
+        <entry name="source" type="string"/>
+        <entry name="target" type="string"/>
+        <entry name="product" type="string"/>
+        <entry name="model" type="enum">
+            <enum_choice>MEX</enum_choice>
+            <enum_choice>ELASTIC</enum_choice>
+            <enum_choice>CEX</enum_choice>
+            <enum_choice>IONIZATION</enum_choice>
+        </entry>
+        <entry name="sigma" type="string"/>
+        <entry name="max_target_temp" type="float"/>
+        <entry name="ionization_energy" type="string"/>
+    </blueprint>
+    <blueprint name="chemistry" required="false" allows_children="false">
+        <entry name="sources" type="s_list"/>
+        <entry name="products" type="s_list"/>
+        <!-- RATE, DEP_VAR -->
+
+    </blueprint>
+
+    <!-- BOUNDARIES -->
+
+    <blueprint name="boundaries" required="false" allows_children="true">
+
+    </blueprint>
+    <blueprint name="boundary">
+        <entry name="name" type="string"/>
+        <entry name="type" type="enum" required="true">
+            <enum_choice>SOLID</enum_choice>
+            <enum_choice>OPEN</enum_choice>
+            <enum_choice>SYMMETRY</enum_choice>
+            <enum_choice>VIRTUAL</enum_choice>
+        </entry>
+        <entry name="value" type="string" defualt="0"/>
+        <entry name="material" type="string"/>
+        <entry name="temperature" type="string" default="273.15"/>
+        <entry name="path" type="path" required="true"/>
+        <entry name="reverse" type="bool"/>
+    </blueprint>
+
+    <!-- DOMAIN -->
+
+    <blueprint name="domain" required="false" allows_children="true">
+        <entry name="type" type="enum">
+            <enum_choice>XY</enum_choice>
+            <enum_choice>RZ</enum_choice>
+            <enum_choice>ZR</enum_choice>
+        </entry>
+    </blueprint>
+    <blueprint name="mesh" required="false" allows_children="false">
+        <entry name="name" type="string"/>
+        <entry name="type" type="enum">
+            <enum_choice>UNIFORM</enum_choice>
+            <enum_choice>ELLIPTIC</enum_choice>
+        </entry>
+        <!-- not finished -->
+    </blueprint>
+
+    <!-- SOURCES -->
+
+    <blueprint name="sources" required="false" allows_children="true">
+
+    </blueprint>
+
+    <!-- SOLVER -->
+    <blueprint name="solver" required="false" allows_children="false">
+        <entry name="type" type="string"/>
+        <entry name="initial_only" type="bool" default="false"/>
+        <entry name="max_it" type="float" default="5000"/>
+        <entry name="tol" type="float" default="1e-6"/>
+        <entry name="nl_max_it" type="float" default="50"/>
+        <entry name="nl_tol" type="float" default="1e-4"/>
+
     </blueprint>
 
     <!-- CUSTOM PLUGINS BELOW HERE -->
