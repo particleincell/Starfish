@@ -65,13 +65,15 @@ public class SimulationResultViewer extends JPanel {
         add(toolBar, BorderLayout.NORTH);
     }
 
-    private boolean updateVTKPanelFirstCall = true;
+    private vtkActor previousActor = null;
+    private static vtkScalarBarActor scalarBarActor = new vtkScalarBarActor();
     /**
      * Updates the VTK preview to display the currently loaded file using the settings set by the user in the
      * settings panel
      */
     private void updateVTKPanel() {
         if (fileIsLoaded() && main.getVtkPanel() != null) {
+
             String selectedVar = main.getViewerSettings().getSelectedVar();
 
             vtkStructuredGrid structuredGrid = reader.GetOutput();
@@ -88,21 +90,22 @@ public class SimulationResultViewer extends JPanel {
             mapper.SetLookupTable(lookupTable);
             mapper.SetUseLookupTableScalarRange(1);
 
-            vtkScalarBarActor scalarBarActor = new vtkScalarBarActor();
             scalarBarActor.SetLookupTable(lookupTable);
             scalarBarActor.SetNumberOfLabels(4);
 
             vtkActor actor = new vtkActor();
+            if (previousActor != null) {
+                previousActor.Delete();
+            }
+            previousActor = actor;
+
             actor.SetMapper(mapper);
 
             vtkPanel vtkPanel = main.getVtkPanel();
-            if (updateVTKPanelFirstCall) {
-                vtkPanel.GetRenderer().SetBackground(.5, .5, .5);
-                vtkPanel.GetRenderer().Clear();
-                vtkPanel.GetRenderer().AddActor(actor);
-                vtkPanel.GetRenderer().AddActor2D(scalarBarActor);
-                updateVTKPanelFirstCall = false;
-            }
+            vtkPanel.GetRenderer().SetBackground(.5, .5, .5);
+            vtkPanel.GetRenderer().RemoveAllViewProps();
+            vtkPanel.GetRenderer().AddActor(actor);
+            vtkPanel.GetRenderer().AddActor2D(scalarBarActor);
             vtkPanel.repaint();
         }
     }
