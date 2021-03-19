@@ -65,9 +65,7 @@ public class SimulationResultViewer extends JPanel {
         add(toolBar, BorderLayout.NORTH);
     }
 
-    // Color map legend must be a field so it can be kept between calls of updateVTKPanel(). If a new one is created
-    // every time it is called, then it will add the new actor without removing the old one.
-    private final vtkScalarBarActor scalarBarActor = new vtkScalarBarActor();
+    private boolean updateVTKPanelFirstCall = true;
     /**
      * Updates the VTK preview to display the currently loaded file using the settings set by the user in the
      * settings panel
@@ -90,6 +88,7 @@ public class SimulationResultViewer extends JPanel {
             mapper.SetLookupTable(lookupTable);
             mapper.SetUseLookupTableScalarRange(1);
 
+            vtkScalarBarActor scalarBarActor = new vtkScalarBarActor();
             scalarBarActor.SetLookupTable(lookupTable);
             scalarBarActor.SetNumberOfLabels(4);
 
@@ -97,10 +96,13 @@ public class SimulationResultViewer extends JPanel {
             actor.SetMapper(mapper);
 
             vtkPanel vtkPanel = main.getVtkPanel();
-            vtkPanel.GetRenderer().SetBackground(.5, .5, .5);
-            vtkPanel.GetRenderer().Clear();
-            vtkPanel.GetRenderer().AddActor(actor);
-            vtkPanel.GetRenderer().AddActor2D(scalarBarActor);
+            if (updateVTKPanelFirstCall) {
+                vtkPanel.GetRenderer().SetBackground(.5, .5, .5);
+                vtkPanel.GetRenderer().Clear();
+                vtkPanel.GetRenderer().AddActor(actor);
+                vtkPanel.GetRenderer().AddActor2D(scalarBarActor);
+                updateVTKPanelFirstCall = false;
+            }
             vtkPanel.repaint();
         }
     }
