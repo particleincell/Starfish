@@ -1,7 +1,8 @@
 package starfish.gui.builder;
 
 import javax.swing.*;
-import java.awt.*;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * FormTreeBuilder will display the JPanel this class creates when the root node of the hierarchy tree is selected.
@@ -17,14 +18,32 @@ public class RootUserObject {
             }
         };
         output.setLayout(new BoxLayout(output, BoxLayout.Y_AXIS));
+        InputStream is = RootUserObject.class.getResourceAsStream("SimBuilderHowTo.html");
+        String htmlString;
+        try {
+            htmlString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            htmlString = createErrorHTMLString();
+        }
 
-        JLabel title = new JLabel("Simulation File Builder");
-        title.setFont(new Font(UIManager.getDefaults().getFont("Label.font").getName(), Font.PLAIN, 36));
-        output.add(title);
+        //JEditorPane editorPane = new JEditorPane();
+        //editorPane.setContentType("text/html");
+        //editorPane.setText(htmlString);
+        //editorPane.setEditable(false);
+        //output.add(editorPane);
 
-        output.add(new JLabel("step 1: I'm not sure either"));
+        //JTextPane textPane = new JTextPane();
+        //textPane.setContentType("text/html");
+        //textPane.setText(htmlString);
+        //output.add(textPane);
+
+        JLabel l = new JLabel(htmlString);
+        output.add(l);
 
         return output;
+    }
+    private static String createErrorHTMLString() {
+        return "bad";
     }
 
 }
