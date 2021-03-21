@@ -12,6 +12,7 @@ public class EntryFactory {
     public static Entry makeEntry(Element element) throws UnknownConfigFileTagNameException, UnknownTypeException,
             InvalidDefaultValueFormatException {
         String name = element.getAttribute("name");
+        String description = element.getAttribute("description");
         String type = element.getAttribute("type").toLowerCase();
         String defaultValue = element.getAttribute("default");
 
@@ -28,7 +29,7 @@ public class EntryFactory {
                 throw new InvalidDefaultValueFormatException(defaultValue, type,
                         "an integer in the range [-2^31, 2^31 - 1]");
             }
-            output = new IntEntry(name, parsedDefaultValue);
+            output = new IntEntry(name, description, parsedDefaultValue);
         }/* else if ("int2".equals(type)) {
             output = new Int2Entry(name);
         } else if ("i_list".equals(type)) { // elp
@@ -43,20 +44,20 @@ public class EntryFactory {
             } catch (NumberFormatException e) {
                 throw new InvalidDefaultValueFormatException(defaultValue, type, "A rational number");
             }
-            output = new FloatEntry(name, parsedDefaultValue);
+            output = new FloatEntry(name, description, parsedDefaultValue);
         } /*else if ("float2".equals(type)) {
             output = new Float2Entry(name);
         } else if ("f_list".equals(type)) { // elp
             output = new StringEntry(name);*/
         else if (type.matches("int|int2|i_list|float|float2|f_list")) {
-            output = new StringEntry(name, defaultValue);
+            output = new StringEntry(name, description, defaultValue);
         } else if ("bool".equals(type)) {
             if (!defaultValue.matches(DataTypeRegex.BOOL) && !defaultValue.isEmpty()) {
                 throw new InvalidDefaultValueFormatException(defaultValue, type, DataTypeRegex.BOOL);
             }
             output = new BoolEntry(name, Boolean.parseBoolean(defaultValue));
         } else if ("string".equals(type)) {
-            output = new StringEntry(name);
+            output = new StringEntry(name, description, defaultValue);
         } else if ("s_list".equals(type)) { // elp
             output = new StringEntry(name);
         } else if ("s_pairs".equals(type)) { // elp
@@ -66,7 +67,7 @@ public class EntryFactory {
         // Custom types
         } else if ("enum".equals(type)) {
             String[] enumValues = getEnumValues(element);
-            output = new EnumEntry(name, enumValues);
+            output = new EnumEntry(name, description, enumValues);
         } else if ("path".equals(type)) {
             output = new SVGEntry(name);
         } else {

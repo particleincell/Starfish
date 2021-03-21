@@ -2,6 +2,7 @@ package starfish.gui.builder.form;
 
 import org.w3c.dom.Element;
 import starfish.gui.builder.form.entry.Entry;
+import starfish.gui.common.GUIUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,24 +14,26 @@ import java.util.List;
 public class FormSection extends FormNode {
 
     private String tagName;
+    private String description;
     private boolean allowsChildren;
     private List<Entry> entries;
 
-    public FormSection(String tagName, boolean allowsChildren, List<Entry> entries) {
+    public FormSection(String tagName, String description, boolean allowsChildren, List<Entry> entries) {
         this.tagName = tagName;
+        this.description = description;
         this.allowsChildren = allowsChildren;
         this.entries = entries;
-        this.setBorder(BorderFactory.createEmptyBorder(0,10,20,20));
+        setPreferredSize(new Dimension(0, 0));
         fillContainer(entries);
     }
     private void fillContainer(List<Entry> entries) {
         setLayout(new GridBagLayout());
-        JLabel title = new JLabel(tagName);
-        title.setFont(new Font(UIManager.getDefaults().getFont("Label.font").getName(), Font.PLAIN, 28));
+        JLabel title = new JLabel(GUIUtil.htmlWrap(String.format("<h1>%s</h1><p>%s</p>", tagName, description)));
 
         GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 1;
+
         c.gridy = 0;
         add(title, c);
 
@@ -48,7 +51,9 @@ public class FormSection extends FormNode {
     public Element outputSelfTo(Element parent) {
         Element newSection = parent.getOwnerDocument().createElement(tagName);
         for (Entry node : entries) {
-            node.outputSelfTo(newSection);
+            if (!node.getValue().isEmpty()) {
+                node.outputSelfTo(newSection);
+            }
         }
         parent.appendChild(newSection);
         return newSection;

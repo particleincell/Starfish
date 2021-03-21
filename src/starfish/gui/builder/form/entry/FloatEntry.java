@@ -5,18 +5,15 @@ import starfish.gui.common.FilteredJTextField;
 import javax.swing.*;
 import java.awt.*;
 
-class FloatEntry extends Entry {
+class FloatEntry extends RegularEntry {
 
     private String tagName;
     private FilteredJTextField textField;
 
-    public FloatEntry(String tagName, float defaultValue) {
+    public FloatEntry(String tagName, String description, float defaultValue) {
         this.tagName = tagName;
         this.textField = FilteredJTextField.rationals(this, defaultValue);
-
-        setLayout(new GridLayout(2, 1));
-        add(new JLabel(tagName));
-        add(textField);
+        populate(tagName, description, textField);
     }
 
     @Override

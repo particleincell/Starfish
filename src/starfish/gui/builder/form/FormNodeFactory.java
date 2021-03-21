@@ -31,7 +31,7 @@ public final class FormNodeFactory {
 
         if ("blueprint".equals(tagName)) {
             List<Entry> sectionChildren = getEntries(element.getChildNodes());
-            output = new FormSection(element.getAttribute("name"),
+            output = new FormSection(element.getAttribute("name"), element.getAttribute("description"),
                     Boolean.parseBoolean(element.getAttribute("allows_children")), sectionChildren);
         } else {
             throw new UnknownConfigFileTagNameException(element);

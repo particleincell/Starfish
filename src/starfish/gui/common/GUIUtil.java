@@ -53,5 +53,26 @@ public final class GUIUtil {
         }
     }
 
+    /**
+     * Wraps string as HTML.
+     * Useful because it makes JLabels text wrap.
+     */
+    public static String htmlWrap(String s) {
+        return String.format("<html>" +
+                "<body style=\"text-align: left;\">" +
+                "%s" +
+                "</body>" +
+                "</html>", s);
+    }
+
+    public static int calculateHeightOfAllChildren(JPanel panel) {
+        Component[] children = panel.getComponents();
+        int sum = 0;
+        for (Component c : children) {
+            sum += c.getHeight();
+        }
+        return sum;
+    }
+
 
 }

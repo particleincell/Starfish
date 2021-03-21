@@ -3,21 +3,19 @@ package starfish.gui.builder.form.entry;
 import javax.swing.*;
 import java.awt.*;
 
-public class StringEntry extends Entry {
+public class StringEntry extends RegularEntry {
 
     private String tagName;
     private JTextField textField;
 
     public StringEntry(String tagName) {
-        this(tagName, "");
+        this(tagName, "", "");
     }
-    public StringEntry(String tagName, String defaultValue) {
-        setLayout(new GridLayout(2, 1));
+    public StringEntry(String tagName, String description, String defaultValue) {
         this.tagName = tagName;
         textField = new JTextField();
         textField.setText(defaultValue);
-        add(new JLabel(tagName));
-        add(textField);
+        populate(tagName, description, textField);
     }
 
     @Override

@@ -8,7 +8,7 @@ import starfish.gui.builder.form.entry.StringEntry;
  */
 public class CustomBlueprintNode extends FormNode {
 
-    private StringEntry tagName = new StringEntry("XML Tag Name", "custom_section");
+    private StringEntry tagName = new StringEntry("XML Tag Name", "", "custom_section");
 
     public CustomBlueprintNode() {
 

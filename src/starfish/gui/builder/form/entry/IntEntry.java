@@ -6,18 +6,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.function.Predicate;
 
-class IntEntry extends Entry {
+class IntEntry extends RegularEntry {
 
     private String tagName;
     private FilteredJTextField textField;
 
-    public IntEntry(String tagName, int defaultValue) {
+    public IntEntry(String tagName, String description, int defaultValue) {
         this.tagName = tagName;
         this.textField = FilteredJTextField.integers(this, defaultValue);
-
-        setLayout(new GridLayout(2, 1));
-        add(new JLabel(tagName));
-        add(textField);
+        populate(tagName, description, textField);
     }
     public IntEntry(String tagName, int defaultValue, Predicate<Integer> filter) {
         this.tagName = tagName;
