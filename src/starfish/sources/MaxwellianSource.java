@@ -26,7 +26,8 @@ public class MaxwellianSource extends Source {
 
 	final double den0;
 	final double v_drift;
-	final double v_th; /* thermal velocity */
+	final double v_az; // azimuthal velocity
+	final double v_th; // thermal velocity
 
 	/**
 	 *
@@ -53,7 +54,9 @@ public class MaxwellianSource extends Source {
 		}
 
 		/* drift velocity and temperature */
-		v_drift = Double.parseDouble(InputParser.getValue("v_drift", element));
+		v_drift = InputParser.getDouble("v_drift", element);
+		v_az = InputParser.getDouble("v_az", element,0.0);
+		
 		double temp = Double.parseDouble(InputParser.getValue("temperature", element));
 		circuit_model = InputParser.getBoolean("circuit_model", element, false);
 
@@ -61,7 +64,7 @@ public class MaxwellianSource extends Source {
 		double A = boundary.area();
 		den0 = mdot0 / (A * v_drift * source_mat.getMass());
 		v_th = Utils.computeVth(temp, source_mat.getMass());
-
+		
 		Starfish.Log.log("Added MAXWELLIAN source '" + name + "'");
 		Starfish.Log.log("> mdot   = " + mdot0 + "(kg/s)");
 		Starfish.Log.log(String.format("> den0 = %.5g (#/m^3)", den0));
@@ -70,6 +73,8 @@ public class MaxwellianSource extends Source {
 		Starfish.Log.log("> temp  = " + temp);
 		Starfish.Log.log("> v_drift  = " + v_drift);
 		Starfish.Log.log("> v_th  = " + v_th);
+		Starfish.Log.log("> v_az  = " + v_az);  //azimuthal velocity
+		
 		Starfish.Log.log("> start_it  = " + start_it);
 		Starfish.Log.log("> end_it  = " + stop_it);
 	}
@@ -99,7 +104,7 @@ public class MaxwellianSource extends Source {
 			/* add drift */
 			part.vel[0] = v_max[0] + n[0] * v_drift;
 			part.vel[1] = v_max[1] + n[1] * v_drift;
-			part.vel[2] = v_max[2];
+			part.vel[2] = v_max[2] +v_az;
 
 			part.dt = Starfish.rnd() * Starfish.getDt();
 		} while (Vector.dot2(n, part.vel) <= 0);

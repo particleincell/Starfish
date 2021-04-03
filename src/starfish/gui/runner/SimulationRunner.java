@@ -112,7 +112,7 @@ public class SimulationRunner extends JPanel {
         if (file != null) {
             Options options = createOptions();
             options.sim_file = file.getName();
-            options.wd = file.getParent() + "\\";
+            options.wd = file.getParent() + "/";
             simQueue.enqueue(options);
         }
     }

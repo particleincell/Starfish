@@ -285,7 +285,7 @@ public class VTKWriter extends Writer {
 			// collection.add(new CollectionData(time_step,part,substr[3]+substr[1]));
 			collection.add(new CollectionData(Starfish.getIt(), part, substr[3] + substr[1]));
 
-			write2DToFile(mesh, Starfish.options.wd + fileName, vtkType);
+			write2DToFile(mesh, Starfish.options.wd + name, vtkType);
 
 			part++;
 		}

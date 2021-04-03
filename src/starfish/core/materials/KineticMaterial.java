@@ -314,7 +314,7 @@ public class KineticMaterial extends Material {
 			while (iterator.hasNext()) {
 			
 				//periodically yield to prevent lock up
-				if (++p%25==0) yield();
+				if (++p%25==0) Thread.yield();
 				
 				Particle part = iterator.next();
 
