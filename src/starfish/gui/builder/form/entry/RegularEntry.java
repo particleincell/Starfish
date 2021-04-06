@@ -14,7 +14,7 @@ import java.awt.*;
  *
  * Most of the types of entries follow this format, hence why this is considered a "Regular" entry
  */
-public abstract class RegularEntry extends Entry {
+public abstract class RegularEntry extends AbstractEntry {
 
     /**
      * Side effect: This removes all child components before populating itself.

@@ -27,19 +27,15 @@
 
 package main;
 
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Scanner;
-
 import starfish.collisions.CollisionsPlugin;
 import starfish.core.common.Options;
 import starfish.core.common.Plugin;
-import starfish.core.common.SimStatus;
-import starfish.core.common.Starfish;
-import starfish.core.common.Starfish.Log;
 import starfish.gui.GUI;
 
-/** wrapper to launch starfish with no plugin */
+import java.util.ArrayList;
+import java.util.Locale;
+
+/** Program start that allows the user to use a GUI */
 public class Main {
 
 	/**
@@ -48,7 +44,7 @@ public class Main {
 	 * 
 	 * @param args Command line arguments
 	 */
-	public static void main(String args[]) {
+	public static void main(String args[]) throws Exception {
 		Locale.setDefault(new Locale("en", "US"));	 //force the code to use dots for decimals
 
 		/* demo of starting Starfish with plugins */

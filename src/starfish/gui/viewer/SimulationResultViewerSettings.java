@@ -43,9 +43,9 @@ class SimulationResultViewerSettings extends JPanel {
         }
 
         // Default values will be overridden when file loaded, so they don't matter
-        numBuckets = FilteredJTextField.positiveIntegers(this, -1);
-        min = FilteredJTextField.rationals(this, 0);
-        max = FilteredJTextField.rationals(this, 0);
+        numBuckets = FilteredJTextField.positiveIntegers(-1);
+        min = FilteredJTextField.rationals(0);
+        max = FilteredJTextField.rationals(0);
 
         useLogScale = new JCheckBox("Use logarithmic scale");
 
@@ -221,9 +221,9 @@ class SimulationResultViewerSettings extends JPanel {
                 if (colorChooser.getSelectedItem() != null) {
                     config.setColorScheme((ColorSchemePresets) colorChooser.getSelectedItem());
                 }
-                config.setNumBuckets(Integer.parseInt(numBuckets.getTrueValue()));
-                config.setMin(Double.parseDouble(min.getTrueValue()));
-                config.setMax(Double.parseDouble(max.getTrueValue()));
+                config.setNumBuckets(Integer.parseInt(numBuckets.getText()));
+                config.setMin(Double.parseDouble(min.getText()));
+                config.setMax(Double.parseDouble(max.getText()));
                 config.setUseLog(useLogScale.isSelected());
             }
         }

@@ -1,6 +1,7 @@
 package starfish.gui.builder.form.entry;
 
 import starfish.gui.common.FilteredJTextField;
+import starfish.gui.common.GUIUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,7 +11,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class SVGEntry extends Entry {
+public class SVGEntry extends AbstractEntry {
 
     private String name;
 
@@ -30,12 +31,12 @@ public class SVGEntry extends Entry {
         setLayout(new GridBagLayout());
 
         GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.BOTH;
 
         c.gridy = 0;
         c.gridx = 0;
         c.weightx = 1;
-        add(new JLabel(name), c);
+        add(new JLabel(GUIUtil.htmlWrap("<h3>" + name + "</h3>")), c);
 
         c.gridy = 1;
         c.gridx = 0;
@@ -125,11 +126,11 @@ class CircleToSVGEditor extends JPanel implements Supplier<String> {
 
 
     public CircleToSVGEditor() {
-        x = FilteredJTextField.positiveRationals(this, 0);
-        y = FilteredJTextField.positiveRationals(this, 0);
-        radius = FilteredJTextField.positiveRationals(this, 1);
-        vertices = FilteredJTextField.positiveIntegers(this, 10);
-        thetaOffset = FilteredJTextField.positiveRationals(this, 0);
+        x = FilteredJTextField.positiveRationals(0);
+        y = FilteredJTextField.positiveRationals(0);
+        radius = FilteredJTextField.positiveRationals(1);
+        vertices = FilteredJTextField.positiveIntegers(10);
+        thetaOffset = FilteredJTextField.positiveRationals(0);
 
         setLayout(new GridBagLayout());
 
@@ -176,11 +177,11 @@ class CircleToSVGEditor extends JPanel implements Supplier<String> {
     public String get() {
         StringBuilder output = new StringBuilder();
 
-        double x0 = Double.parseDouble(x.getTrueValue());
-        double y0 = Double.parseDouble(y.getTrueValue());
-        double r = Double.parseDouble(radius.getTrueValue());
-        int segments = Integer.parseInt(vertices.getTrueValue());
-        double theta0 = Double.parseDouble(thetaOffset.getTrueValue());
+        double x0 = Double.parseDouble(x.getText());
+        double y0 = Double.parseDouble(y.getText());
+        double r = Double.parseDouble(radius.getText());
+        int segments = Integer.parseInt(vertices.getText());
+        double theta0 = Double.parseDouble(thetaOffset.getText());
 
         double dTheta = (2.0 * Math.PI) / (segments - 1);
 
@@ -220,17 +221,17 @@ class PointsToSVGEditor extends JPanel implements Supplier<String> {
     private static class PointEntry extends JPanel {
         private FilteredJTextField x, y;
         public PointEntry() {
-            x = FilteredJTextField.rationals(this, 0);
-            y = FilteredJTextField.rationals(this, 0);
+            x = FilteredJTextField.rationals(0);
+            y = FilteredJTextField.rationals(0);
             setLayout(new GridLayout(1, 2));
             add(x);
             add(y);
         }
         public float x() {
-            return Float.parseFloat(x.getTrueValue());
+            return Float.parseFloat(x.getText());
         }
         public float y() {
-            return Float.parseFloat(y.getTrueValue());
+            return Float.parseFloat(y.getText());
         }
     }
 
