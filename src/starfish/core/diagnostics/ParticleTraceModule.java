@@ -12,6 +12,7 @@ import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
+import starfish.core.diagnostics.AnimationModule.Animation;
 import starfish.core.io.InputParser;
 import starfish.core.io.TecplotWriter;
 import starfish.core.io.VTKWriter;
@@ -30,12 +31,8 @@ public class ParticleTraceModule extends CommandModule {
 	public void process(Element element) {
 
 		Tracer tracer = new Tracer(element);
-		if (tracer.traces!=null)		//add if we have active traces
-			tracers.add(new Tracer(element));
+		Starfish.diagnostics_module.addDiagnostic(tracer);
 	}
-
-	//list of existing "particle_trace" commands
-	ArrayList<Tracer> tracers = new ArrayList<Tracer>();
 
 	@Override
 	public void start() {
@@ -43,35 +40,9 @@ public class ParticleTraceModule extends CommandModule {
 
 	@Override
 	public void exit() {
-		for (Tracer tracer : tracers)
-			tracer.close();
+		/* do nothing */
 	}
 
-
-	/**
-	 * saves new trace for the specified particle
-	 * 
-	 * @param part
-	 * @return returns whether the trace *exists* for this particle, will add true even if data not added due to skip_ts settings
-	 */
-	public boolean addTrace(KineticMaterial km, Particle part) {
-		for (Tracer tracer:tracers)
-		{
-			if (tracer.km!=km) continue;
-			
-			int ts = Starfish.getIt();
-				
-			for (ParticleTrace trace:tracer.traces) {
-				if (trace.id==part.id) {
-					if (ts>=tracer.start_ts && (tracer.end_ts<=0 || tracer.end_ts>ts) && (ts-tracer.start_ts)%tracer.skip_ts==0)
-						trace.addParticle(part);
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-	
 
 	public class ParticleTrace {
 		public int id;			/** particle id */
@@ -83,20 +54,24 @@ public class ParticleTraceModule extends CommandModule {
 			samples.add(new Particle(part));
 			time_steps.add(Starfish.getIt());
 		}
+		boolean active = true;
 
 
 	}
 	
 	//data associated with a single "particle_trace" command
-	class Tracer {
+	class Tracer implements DiagnosticsModule.Diagnostic {
 		int start_ts;  // iteration to start sampling */
 		int end_ts; 	// time step to stop sampling
 		int skip_ts;	// number of time steps between sampling
+		int output_skip;  // number of samples between output
 		
 		KineticMaterial km;
 		Writer writer;
 		
 		ParticleTrace traces[];
+		
+		int n_unsaved = 0;
 		
 		
 		Tracer(Element element) {
@@ -137,6 +112,7 @@ public class ParticleTraceModule extends CommandModule {
 			start_ts = InputParser.getInt("start_it", element, 0);
 			end_ts = InputParser.getInt("start_it", element, 0);
 			skip_ts = InputParser.getInt("skip_it", element,-1);
+			output_skip = InputParser.getInt("output_skip", element, 100);
 			
 			if (format.equalsIgnoreCase("VTK"))
 				writer = new VTKWriter(element);
@@ -149,9 +125,33 @@ public class ParticleTraceModule extends CommandModule {
 		}
 
 		
-		void close() {
+		public void exit() {
+
 			writer.writeTraces(traces);
 			writer.close();
+		}
+		
+		public void sample(boolean force) {
+			if (km==null) return;
+			
+			int ts = Starfish.getIt();
+			if (force || ts>=start_ts && (end_ts<=0 || end_ts>ts) && (ts-start_ts)%skip_ts==0) {
+				for (ParticleTrace trace:traces) {
+					if (trace.active) {
+						Particle part = km.getParticle(trace.id);
+						if (part!=null)
+							trace.addParticle(part);
+						else if (trace.samples.size()>0)  // deactivate if already got data 
+							trace.active=false;
+					}
+				}
+			}
+			
+			n_unsaved++;
+			if (n_unsaved%output_skip==0) {
+				writer.writeTraces(traces);
+			}
+				
 		}
 	}
 }
