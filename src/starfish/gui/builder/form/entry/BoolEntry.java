@@ -2,7 +2,7 @@ package starfish.gui.builder.form.entry;
 
 import javax.swing.*;
 
-class BoolEntry extends Entry {
+class BoolEntry extends AbstractEntry {
 
     private String tagName;
     private JCheckBox checkBox;

@@ -48,21 +48,21 @@ public class SimulationRunner extends JPanel {
         buttonGroup.add(start);
         start.setToolTipText("Start or resume the simulation");
         start.setMnemonic('r');
-        start.setIcon(new ImageIcon(GUI.class.getResource("/starfish/gui/start.png")));
+        start.setIcon(new ImageIcon(GUI.class.getResource("/gui/start.png")));
         start.addActionListener(arg0 -> start());
 
         JToggleButton pause = new JToggleButton("");
         buttonGroup.add(pause);
         pause.setToolTipText("Pause a running simulation");
         pause.setMnemonic('p');
-        pause.setIcon(new ImageIcon(GUI.class.getResource("/starfish/gui/pause.png")));
+        pause.setIcon(new ImageIcon(GUI.class.getResource("/gui/pause.png")));
         pause.addActionListener(arg0 -> pause());
 
         JToggleButton stop = new JToggleButton("");
         buttonGroup.add(stop);
         stop.setToolTipText("Terminate a running simulation");
         stop.setMnemonic('s');
-        stop.setIcon(new ImageIcon(GUI.class.getResource("/starfish/gui/stop.png")));
+        stop.setIcon(new ImageIcon(GUI.class.getResource("/gui/stop.png")));
         stop.addActionListener(arg0 -> stop());
 
         progressBar = new JProgressBar();
@@ -112,7 +112,7 @@ public class SimulationRunner extends JPanel {
         if (file != null) {
             Options options = createOptions();
             options.sim_file = file.getName();
-            options.wd = file.getParent() + "\\";
+            options.wd = file.getParent() + System.getProperty("file.separator");
             simQueue.enqueue(options);
         }
     }

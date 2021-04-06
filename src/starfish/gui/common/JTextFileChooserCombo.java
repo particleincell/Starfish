@@ -55,8 +55,12 @@ public class JTextFileChooserCombo extends JPanel {
         textField.setText(file.getAbsolutePath());
         tryToCallOnUpdate(file);
     }
+
+    /**
+     * @return Returns File if user selected something, null if no file is selected
+     */
     public File getValue() {
-        return new File(textField.getText());
+        return textField.getText().isBlank() ? null : new File(textField.getText());
     }
 
     private Consumer<File> onUpdate;

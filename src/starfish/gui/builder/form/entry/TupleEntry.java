@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class TupleEntry<T extends Entry> extends Entry {
+public class TupleEntry<T extends AbstractEntry> extends AbstractEntry {
 
     private String tagName;
     private int elements;

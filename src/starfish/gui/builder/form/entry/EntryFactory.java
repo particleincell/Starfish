@@ -9,14 +9,14 @@ import starfish.gui.builder.form.exceptions.UnknownTypeException;
 
 public class EntryFactory {
 
-    public static Entry makeEntry(Element element) throws UnknownConfigFileTagNameException, UnknownTypeException,
+    public static AbstractEntry makeEntry(Element element) throws UnknownConfigFileTagNameException, UnknownTypeException,
             InvalidDefaultValueFormatException {
         String name = element.getAttribute("name");
         String description = element.getAttribute("description");
         String type = element.getAttribute("type").toLowerCase();
         String defaultValue = element.getAttribute("default");
 
-        Entry output;
+        AbstractEntry output;
         // Types defined in section VI of Starfish user guide
         if ("int".equals(type)) {
             if (defaultValue.isEmpty()) {
@@ -27,13 +27,14 @@ public class EntryFactory {
                 parsedDefaultValue = Integer.parseInt(defaultValue);
             } catch (NumberFormatException e) {
                 throw new InvalidDefaultValueFormatException(defaultValue, type,
-                        "an integer in the range [-2^31, 2^31 - 1]");
+                        "An integer in the range [-2^31, 2^31 - 1]");
             }
-            output = new IntEntry(name, description, parsedDefaultValue);
+            output = new Entry.EntryBuilder(name)
+                    .acceptsInts(parsedDefaultValue)
+                    .hasDescription(description)
+                    .build();
         }/* else if ("int2".equals(type)) {
-            output = new Int2Entry(name);
-        } else if ("i_list".equals(type)) { // elp
-            output = new StringEntry(type);
+        } else if ("i_list".equals(type)) {
         }*/ else if ("float".equals(type)) {
             if (defaultValue.isEmpty()) {
                 defaultValue = "0";
@@ -44,26 +45,36 @@ public class EntryFactory {
             } catch (NumberFormatException e) {
                 throw new InvalidDefaultValueFormatException(defaultValue, type, "A rational number");
             }
-            output = new FloatEntry(name, description, parsedDefaultValue);
+            output = new Entry.EntryBuilder(name)
+                    .acceptsFloats(parsedDefaultValue)
+                    .hasDescription(description)
+                    .build();
         } /*else if ("float2".equals(type)) {
-            output = new Float2Entry(name);
-        } else if ("f_list".equals(type)) { // elp
-            output = new StringEntry(name);*/
-        else if (type.matches("int|int2|i_list|float|float2|f_list")) {
-            output = new StringEntry(name, description, defaultValue);
+        } else if ("f_list".equals(type)) { */
+        else if (type.matches("int2|int3|i_list|float2|float3|f_list")) {
+            output = new Entry.EntryBuilder(name)
+                    .acceptsStrings(defaultValue)
+                    .hasDescription(description)
+                    .build();
         } else if ("bool".equals(type)) {
-            if (!defaultValue.matches(DataTypeRegex.BOOL) && !defaultValue.isEmpty()) {
-                throw new InvalidDefaultValueFormatException(defaultValue, type, DataTypeRegex.BOOL);
+            final String BOOL_REGEX = "(?i)true|false";
+            if (!defaultValue.matches(BOOL_REGEX) && !defaultValue.isEmpty()) {
+                throw new InvalidDefaultValueFormatException(defaultValue, type, BOOL_REGEX);
             }
             output = new BoolEntry(name, Boolean.parseBoolean(defaultValue));
         } else if ("string".equals(type)) {
-            output = new StringEntry(name, description, defaultValue);
-        } else if ("s_list".equals(type)) { // elp
-            output = new StringEntry(name);
-        } else if ("s_pairs".equals(type)) { // elp
-            output = new StringEntry(name);
-        } else if ("s_tuples".equals(type)) { // elp
-            output = new StringEntry(name);
+            output = new Entry.EntryBuilder(name)
+                    .acceptsStrings(defaultValue)
+                    .hasDescription(description)
+                    .build();
+        } /*else if ("s_list".equals(type)) {
+        } else if ("s_pairs".equals(type)) {
+        } else if ("s_tuples".equals(type)) {*/
+        else if (type.matches("s_list|s_pairs|s_tuples")) {
+            output = new Entry.EntryBuilder(name)
+                    .acceptsStrings(defaultValue)
+                    .hasDescription(description)
+                    .build();
         // Custom types
         } else if ("enum".equals(type)) {
             String[] enumValues = getEnumValues(element);
@@ -73,6 +84,12 @@ public class EntryFactory {
         } else {
             throw new UnknownTypeException(type);
         }
+
+        String condition = element.getAttribute("condition");
+        if (!condition.isBlank()) {
+            output.setCondition(condition);
+        }
+
         return output;
     }
 

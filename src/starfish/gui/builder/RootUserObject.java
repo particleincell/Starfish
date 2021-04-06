@@ -18,7 +18,7 @@ public class RootUserObject {
             }
         };
         output.setLayout(new BoxLayout(output, BoxLayout.Y_AXIS));
-        InputStream is = RootUserObject.class.getResourceAsStream("SimBuilderHowTo.html");
+        InputStream is = RootUserObject.class.getResourceAsStream("/gui/builder/SimBuilderHowTo.html");
         String htmlString;
         try {
             htmlString = new String(is.readAllBytes(), StandardCharsets.UTF_8);

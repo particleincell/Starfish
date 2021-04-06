@@ -1,12 +1,13 @@
 package starfish.gui.builder.form;
 
 import org.w3c.dom.Element;
-import starfish.gui.builder.form.entry.Entry;
+import starfish.gui.builder.form.entry.AbstractEntry;
 import starfish.gui.common.GUIUtil;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * A form with fields
@@ -16,17 +17,25 @@ public class FormSection extends FormNode {
     private String tagName;
     private String description;
     private boolean allowsChildren;
-    private List<Entry> entries;
+    private List<AbstractEntry> entries;
 
-    public FormSection(String tagName, String description, boolean allowsChildren, List<Entry> entries) {
+    public FormSection(String tagName, String description, boolean allowsChildren, List<AbstractEntry> entries) {
         this.tagName = tagName;
         this.description = description;
         this.allowsChildren = allowsChildren;
         this.entries = entries;
         setPreferredSize(new Dimension(0, 0));
         fillContainer(entries);
+
+        Consumer<String[]> listener = arr -> updateValue(arr[0], arr[1]);
+        for (AbstractEntry entry : entries) {
+            entry.setValueListener(listener);
+        }
+        for (AbstractEntry entry : entries) {
+            entry.onValueUpdate();
+        }
     }
-    private void fillContainer(List<Entry> entries) {
+    private void fillContainer(List<AbstractEntry> entries) {
         setLayout(new GridBagLayout());
         JLabel title = new JLabel(GUIUtil.htmlWrap(String.format("<h1>%s</h1><p>%s</p>", tagName, description)));
 
@@ -37,7 +46,7 @@ public class FormSection extends FormNode {
         c.gridy = 0;
         add(title, c);
 
-        for (Entry entry : entries) {
+        for (AbstractEntry entry : entries) {
             c.gridy += 1;
             add(entry, c);
         }
@@ -47,10 +56,16 @@ public class FormSection extends FormNode {
         add(Box.createVerticalGlue(), c);
     }
 
+    private void updateValue(String var, String val) {
+        for (AbstractEntry entry : entries) {
+            entry.updateCondition(var, val);
+        }
+    }
+
     @Override
     public Element outputSelfTo(Element parent) {
         Element newSection = parent.getOwnerDocument().createElement(tagName);
-        for (Entry node : entries) {
+        for (AbstractEntry node : entries) {
             if (!node.getValue().isEmpty()) {
                 node.outputSelfTo(newSection);
             }

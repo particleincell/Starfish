@@ -12,6 +12,8 @@ public class EnumEntry extends RegularEntry {
         this.tagName = tagName;
         this.jComboBox = new JComboBox<>(choices);
         populate(tagName, description, jComboBox);
+
+        jComboBox.addActionListener(arg0 -> onValueUpdate());
     }
 
     @Override

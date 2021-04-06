@@ -32,7 +32,7 @@ public class GUISettings extends JTabbedPane {
     }
     private JPanel createBuilderSettingsPanel() {
         Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-        String dir = prefs.get("sim_builder_blueprints", new File("simbuilder.xml").getAbsolutePath());
+        String dir = prefs.get("sim_builder_blueprints", "");
         simBuilderChooser = new JTextFileChooserCombo(dir, ".xml files", "xml");
         simBuilderChooser.setOnUpdate(file -> {
             prefs.put("sim_builder_blueprints", file.getAbsolutePath());
@@ -58,7 +58,7 @@ public class GUISettings extends JTabbedPane {
         randomize.setToolTipText("If false, the random number generator will be seeded to the same value each time");
         randomize.setSelected(options.randomize);
 
-        maxThreads = FilteredJTextField.positiveIntegers(this, options.max_cores);
+        maxThreads = FilteredJTextField.positiveIntegers(options.max_cores);
         maxThreads.setToolTipText("The maximum number of threads the code will use by default.");
 
         logLevel = new JComboBox<>(new String[] {"info"});
@@ -103,7 +103,7 @@ public class GUISettings extends JTabbedPane {
         return randomize.isSelected();
     }
     public int maxThreads() {
-        return Integer.parseInt(maxThreads.getTrueValue());
+        return Integer.parseInt(maxThreads.getText());
     }
     public String logLevel() {
         return logLevel.toString();

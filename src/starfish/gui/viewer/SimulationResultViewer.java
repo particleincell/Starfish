@@ -17,14 +17,6 @@ import java.util.List;
 
 public class SimulationResultViewer extends JPanel {
 
-    static {
-        if (!vtkNativeLibrary.LoadAllNativeLibraries()) {
-            JOptionPane.showMessageDialog(null, "Unable to load data visualization library. " +
-                    "Try using the headless version of Starfish.");
-        }
-        vtkNativeLibrary.DisableOutputWindow(null);
-    }
-
     private SimulationRunner simRunner;
 
     private File vtkTempFile;

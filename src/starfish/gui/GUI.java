@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -28,11 +29,13 @@ public class GUI extends JFrame {
             }
 
             try {
-                gui = new GUI(options, plugins);
-                gui.setVisible(true);
+                LibraryLoader.tryLoad();
+
             } catch (Exception e) {
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, e);
             }
+            gui = new GUI(options, plugins);
+            gui.setVisible(true);
         });
     }
 
@@ -61,7 +64,12 @@ public class GUI extends JFrame {
         simulationResultViewer = new SimulationResultViewer(simulationRunner);
 
         try {
-            simulationFileBuilder.addCommandsFrom(settings.getSimBuilderBlueprintFile());
+            File simBuilderFile = new File(GUI.class.getResource("/gui/builder/simbuilder.xml").getPath());
+            simulationFileBuilder.addCommandsFrom(simBuilderFile);
+            File userDeterminedSimBuilderFile = settings.getSimBuilderBlueprintFile();
+            if (userDeterminedSimBuilderFile != null) {
+                simulationFileBuilder.addCommandsFrom(userDeterminedSimBuilderFile);
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
                     "Something went wrong when loading sim builder blueprint file - \n"
@@ -73,7 +81,7 @@ public class GUI extends JFrame {
         setContentPane(contentPane);
     }
     private void applyFrameCustomization() {
-        URL icon = GUI.class.getResource("/starfish/gui/starfish-100.png");
+        URL icon = GUI.class.getResource("/gui/starfish-100.png");
         setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
 
         setTitle("Starfish " + Starfish.VERSION);
@@ -174,7 +182,7 @@ public class GUI extends JFrame {
     }
 
     private static void showAboutInformation() {
-        ImageIcon icon = new ImageIcon(GUI.class.getResource("/starfish/gui/starfish-100.png"));
+        ImageIcon icon = new ImageIcon(GUI.class.getResource("/gui/starfish-100.png"));
         JOptionPane.showMessageDialog(gui,
                 "Starfish Plasma / Rarefied Gas Simulation Code " + Starfish.VERSION + "\n" +
                         "(c) 2012-2019, Particle In Cell Consulting LLC\n" +

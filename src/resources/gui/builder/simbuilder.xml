@@ -310,6 +310,59 @@ Products are then generated accordingly and source material densities are deplet
     generate mass within the computational mesh. ">
     </blueprint>
 
+    <blueprint name="boundary_source" required="false" allows_children="false" description="Specifies material sources.
+    Starfish supports three types of sources: boundary that inject mass along a specified boundary, material sources
+    that act like boundary sources but are applied to all boundaries with the given material, and volume source that
+    generate mass within the computational mesh. ">
+        <entry name="name"/>
+        <entry name="type" type="enum">
+            <enum_choice>UNIFORM</enum_choice>
+            <enum_choice>MAXWELLIAN</enum_choice>
+            <enum_choice>AMBIENT</enum_choice>
+            <enum_choice>COSINE</enum_choice>
+        </entry>
+        <entry name="material" type="string" description="Name of the injected material"/>
+        <entry name="boundary" type="string" description="Surface boundary name to attack source to"/>
+
+        <!-- type=UNIFORM and MAXWELLIAN and COSINE-->
+        <entry name="mdot" type="float" condition="type/(UNIFORM|MAXWELLIAN|COSINE)" description="Mass flow rate in kg/s"/>
+        <entry name="v_drift" type="float" condition="type/(UNIFORM|MAXWELLIAN|COSINE)" description="Drift velocity in m/s"/>
+
+        <!-- type=MAXWELLIAN -->
+        <entry name="current" type="float" condition="type/MAXWELLIAN" description="Current to inject in A"/>
+        <entry name="mp_count" type="int" condition="type/MAXWELLIAN"
+               description="Number of simulation particles to inject"/>
+        <entry name="temperature" type="float" condition="type/MAXWELLIAN" description="Temperature in K"/>
+        <entry name="start_it" type="int" default="0" condition="type/MAXWELLIAN"
+               description="Time step to begin injection"/>
+        <entry name="end_it" type="int" default="-1" condition="type/MAXWELLIAN"
+               description="time step to end injection"/>
+
+        <!-- type=AMBIENT -->
+        <entry name="drift_velocity" type="float3" default="0,0,0" condition="type/AMBIENT"
+               description="Drift velocity to apply to sampled material"/>
+        <entry name="temperature" type="float" condition="type/AMBIENT"
+               description="Assumed gas temperature in K, controls injection velocity and also used to scale pressure
+                to density from ??"/>
+        <entry name="enforce" type="enum" condition="type/AMBIENT">
+            <enum_choice>TOTAL_PRESSURE</enum_choice>
+            <enum_choice>PARTIAL_PRESSURE</enum_choice>
+            <enum_choice>DENSITY</enum_choice>
+        </entry>
+        <entry name="density" type="float" condition="type/AMBIENT"
+               description="Required for enforce=”DENSITY”, controls the desired number density in #/m^-3"/>
+        <entry name="total_pressure" type="float" condition="type/AMBIENT"
+               description="Required for enforce=”TOTAL_PRESSURE” or “PARTIAL_PRESSURE”, in Pa"/>
+        <entry name="partial_pressure" type="float" condition="type/AMBIENT"
+               description="Required for enforce=”PARTIAL_PRESSURE”, used to control the desired species fraction per ??"/>
+
+        <!-- type=TERMIONIC -->
+        <entry name="lambda_r" type="float" default=".5" condition="type/TERMIONIC"
+               description="Coefficient for emission current calculation"/>
+        <entry name="use_field" type="boolean" default="true" condition="type/TERMIONIC"
+               description="Controls whether Schottky (local electric field) emission should be included."/>
+    </blueprint>
+
     <!-- SOLVER -->
     <blueprint name="solver" required="false" allows_children="false"
                description="Activates a field solver. Currently only plasma potential solvers are implemented.">
@@ -326,8 +379,20 @@ Products are then generated accordingly and source material densities are deplet
                description="Maximum number of solver iterations for a non-linear solver"/>
         <entry name="nl_tol" type="float" default="1e-4" description="Non-linear solver tolerance."/>
 
-    </blueprint>
+        <entry name="comps" type="float2" condition="type/CONSTANT-EF" description="Values for E_i, E_j in V/m"/>
 
-    <!-- CUSTOM PLUGINS BELOW HERE -->
+        <entry name="n0" type="float" condition="type/QN" description="Reference number density, #/m^3"/>
+        <entry name="Te0" type="float" condition="type/QN" description="Reference temperature in eV"/>
+        <entry name="phi0" type="float" condition="type/QN" description="Reference potential in V"/>
+
+        <entry name="linear" type="bool" default="false" condition="type/POISSON"
+               description="Controls how the electron density term is computed."/>
+        <entry name="n0" type="float" default="1e15" condition="type/POISSON"
+               description="Reference density for the non-linear term in #/m^3"/>
+        <entry name="Te0" type="float" default="1" condition="type/POISSON"
+               description="Reference temperature for the non-linear term in eV"/>
+        <entry name="phi0" type="float" default="0" condition="type/POISSON"
+               description="Reference potential for the non-linear term in V"/>
+    </blueprint>
 
 </root>
