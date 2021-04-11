@@ -55,7 +55,7 @@ public abstract class Writer {
 	protected double[][][] time_data; // [time_line][variable][i/j]
 	protected double[] time_data_time; // time corresponding to each line
 
-	int resolution; // for three-D rotation
+	int theta_sections; // for three-D rotation
 	String fileName;
 
 	/* for particles */
@@ -105,7 +105,7 @@ public abstract class Writer {
 	public void init3D(String[] scalars, ArrayList<String[]> vectors, String[] cell_data, Element element) {
 
 		// number of cells in the theta direction
-		resolution = InputParser.getInt("resolution", element, 45);
+		theta_sections = InputParser.getInt("resolution", element, 45);
 
 		/* call main open function */
 		init2D(scalars, vectors, cell_data, element);
@@ -263,6 +263,11 @@ public abstract class Writer {
 		/* save vars */
 		this.scalars = new String[temp_length];
 		System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);
+		
+		// number of cells in the theta direction
+		theta_sections = InputParser.getInt("theta_sections", element, 1);
+		if (theta_sections<1 || Starfish.getDomainType()==DomainType.XY) 
+			theta_sections=1;	// default non-rotated version
 	}
 
 	/**

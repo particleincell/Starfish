@@ -103,18 +103,18 @@ public class VTKWriter extends Writer {
 
 			pw.println("<VTKFile type=\"UnstructuredGrid\"" + endianess + ">");
 			pw.println("<UnstructuredGrid>");
-			pw.printf("<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n", mesh.n_nodes * (resolution),
-					mesh.n_cells * (resolution - 1));
+			pw.printf("<Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n", mesh.n_nodes * (theta_sections),
+					mesh.n_cells * (theta_sections - 1));
 
 			pw.println("<Points>");
 
-			double pos[] = new double[mesh.ni * mesh.nj * resolution];
+			double pos[] = new double[mesh.ni * mesh.nj * theta_sections];
 			int a = 0;
 
-			for (int k = 0; k < resolution; k++) {
+			for (int k = 0; k < theta_sections; k++) {
 				// first and last slice is duplicated to simplify cell writing, hopefully
 				// Paraview can deal with this fine
-				double theta = k * 2 * Math.PI / (resolution - 1);
+				double theta = k * 2 * Math.PI / (theta_sections - 1);
 				for (int i = 0; i < mesh.ni; i++)
 					for (int j = 0; j < mesh.nj; j++) {
 						double x[] = mesh.pos(i, j);
@@ -135,9 +135,9 @@ public class VTKWriter extends Writer {
 			// these get written out as ASCII for now
 			pw.println("<Cells>");
 
-			int con[] = new int[8 * (mesh.ni - 1) * (mesh.nj - 1) * (resolution - 1)];
+			int con[] = new int[8 * (mesh.ni - 1) * (mesh.nj - 1) * (theta_sections - 1)];
 			a = 0;
-			for (int m = 0; m < resolution - 1; m++) {
+			for (int m = 0; m < theta_sections - 1; m++) {
 				for (int j = 0; j < mesh.nj - 1; j++)
 					for (int i = 0; i < mesh.ni - 1; i++) {
 						int d1 = m * mesh.n_nodes;
@@ -154,13 +154,13 @@ public class VTKWriter extends Writer {
 			}
 			outputDataArrayScalar(pw, "connectivity", con);
 
-			int offsets[] = new int[(resolution - 1) * mesh.n_cells];
-			for (int c = 0; c < (resolution - 1) * mesh.n_cells; c++)
+			int offsets[] = new int[(theta_sections - 1) * mesh.n_cells];
+			for (int c = 0; c < (theta_sections - 1) * mesh.n_cells; c++)
 				offsets[c] = (c + 1) * 8;
 			outputDataArrayScalar(pw, "offsets", offsets);
 
-			int types[] = new int[(resolution - 1) * mesh.n_cells];
-			for (int c = 0; c < (resolution - 1) * mesh.n_cells; c++)
+			int types[] = new int[(theta_sections - 1) * mesh.n_cells];
+			for (int c = 0; c < (theta_sections - 1) * mesh.n_cells; c++)
 				types[c] = 12; // VTK_HEXAHEDRON
 			outputDataArrayScalar(pw, "types", types);
 
@@ -175,9 +175,9 @@ public class VTKWriter extends Writer {
 			for (String var : cell_data) {
 				double data[][] = Starfish.domain_module.getField(mesh, var).getData();
 
-				double data3c[] = new double[(resolution - 1) * (mesh.nj - 1) * (mesh.ni - 1)];
+				double data3c[] = new double[(theta_sections - 1) * (mesh.nj - 1) * (mesh.ni - 1)];
 
-				for (int m = 0; m < resolution - 1; m++)
+				for (int m = 0; m < theta_sections - 1; m++)
 					for (int j = 0; j < mesh.nj - 1; j++)
 						for (int i = 0; i < mesh.ni - 1; i++)
 							data3c[a++] = data[i][j];
@@ -189,9 +189,9 @@ public class VTKWriter extends Writer {
 			// ***********
 			pw.println("<PointData>");
 
-			int data3i[] = new int[mesh.ni * mesh.nj * resolution];
+			int data3i[] = new int[mesh.ni * mesh.nj * theta_sections];
 			a = 0;
-			for (int m = 0; m < resolution; m++)
+			for (int m = 0; m < theta_sections; m++)
 				for (int j = 0; j < mesh.nj; j++)
 					for (int i = 0; i < mesh.ni; i++)
 						data3i[a++] = mesh.getNode(i, j).type.value();
@@ -202,10 +202,10 @@ public class VTKWriter extends Writer {
 				// if (!Starfish.output_module.validateVar(var)) continue;
 				double data[][] = Starfish.domain_module.getField(mesh, var).getData();
 
-				double data3[] = new double[mesh.ni * mesh.nj * resolution];
+				double data3[] = new double[mesh.ni * mesh.nj * theta_sections];
 				a = 0;
 
-				for (int m = 0; m < resolution; m++)
+				for (int m = 0; m < theta_sections; m++)
 					for (int j = 0; j < mesh.nj; j++)
 						for (int i = 0; i < mesh.ni; i++)
 							data3[a++] = data[i][j];
@@ -218,10 +218,10 @@ public class VTKWriter extends Writer {
 				// if (!Starfish.output_module.validateVar(var)) continue;
 				double data1[][] = Starfish.domain_module.getField(mesh, vars[0]).getData();
 				double data2[][] = Starfish.domain_module.getField(mesh, vars[1]).getData();
-				double vec3[] = new double[mesh.ni * mesh.nj * resolution * 3];
+				double vec3[] = new double[mesh.ni * mesh.nj * theta_sections * 3];
 				a = 0;
 
-				for (int m = 0; m < resolution; m++)
+				for (int m = 0; m < theta_sections; m++)
 					for (int j = 0; j < mesh.nj; j++)
 						for (int i = 0; i < mesh.ni; i++) {
 							vec3[a++] = data1[i][j];
@@ -767,12 +767,21 @@ public class VTKWriter extends Writer {
 		/* count number of points */
 		int num_points = 0;
 		int num_lines = 0;
+		int num_polys = 0;
 		ArrayList<Boundary> bl = Starfish.getBoundaryList();
 
 		for (Boundary boundary : bl) {
 			num_points += boundary.numPoints();
 			num_lines += boundary.numPoints() - 1;
 		}
+		
+		num_points *= theta_sections;
+		if (theta_sections>1) {
+			num_polys = num_lines*theta_sections;
+			num_lines = 0;
+		}
+		
+		DomainType dt = Starfish.getDomainType();
 
 		PrintWriter pw = open(fileName);
 		appendedData = new ByteArrayOutputStream();
@@ -781,69 +790,143 @@ public class VTKWriter extends Writer {
 		pw.println("<VTKFile type=\"PolyData\"" + endianess + ">");
 		pw.println("<PolyData>");
 		pw.printf("<Piece NumberOfPoints=\"%d\" NumberOfVerts=\"0\" "
-				+ "NumberOfLines=\"%d\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n", num_points, num_lines);
+				+ "NumberOfLines=\"%d\" NumberOfStrips=\"0\" NumberOfPolys=\"%d\">\n", 
+				num_points, num_lines, num_polys);
 
 		pw.println("<Points>");
 		double vec[] = new double[num_points * 3];
 		int a = 0;
-		for (Boundary boundary : bl)
-			for (int i = 0; i < boundary.numPoints(); i++) {
-				double x[] = boundary.getPoint(i);
-				vec[a++] = x[0];
-				vec[a++] = x[1];
-				vec[a++] = 0;
-			}
+		
+		for (int k=0;k<theta_sections;k++)
+		{
+			double theta = 2*Math.PI*k/((double)theta_sections);	// so that k=theta_sections would close the circle
+			for (Boundary boundary : bl)
+				for (int i = 0; i < boundary.numPoints(); i++) {
+					double x[] = boundary.getPoint(i);
+					if (dt==DomainType.XY)  {
+						vec[a++] = x[0];
+						vec[a++] = x[1];
+						vec[a++] = 0;
+					}
+					else if (dt==DomainType.RZ) {
+						vec[a++] = x[0]*Math.cos(theta);
+						vec[a++] = x[0]*Math.sin(theta);
+						vec[a++] = x[1];
+					}
+					else if (dt==DomainType.ZR) {
+						vec[a++] = x[0];
+						vec[a++] = x[1]*Math.cos(theta);
+						vec[a++] = x[1]*Math.sin(theta);
+						
+					}
+				}
+		}
 		outputDataArrayVec(pw, "pos", vec);
 		pw.println("</Points>");
 
-		pw.println("<Lines>");
-		int con[] = new int[num_points * 2];
-		a = 0;
-		int p0 = 0;
-		for (Boundary boundary : bl) {
-			for (int i = 0; i < boundary.numPoints() - 1; i++) {
-				con[a++] = p0 + i;
-				con[a++] = p0 + i + 1;
+		if (num_lines>0) {
+			pw.println("<Lines>");
+			int con[] = new int[num_points * 2];
+			a = 0;
+			int p0 = 0;
+			for (Boundary boundary : bl) {
+				for (int i = 0; i < boundary.numPoints() - 1; i++) {
+					con[a++] = p0 + i;
+					con[a++] = p0 + i + 1;
+				}
+				p0 += boundary.numPoints();
 			}
-			p0 += boundary.numPoints();
+			outputDataArrayScalar(pw, "connectivity", con);
+	
+			int off[] = new int[num_points];
+			p0 = 2;
+			a = 0;
+			for (Boundary boundary : bl) {
+				for (int i = 0; i < boundary.numPoints() - 1; i++, p0 += 2)
+					off[a++] = p0;
+			}
+			outputDataArrayScalar(pw, "offsets", con);
+			pw.println("</Lines>");
 		}
-		outputDataArrayScalar(pw, "connectivity", con);
-
-		p0 = 2;
-		a = 0;
-		for (Boundary boundary : bl) {
-			for (int i = 0; i < boundary.numPoints() - 1; i++, p0 += 2)
-				con[a++] = p0;
-		}
-		outputDataArrayScalar(pw, "offsets", con);
-		pw.println("</Lines>");
-
+		else {   /*output polygons*/
+			pw.println("<Polys>");
+			int con[] = new int[num_polys*4];
+			a = 0;
+			int num_points_line = num_points/theta_sections;
+			for (int k=0;k<theta_sections;k++) {
+				int p0 = 0;
+				
+				for (Boundary boundary : bl) {					
+					for (int i = 0; i < boundary.numPoints() - 1; i++) {
+						int i1 = k*num_points_line +i;
+						int i2 = ((k<theta_sections-1)?(k+1):0)*num_points_line+i;
+						
+						con[a++] = p0+i1;
+						con[a++] = p0+i1+1;					
+						con[a++] = p0+i2+1;
+						con[a++] = p0+i2;					
+						
+					}
+					p0 += boundary.numPoints();
+				}
+			}
+			outputDataArrayScalar(pw, "connectivity", con);
+	
+			a = 0;
+			int off[] = new int[num_polys];
+			for (int i=0;i<num_polys;i++)
+				off[a++] = 4*(i+1);
+			outputDataArrayScalar(pw, "offsets", off);
+			pw.println("</Polys>");
+		}	
+		
+	
 		/* normals */
 		pw.println("<CellData>");
 		double vec_c[] = new double[num_points * 3];
-		a = 0;
-		for (Boundary boundary : bl)
-			for (int i = 0; i < boundary.numPoints() - 1; i++) {
-				double norm[] = boundary.normal(i + 0.5);
-				vec_c[a++] = norm[0];
-				vec_c[a++] = norm[1];
-				vec_c[a++] = 0;
-			}
+		a = 0;		
+		for (int k=0;k<theta_sections;k++) {
+			double theta = 2*Math.PI*k/((double)theta_sections);	// so that k=theta_sections would close the circle
+
+			for (Boundary boundary : bl)
+				for (int i = 0; i < boundary.numPoints() - 1; i++) {
+					double norm[] = boundary.normal(i + 0.5);					
+					if (dt==DomainType.XY)  {
+						vec_c[a++] = norm[0];
+						vec_c[a++] = norm[1];
+						vec_c[a++] = 0;
+					}
+					else if (dt==DomainType.RZ) {
+						vec_c[a++] = norm[0]*Math.cos(theta);
+						vec_c[a++] = norm[0]*Math.sin(theta);
+						vec_c[a++] = norm[1];
+					}
+					else if (dt==DomainType.ZR) {
+						vec_c[a++] = norm[1]*Math.cos(theta);
+						vec_c[a++] = norm[1]*Math.sin(theta);
+						vec_c[a++] = norm[0];											
+					}					
+				}
+		}
 		outputDataArrayVec(pw, "normals", vec_c);
 
 		int data_c[] = new int[num_points];
 		a = 0;
-		for (Boundary boundary : bl)
-			for (int i = 0; i < boundary.numPoints() - 1; i++) {
-				data_c[a++] = boundary.getType().value();
-			}
+		for (int k=0;k<theta_sections;k++) {
+			for (Boundary boundary : bl)
+				for (int i = 0; i < boundary.numPoints() - 1; i++) {
+					data_c[a++] = boundary.getType().value();
+				}
+		}
 		outputDataArrayScalar(pw, "type", data_c);
 
 		a = 0;
-		for (int b = 0; b < bl.size(); b++) {
-			Boundary boundary = bl.get(b);
-			for (int i = 0; i < boundary.numPoints() - 1; i++) {
-				data_c[a++] = b;
+		for (int k=0;k<theta_sections;k++) {
+			for (int b = 0; b < bl.size(); b++) {
+				Boundary boundary = bl.get(b);
+				for (int i = 0; i < boundary.numPoints() - 1; i++) {
+					data_c[a++] = b;
+				}
 			}
 		}
 		outputDataArrayScalar(pw, "boundary_id", data_c);
@@ -854,10 +937,12 @@ public class VTKWriter extends Writer {
 		pw.println("<PointData>");
 		double data[] = new double[num_points];
 		a = 0;
-		/* first save node area */
-		for (Boundary boundary : bl) {
-			for (int i = 0; i < boundary.numPoints() - 1; i++)
-				data[a++] = boundary.nodeArea(i);
+		for (int k=0;k<theta_sections;k++) {
+			/* first save node area */
+			for (Boundary boundary : bl) {
+				for (int i = 0; i < boundary.numPoints() - 1; i++)
+					data[a++] = boundary.nodeArea(i);
+			}
 		}
 		outputDataArrayScalar(pw, "area", data);
 
@@ -867,13 +952,14 @@ public class VTKWriter extends Writer {
 				continue;
 			a = 0;
 
-			for (Boundary boundary : bl) {
-				double bdata[] = Starfish.boundary_module.getField(boundary, var).getData();
-				for (int i = 0; i < boundary.numPoints(); i++)
-					data[a++] = bdata[i];
+			for (int k=0;k<theta_sections;k++) {
+				for (Boundary boundary : bl) {
+					double bdata[] = Starfish.boundary_module.getField(boundary, var).getData();
+					for (int i = 0; i < boundary.numPoints(); i++)
+						data[a++] = bdata[i];
+				}
 			}
 			outputDataArrayScalar(pw, var, data);
-
 		}
 
 		pw.println("</PointData>");
