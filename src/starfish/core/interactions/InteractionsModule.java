@@ -128,7 +128,7 @@ public class InteractionsModule extends CommandModule
     /** cross-section
      * @param element
      * @return s*/
-    static public Sigma parseSigma(Element element)
+    static public Sigma     parseSigma(Element element)
     {
 	String sigma_name = InputParser.getValue("sigma", element);
 	double coeffs[] = InputParser.getDoubleList("sigma_coeffs", element, new double[0]);

@@ -175,7 +175,9 @@ public class TecplotReader extends Reader
 		else 
 		{
 			double x0[] = {IPOS[0][0],JPOS[0][0]};
-			double dh[] = {IPOS[1][0]-x0[0],JPOS[0][1]-x0[1]};
+			double xm[] = {IPOS[ni-1][nj-1],JPOS[ni-1][nj-1]};
+			
+			double dh[] = {(xm[0]-x0[0])/(ni-1),(xm[1]-x0[1])/(nj-1)};
 
 			mesh = new UniformMesh(nn, x0, dh, "TecplotReaderMesh", Starfish.domain_module.getDomainType());
 		}

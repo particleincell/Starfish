@@ -1,0 +1,70 @@
+<html>
+<body>
+    <h1>Simulation File Builder</h1>
+    <p>
+        To run a Starfish simulation, you need to create a XML file in which you describe the details of the
+        simulation and then load it into the Simulation Runner. This is a tool that generates the simulation XML file.
+    </p>
+    <h2>Structure of a Simulation File</h2>
+    <p>
+        Files consist of a sequence of commands which can either declare parameters or execute code. For example, the
+        &lt;time&gt; command can be used to declare how many iterations the simulation will last and how many seconds
+        each iteration is, and the &lt;starfish&gt; command will run the simulation.
+    </p>
+    <br>
+    <p>
+        Generally, simulation files will follow this structure:
+    </p>
+    <ol>
+        <li>Declarations</li>
+        <li>Running the simulation</li>
+        <li>Output</li>
+    </ol>
+    <h3>Part 1: Declarations</h3>
+    <p>
+        First, declare the parameters of the simulation. Generally, simulations will contain these commands:
+    </p>
+    <ul>
+        <li>
+            The &lt;time&gt; command is used to state how many iterations the simulation will last and
+            how many seconds will pass per iteration.
+        </li>
+        <li>
+            Use the &lt;domain&gt; command to choose which coordinate space the simulation uses, and nest
+            &lt;mesh&gt; commands in it to create meshes.
+        </li>
+        <li>The &lt;material&gt; command defines types of materials and their physical characteristics.</li>
+        <li>
+            The &lt;boundary&gt; command creates geometric objects in the simulation. These objects can be used,
+            for example, as physical barriers particles can interact with, or a region where particles will appear.
+        </li>
+        <li>
+            Use the &lt;sources&gt; command to declare how particles are to be injected into the simulation.
+        </li>
+        <li>
+            Use these material interaction commands to define what happens when materials interact:
+            <ul>
+                <li>&lt;surface_hit&gt; for interactions between materials and a surface boundary.</li>
+                <li>&lt;dmsc&gt;for interactions between two particles.</li>
+                <li>&lt;mcc&gt; for interactions between a particle and a fluid.</li>
+                <li>&lt;chemistry&gt; for interactions between two fluids.</li>
+            </ul>
+        </li>
+    </ul>
+    <p>These commands are parsed in order, so if you say a boundary X is made up of a material Y, the boundary
+        command must come after the material command because the material has not been defined yet.</p>
+    <h3>Part 2: Running the simulation</h3>
+    <p>
+        After setting everything up in part 1, use the &lt;starfish&gt; command and the simulation will run.
+    </p>
+    <h3>Part 3: Output</h3>
+    <p>
+       After the simulation has finished running, tell Starfish which field scalars, vectors, etc. to write to a file
+        using the &lt;output&gt; command.
+    </p>
+    <br>
+    <p>For a list of all commands, see the User Guide</p>
+    <h2>Creating Simulation File with Simulation File Builder</h2>
+    <p>By leaving an entry blank, it will be skipped over in the output.</p>
+</body>
+</html>

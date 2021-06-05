@@ -39,7 +39,7 @@
 <time>
 <num_it>400</num_it>
 <dt>1e-7</dt>
-</time>	
+</time>
 
 <!-- save animation -->
 <animation start_it="1" frequency="10">
@@ -51,7 +51,7 @@
 
 <!-- run simulation -->
 <starfish />
-        
+
 <!-- save mesh-based results in VTK format-->
 <output type="2D" file_name="results/field.vts" format="vtk">
 <scalars>phi, rho, nd.O+</scalars>
@@ -60,6 +60,7 @@
 
 <!-- save data along a single mesh grid line -->
 <output type="1D" file_name="results/profile.vts" format="vtk">
+    <type>1D</type>
 <mesh>mesh1</mesh>
 <index>J=0</index>
 <scalars>phi, rho, nd.o+</scalars>

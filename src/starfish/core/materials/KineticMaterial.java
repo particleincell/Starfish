@@ -310,17 +310,20 @@ public class KineticMaterial extends Material {
 			Field2D Bfi = md.Bfi;
 			Field2D Bfj = md.Bfj;
 			
+			double time = Starfish.getTime();  // for possible b-field scaling
+			double dt = Starfish.getDt();
+			
 			int p=0;
 			while (iterator.hasNext()) {
 			
 				//periodically yield to prevent lock up
-				if (++p%25==0) yield();
+				if (++p%500==0) Thread.yield();
 				
 				Particle part = iterator.next();
 
 				/* increment particle time and velocity */
 				if (!particle_transfer) {
-					part.dt += Starfish.getDt();
+					part.dt += dt; 
 
 					/* update velocity */
 					ef[0] = Efi.gather(part.lc);
@@ -335,6 +338,10 @@ public class KineticMaterial extends Material {
 						part.vel[0] += q_over_m * ef[0] * part.dt;
 						part.vel[1] += q_over_m * ef[1] * part.dt;
 					} else {
+						//double factor = Math.min(time/(2000*1e-12),1.0);
+						double factor = 1;
+						bf[0]*=factor;
+						bf[1]*=factor;
 						UpdateVelocityBoris(part, ef, bf);
 					}
 				}
@@ -373,8 +380,8 @@ public class KineticMaterial extends Material {
 					alive = ProcessBoundary(part, mesh, old, old_lc);
 
 					/* add post push/surface impact position to trace */
-					if (part.has_trace)
-						Starfish.particle_trace_module.addTrace(km, part);
+					//if (part.has_trace)
+					//	Starfish.particle_trace_module.addTrace(km, part);
 
 					if (!alive) {
 						iterator.remove();
@@ -782,8 +789,6 @@ public class KineticMaterial extends Material {
 		part.dt = 0;
 		part.id = part_id_counter++;
 
-		/* add particle trace, returns false if not traced */
-		part.has_trace = Starfish.particle_trace_module.addTrace(this,part);
 
 		md.addParticle(part);
 		return true;
@@ -1199,7 +1204,7 @@ public class KineticMaterial extends Material {
 		public double radius = 0; // particle radius, currently used only by droplets
 		public int id = -1; 	// particle id for plotting
 		public int born_it = -1;	// time step born for possible diagnostics
-		public boolean has_trace = false; // indicates whether the particle is being traced
+		public boolean attached = false; // temporary, used by grain particles on surface layer
 
 		/**
 		 * copy constructor
@@ -1222,7 +1227,6 @@ public class KineticMaterial extends Material {
 			dt = part.dt;
 			id = part.id;
 			born_it = part.born_it;
-			has_trace = part.has_trace;
 		}
 
 		/**

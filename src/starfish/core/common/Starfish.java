@@ -34,7 +34,6 @@ import java.util.*;
 
 import org.w3c.dom.Element;
 
-import main.Main.Options;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.BoundaryModule;
 import starfish.core.diagnostics.AnimationModule;
@@ -61,8 +60,7 @@ import starfish.core.materials.Material;
 import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
 import starfish.core.source.SourceModule;
-import starfish.gui.GUI;
-import starfish.gui.GUI.SimStatus;
+import starfish.gui.runner.SimulationRunner;
 
 public final class Starfish extends CommandModule implements UncaughtExceptionHandler {
 	/** simulation main loop */
@@ -129,9 +127,9 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	 * @param args
 	 * @param plugins
 	 */
-	public void start(Options options, List<Plugin> plugins, GUI gui) {
+	public void start(Options options, List<Plugin> plugins, SimulationRunner runner) {
 		try {
-			parent_gui = gui;
+			parent_simulation_runner = runner;
 			this.options = options;
 		    
 			/* initialize logger */
@@ -262,8 +260,8 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
 	public static DiagnosticsModule diagnostics_module;
 
-	public static GUI parent_gui;	
-	SimStatus status;
+	public static SimulationRunner parent_simulation_runner;
+	private SimStatus status;
 	
 	public void setStatus(SimStatus status) {this.status=status;}
 	public SimStatus getStatus() {return status;}
@@ -300,7 +298,20 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
 	/**
 	 *
-	 * @return random value in (0,0)
+	 * @return random value in [0,1]
+	 * No idea if this is actually the correct way of doing this
+	 */
+	static public double rndInc() {
+		double val = 1.0000001*random.nextDouble();
+		if (val>1.0) val=1.0;
+		return val;
+		
+	} // [0,1)
+
+	
+	/**
+	 *
+	 * @return random value in (0,1)
 	 */
 	static public double rndEx0() {
 		double r;
@@ -336,7 +347,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	}
 
 	/* code version */
-	public static String VERSION = "v0.22";
+	public static String VERSION = "v0.23";
 
 	/**
 	 *
@@ -487,15 +498,12 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 		return time_module.steady_state;
 	}
 
-	/** returns number of available processors */
-	protected static int num_processors = 1;
-
 	/**
 	 *
 	 * @return
 	 */
 	public static int getNumProcessors() {
-		return num_processors;
+		return options.max_cores;
 	}
 
 	/** convenience functions for logging */
@@ -705,22 +713,18 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	@Override
 	public void process(Element element) {
 		/* check for parameters */
-		if (InputParser.getBoolean("randomize", element, randomize))
+		if (InputParser.getBoolean("randomize", element, options.randomize))
 			random = new Random(); /* without the seed, will randomize */
 
 		/* read number of processors */
-		num_processors = InputParser.getInt("max_cores", element, max_cores);
+		options.max_cores = InputParser.getInt("max_cores", element, options.max_cores);
 
 		StartModules();
 		MainLoop();
 		FinishModules();
 		status = SimStatus.READY;
 	}
-	
-	//command line options
-	protected boolean randomize = false;
-	protected int max_cores = Runtime.getRuntime().availableProcessors();
-	
+
 	@Override
 	public void exit() {
 		/* do nothing */

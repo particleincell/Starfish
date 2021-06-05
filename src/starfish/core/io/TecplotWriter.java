@@ -42,7 +42,7 @@ public class TecplotWriter extends Writer
     final public void writeHeader() 
     {
 	//open the file
-	pw = open(file_name);
+	pw = open(fileName);
 	
 	/*print header*/
 	if (Starfish.domain_module.getDomainType()==DomainType.XY)

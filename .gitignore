@@ -7,12 +7,22 @@ dist
 **/dat/dsmc/jet/cases
 **/nbproject/
 **/nbproject/private/
+out
 
 #other files
 *.log
 *.lay
 *.dat
 *.xlsx
+
+#binaries
+*.dll
+*.dll.manifest
+*.exe
+*.exe.manifest
+*.so
+*.so.1
+*.so.9.0.1
 
 # Windows image file caches
 Thumbs.db
@@ -80,3 +90,4 @@ nbproject/private/private.properties
 nbproject/private/private.properties
 nbproject/private/private.properties
 /bin/
+/.idea

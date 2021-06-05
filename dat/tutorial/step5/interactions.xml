@@ -14,13 +14,16 @@
 <chemistry name="ionization" >
 <sources>O,e-</sources>
 <products>iO+,2*e-</products>
-<rate>
- <type>polynomial</type>
+<rate type="poly" is_sigma="true">
  <coeffs>1,0</coeffs>
- <multiplier>1e-9</multiplier>
- <dep_var mat="e-"></dep_var>
+ <output_wrappers>1e-9</output_wrappers>
+ <dep_var>T.e-</dep_var>
+<!--	<input_wrappers>energy,JtoEv</input_wrappers> -->
 </rate>
 </chemistry> 
+
+
+
 
 <!-- MCC charge exchange -->
 <mcc model="cex">

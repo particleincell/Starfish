@@ -8,19 +8,19 @@
 package starfish.core.io;
 
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
+
 import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.diagnostics.ParticleTraceModule.ParticleTrace;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.Mesh;
-import starfish.core.materials.KineticMaterial.Particle;
 
 /**
  *
@@ -55,8 +55,8 @@ public abstract class Writer {
 	protected double[][][] time_data; // [time_line][variable][i/j]
 	protected double[] time_data_time; // time corresponding to each line
 
-	int resolution; // for three-D rotation
-	String file_name;
+	int theta_sections; // for three-D rotation
+	String fileName;
 
 	/* for particles */
 	int particle_count;
@@ -65,25 +65,29 @@ public abstract class Writer {
 
 	/* general constructor */
 	public Writer(Element element) {
-		file_name = InputParser.getValue("file_name", element);
+		fileName = InputParser.getValue("file_name", element);
+	}
+	public Writer(String file_name) {
+		this.fileName = file_name;
 	}
 
 	protected PrintWriter open(String file_name) {
+		return openAbsolutePath(Starfish.options.wd + file_name);
+	}
+	protected PrintWriter openAbsolutePath(String path) {
 		PrintWriter pw = null;
-		String full_name = Starfish.options.wd+file_name;
-
 		try {
-			output_stream = new FileOutputStream(full_name);
+			output_stream = new FileOutputStream(path);
 			pw = new PrintWriter(output_stream);
 		} catch (IOException ex) {
 			// see if the problem is a missing directory
 			try {
-				String pieces[] = this.splitFileName(full_name);
+				String pieces[] = this.splitFileName(path);
 				Files.createDirectories(Paths.get(pieces[2]));
-				output_stream = new FileOutputStream(full_name);
+				output_stream = new FileOutputStream(path);
 				pw = new PrintWriter(output_stream);
 			} catch (IOException ex2) {
-				Log.error("error opening file " + full_name);
+				Log.error("error opening file " + path);
 			}
 		}
 
@@ -101,7 +105,7 @@ public abstract class Writer {
 	public void init3D(String[] scalars, ArrayList<String[]> vectors, String[] cell_data, Element element) {
 
 		// number of cells in the theta direction
-		resolution = InputParser.getInt("resolution", element, 45);
+		theta_sections = InputParser.getInt("resolution", element, 45);
 
 		/* call main open function */
 		init2D(scalars, vectors, cell_data, element);
@@ -186,7 +190,7 @@ public abstract class Writer {
 	 * @param cell_data
 	 * @param element   xml data element
 	 */
-	protected void init2D(String[] scalars, ArrayList<String[]> vectors, String[] cell_data, Element element) {
+	public void init2D(String[] scalars, List<String[]> vectors, String[] cell_data, Element element) {
 		output_type = OutputType.FIELD;
 
 		String vars_temp[] = new String[scalars.length];
@@ -259,6 +263,11 @@ public abstract class Writer {
 		/* save vars */
 		this.scalars = new String[temp_length];
 		System.arraycopy(vars_temp, 0, this.scalars, 0, temp_length);
+		
+		// number of cells in the theta direction
+		theta_sections = InputParser.getInt("theta_sections", element, 1);
+		if (theta_sections<1 || Starfish.getDomainType()==DomainType.XY) 
+			theta_sections=1;	// default non-rotated version
 	}
 
 	/**

@@ -1,431 +1,214 @@
 package starfish.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.filechooser.FileSystemView;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-
-import main.Main.Options;
+import starfish.core.common.Options;
 import starfish.core.common.Plugin;
 import starfish.core.common.Starfish;
-import starfish.core.common.Starfish.Log;
+import starfish.gui.builder.SimulationFileBuilder;
+import starfish.gui.common.GUIUtil;
+import starfish.gui.runner.SimulationRunner;
+import starfish.gui.viewer.SimulationResultViewer;
 
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import java.awt.Component;
-import java.awt.Desktop;
-
-import javax.swing.Box;
-import javax.swing.SwingConstants;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JSeparator;
-import javax.swing.JToolBar;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.ImageIcon;
-import java.awt.Dimension;
-import javax.swing.JToggleButton;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JLabel;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.prefs.Preferences;
-import java.awt.event.ActionEvent;
-import javax.swing.KeyStroke;
-import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.ButtonGroup;
-import java.awt.Toolkit;
 
 public class GUI extends JFrame {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private JPanel contentPane;
+    private static GUI gui;
+    public static void makeNewGUI(Options options, ArrayList<Plugin> plugins) {
+        EventQueue.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                //UIManager.setLookAndFeel("javax.swing.plaf.basic");
+            } catch (Exception e) {
+                System.out.println("Error setting native LAF: " + e);
+            }
 
-	Options options;
-	ArrayList<Plugin> plugins;
-	static GUI gui;
-		
-	public static void makeNewGUI(Options options, ArrayList<Plugin> plugins) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					  UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-					//  UIManager.setLookAndFeel("javax.swing.plaf.basic");
-					} catch(Exception e) {
-					  System.out.println("Error setting native LAF: " + e);
-					}
-				
-				try {
-					gui = new GUI(options, plugins);
-					gui.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-					gui.sim = null;		//delete simulation
-					
-				}
-			}
-		});
-	}
+            try {
+                LibraryLoader.tryLoad();
 
-	/**
-	 * Create the frame.
-	 */
-	JFrame frame;
-	String sim_file_name;
-	String sim_file_full;
-	String sim_file_path;
-	JProgressBar progressBar;
-	public enum SimStatus {READY, RUNNING, PAUSED, STOP};
-	Thread thread;
-	Starfish sim;
-	JTextPane textPane;
-	JToggleButton btnStartButton;
-	JToggleButton btnPauseButton;
-	JToggleButton btnStopButton;
-	
-	public GUI(Options options, ArrayList<Plugin> plugins) {
-		setIconImage(Toolkit.getDefaultToolkit().getImage(GUI.class.getResource("/starfish/gui/starfish-100.png")));
-		
-		this.options = options.clone();	//make our own copy, this will be useful when supporting multiple sims
-		this.plugins = plugins;
-		
-		setTitle("Starfish "+Starfish.VERSION);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 888, 576);
-		
-		frame = this;		//save a reference to self
-		
-		JMenuBar menuBar = new JMenuBar();
-		setJMenuBar(menuBar);
-		
-		JMenu mnFile = new JMenu("File");
-		menuBar.add(mnFile);
-		
-		JMenuItem mntmOpen = new JMenuItem("Open");
-		mntmOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
-		mntmOpen.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				UIManager.put("FileChooser.readOnly", Boolean.TRUE); //disable new folder button
-			    
-				//get last directory
-			    Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-			    String dir = prefs.get("last_dir", FileSystemView.getFileSystemView().getHomeDirectory().toString());
-			  			    
-				JFileChooser fileChooser = new JFileChooser(dir);
-		        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				//fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-				fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(".xml files", "xml"));
-		        fileChooser.setAcceptAllFileFilterUsed(true);
-				int result = fileChooser.showOpenDialog(null);
-				if (result == JFileChooser.APPROVE_OPTION) {
-				    File selectedFile = fileChooser.getSelectedFile();
-				    sim_file_full = selectedFile.getAbsolutePath();
-				    sim_file_path =  sim_file_full.substring(0,sim_file_full.lastIndexOf(File.separator)+1);
-				    sim_file_name = sim_file_full.substring(sim_file_full.lastIndexOf(File.separator)+1);
-				    prefs.put("last_dir", sim_file_path);  //save the path
-				    //change name
-				    String title_name = sim_file_full;
-				    if (title_name.length()>30) 
-				    	title_name = "..."+title_name.substring(title_name.length()-30);
-				    frame.setTitle(title_name+" - Starfish");
-				    textPane.setText("");
-				    
-				}
-				
-			}
-		});
-		mnFile.add(mntmOpen);
-		
-		JMenuItem mntmExit = new JMenuItem("Exit");
-		mntmExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
-		mntmExit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));	
-			}
-		});
-		
-		mnFile.add(mntmExit);
-		
-		JMenu mnSimulation = new JMenu("Simulation");
-		menuBar.add(mnSimulation);
-		
-		JMenuItem mntmRun = new JMenuItem("Run");
-		mntmRun.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK));
-		mntmRun.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				btnStartButton.doClick();
-			}			
-		});
-		mnSimulation.add(mntmRun);
-		
-		JMenuItem mntmPause = new JMenuItem("Pause");
-		mntmPause.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK));
-		mntmPause.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				btnPauseButton.doClick();
-			}			
-		});
-		mnSimulation.add(mntmPause);
-		
-		JMenuItem mntmStop = new JMenuItem("Stop");
-		mntmStop.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
-		mntmStop.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				btnStopButton.doClick();
-			}			
-		});
-		   
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, e);
+            }
+            gui = new GUI(options, plugins);
+            gui.setVisible(true);
+        });
+    }
 
+    // Constants for the card layout
+    private final static String BUILD_SIM = "Build Sim File";
+    private final static String RUN_SIM = "Run Simulation";
+    private final static String VIEW_SIM = "View Results";
 
-		mnSimulation.add(mntmStop);
-		
-		JMenu mnHelp = new JMenu("Help");
-		menuBar.add(mnHelp);
-		
-		JMenuItem mntmDocumentation = new JMenuItem("Documentation");
-		mntmDocumentation.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
-		mntmDocumentation.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-		        if (Desktop.isDesktopSupported()) {
-		        	try {
-		        	String path = ClassLoader.getSystemClassLoader().getResource(".").getPath()+"../doc/Starfish-UG.pdf";
-		        	URL url = new URL("file://"+path);
-		        	File myFile = new File(url.getPath());
-        			Desktop.getDesktop().open(myFile);
-						
-			    } catch (IOException ex) {
-				    	System.err.println(ex.getMessage());
-				    
-					JOptionPane.showMessageDialog(frame, ex.getMessage());
-				}
-				       
-				}
-			}
-		});
-		mnHelp.add(mntmDocumentation);
-		
-		JSeparator separator = new JSeparator();
-		mnHelp.add(separator);
-		
-		JMenuItem mntmAbout = new JMenuItem("About");
-		
-		mntmAbout.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				ImageIcon icon = new ImageIcon(GUI.class.getResource("/starfish/gui/starfish-100.png"));
-				JOptionPane.showMessageDialog(frame, "Starfish Plasma / Rarefied Gas Simulation Code "+Starfish.VERSION+"\n"+
-													  "(c) 2012-2019, Particle In Cell Consulting LLC\n" + 
-													  "info@particleincell.com, www.particleincell.com","About", 
-									JOptionPane.INFORMATION_MESSAGE, icon);
-			
-			}
-		});
-		mnHelp.add(mntmAbout);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(new BorderLayout(0, 0));
-		setContentPane(contentPane);
-		
-		JToolBar toolBar = new JToolBar();
-		toolBar.setFloatable(false);
-		contentPane.add(toolBar, BorderLayout.NORTH);
-		
-		ButtonGroup buttonGroup = new ButtonGroup();
+    private GUISettings settings;
 
-		btnStartButton = new JToggleButton("");
-		buttonGroup.add(btnStartButton);
-		btnStartButton.setToolTipText("Start or resume the simulation");
-		btnStartButton.setMnemonic('r');
-		btnStartButton.setIcon(new ImageIcon(GUI.class.getResource("/starfish/gui/start.png")));
-		btnStartButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				simulationStart();
-			}
-		});
-		toolBar.add(btnStartButton);
-		
-	    btnPauseButton = new JToggleButton("");
-		buttonGroup.add(btnPauseButton);
-		btnPauseButton.setToolTipText("Pause a running simulation");
-		btnPauseButton.setMnemonic('p');
-		btnPauseButton.setIcon(new ImageIcon(GUI.class.getResource("/starfish/gui/pause.png")));
-		btnPauseButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				simulationPause();
-			}
-		});
-		toolBar.add(btnPauseButton);
-		
-		btnStopButton = new JToggleButton("");
-		buttonGroup.add(btnStopButton);
-		btnStopButton.setToolTipText("Terminate a running simulation");
-		btnStopButton.setMnemonic('s');
-		btnStopButton.setIcon(new ImageIcon(GUI.class.getResource("/starfish/gui/stop.png")));
-		btnStopButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				simulationStop();
-			}
-		});
-		toolBar.add(btnStopButton);
-		
-		toolBar.add(new JToolBar.Separator());
-		
-				
-		JLabel lblProgress = new JLabel("Progress: ");
-		toolBar.add(lblProgress);
-				
-	    progressBar = new JProgressBar();
-		progressBar.setMaximumSize(new Dimension(100,16));
-		toolBar.add(progressBar);
-		progressBar.setValue(0);
-				
-		Component horizontalGlue = Box.createHorizontalGlue();
-		toolBar.add(horizontalGlue);
-		
-		textPane = new JTextPane();
-		textPane.setText("");
-		textPane.setAutoscrolls(true);
-	    JScrollPane scroll = new JScrollPane (textPane);
-		contentPane.add(scroll, BorderLayout.CENTER);
-	}
-	
+    private JPanel contentPane; // Side panel and main
+    private JPanel main; // Main panel itself
+    private SimulationFileBuilder simulationFileBuilder;
+    private SimulationRunner simulationRunner;
+    private SimulationResultViewer simulationResultViewer;
 
-	
-	public void simulationStart() {
-		if (sim_file_name==null || sim_file_name.isEmpty()) 
-		{
-			JOptionPane.showMessageDialog(frame, "Simulation file not selected (use File->Open)");
-			return;
-		}
-		
-		GUI gui = this;
-		//don't do anything if already running
-		SimStatus status;
-		if (sim!=null) status = sim.getStatus(); else status=SimStatus.READY;
-		
-		switch (status) {
-		case READY:
-		case STOP:
-			thread = new Thread() {
-			    public void run() {
-			        	//start the simulation
-			    		textPane.setText("");
-			    		options.sim_file = sim_file_name;
-			    		options.wd = sim_file_path;
-				    	sim = new Starfish();
-				    	sim.start(options, plugins,gui);
-                }  
-			};
+    // Instances should only be made through GUI.makeNewGUI()
+    private GUI(Options options, ArrayList<Plugin> plugins) {
+        GUIUtil.setFontScale(2);
+        settings = new GUISettings(options);
 
-			thread.start();
-			break;
-			
-		case RUNNING:
-			return;		//don't do anything if already running
-		case PAUSED:
-			sim.setStatus(SimStatus.RUNNING);
-			break;
-		default:
-				break;
-		}
-	}
-	
+        applyFrameCustomization();
 
-	public void simulationPause() {
-		if (sim==null) return;
-		
-		switch (sim.getStatus())
-		{
-		case RUNNING:
-			sim.setStatus(SimStatus.PAUSED);
-			
-			break;
-		default: break;	//don't do anything unless running
-		
-		}
-	}
+        simulationFileBuilder = new SimulationFileBuilder();
+        simulationRunner = new SimulationRunner(settings, plugins);
+        simulationResultViewer = new SimulationResultViewer(simulationRunner);
 
-	public void simulationStop() {
-		
-		if (sim==null) return;
-		
-		switch (sim.getStatus())
-		{
-		case RUNNING:
-		case PAUSED:
-			sim.setStatus(SimStatus.STOP);
-			
-			break;
-		default: break;	//don't do anything unless running
-		
-		}
-		
-	}
-	
-	public void updateProgress(double val) {
-		progressBar.setValue((int)(val*100));
-		
-	}
-	
-	//per https://stackoverflow.com/questions/9650992/how-to-change-text-color-in-the-jtextarea
-	public void printMessage(String msg, Color color) {
-        StyleContext sc = StyleContext.getDefaultStyleContext();
-        AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, color);
+        try {
+            File simBuilderFile = new File(GUI.class.getResource("/gui/builder/simbuilder.xml").getPath());
+            simulationFileBuilder.addCommandsFrom(simBuilderFile);
+            File userDeterminedSimBuilderFile = settings.getSimBuilderBlueprintFile();
+            if (userDeterminedSimBuilderFile != null) {
+                simulationFileBuilder.addCommandsFrom(userDeterminedSimBuilderFile);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Something went wrong when loading sim builder blueprint file - \n"
+                            + e.getMessage()
+                            + "\nCommands may be missing");
+        }
 
-        aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
-        aset = sc.addAttribute(aset, StyleConstants.Alignment, StyleConstants.ALIGN_JUSTIFIED);
+        createContentPane();
+        setContentPane(contentPane);
+    }
+    private void applyFrameCustomization() {
+        URL icon = GUI.class.getResource("/gui/starfish-100.png");
+        setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
 
-        int len = textPane.getDocument().getLength();
-	    textPane.setCaretPosition(len);
-        textPane.setCharacterAttributes(aset, false);
-        textPane.replaceSelection(msg+"\n");
+        setTitle("Starfish " + Starfish.VERSION);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBounds(100, 100, 768, 576);
+        setMinimumSize(new Dimension(396, 338));
+    }
+    private void createContentPane() {
+        JPanel sidePanel = createSidePanel();
 
-        
-		//		textArea.append(msg+"\n");
-//		textArea.setCaretPosition(textArea.getDocument().getLength());  //scroll to bottom
-	}
-	
-	public void printMessage(String msg)
-	{
-		printMessage(msg,Color.BLACK);
-	}
-	public void printErrorMessage(String msg) {
-		printMessage(msg,Color.RED);
-	}
+        main = new JPanel(new CardLayout());
+        main.add(simulationFileBuilder, BUILD_SIM);
+        main.add(simulationRunner, RUN_SIM);
+        main.add(simulationResultViewer, VIEW_SIM);
 
+        contentPane = new JPanel(new BorderLayout());
+        contentPane.add(sidePanel, BorderLayout.WEST);
+        contentPane.add(main, BorderLayout.CENTER);
+    }
+    private JPanel createSidePanel() {
+        final int WIDTH = 120;
+        JPanel sidePanel = new JPanel(new GridBagLayout());
+        sidePanel.setMinimumSize(new Dimension(WIDTH, this.getMinimumSize().height));
+        sidePanel.setPreferredSize(new Dimension(WIDTH, this.getMinimumSize().height));
+        sidePanel.setBackground(Color.LIGHT_GRAY);
+
+        ButtonGroup buttonGroup = new ButtonGroup();
+
+        JToggleButton buildSim = new JToggleButton(BUILD_SIM);
+        buildSim.setMnemonic('1');
+        buildSim.addActionListener(arg0 -> showSimBuilder());
+
+        JToggleButton runSim = new JToggleButton(RUN_SIM);
+        runSim.setMnemonic('2');
+        runSim.addActionListener(arg0 -> showSimRunner());
+
+        JToggleButton viewSim = new JToggleButton(VIEW_SIM);
+        viewSim.setMnemonic('3');
+        viewSim.addActionListener(arg0 -> showSimViewer());
+
+        JButton aboutButton = new JButton("About");
+        aboutButton.addActionListener(arg0 -> showAboutInformation());
+
+        JButton settingsButton = new JButton("Settings");
+        settingsButton.addActionListener(arg0 -> showSettingsWindow());
+
+        for (JToggleButton button : new JToggleButton[] {buildSim, runSim, viewSim}) {
+            buttonGroup.add(button);
+        }
+        for (AbstractButton button : new AbstractButton[] { buildSim, runSim, viewSim, aboutButton, settingsButton }) {
+            Dimension dim = new Dimension(WIDTH, WIDTH / 2);
+            button.setPreferredSize(dim);
+            button.setMinimumSize(dim);
+        }
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridy = 0;
+        c.gridx = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+
+        c.gridy += 1;
+        sidePanel.add(buildSim, c);
+        c.gridy += 1;
+        sidePanel.add(runSim, c);
+        c.gridy += 1;
+        sidePanel.add(viewSim, c);
+
+        c.gridy += 1;
+        c.fill = GridBagConstraints.VERTICAL;
+        c.weighty = 1;
+        sidePanel.add(Box.createVerticalBox(), c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weighty = 0;
+
+        c.anchor = GridBagConstraints.PAGE_END;
+
+        c.gridy += 1;
+        sidePanel.add(aboutButton, c);
+
+        c.gridy += 1;
+        sidePanel.add(settingsButton, c);
+
+        return sidePanel;
+    }
+
+    public void showSimBuilder() {
+        showOnMainPanel(BUILD_SIM);
+    }
+    public void showSimRunner() {
+        showOnMainPanel(RUN_SIM);
+    }
+    public void showSimViewer() {
+        showOnMainPanel(VIEW_SIM);
+    }
+    private void showOnMainPanel(String name) {
+        CardLayout cl = (CardLayout) main.getLayout();
+        cl.show(main, name);
+    }
+
+    private static void showAboutInformation() {
+        ImageIcon icon = new ImageIcon(GUI.class.getResource("/gui/starfish-100.png"));
+        JOptionPane.showMessageDialog(gui,
+                "Starfish Plasma / Rarefied Gas Simulation Code " + Starfish.VERSION + "\n" +
+                        "(c) 2012-2019, Particle In Cell Consulting LLC\n" +
+                        "info@particleincell.com, www.particleincell.com", "About",
+                JOptionPane.INFORMATION_MESSAGE, icon);
+    }
+
+    private JDialog dialog;
+    private void showSettingsWindow() {
+        if (dialog == null) {
+            dialog = new JDialog();
+            dialog.setTitle("Settings");
+            dialog.getContentPane().add(settings);
+            dialog.setSize(550, 200);
+            dialog.setLocation(this.getX() + this.getWidth() / 2 - dialog.getWidth() / 2,
+                    this.getY() + this.getHeight() / 2 - dialog.getHeight() / 2);
+            dialog.setMinimumSize(new Dimension(550, 200));
+            dialog.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+            dialog.addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentHidden(ComponentEvent e) {
+
+                }
+            });
+        }
+        dialog.setVisible(true);
+    }
 
 }

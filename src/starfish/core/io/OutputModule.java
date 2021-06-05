@@ -7,8 +7,8 @@
 
 package starfish.core.io;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
+
 import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
@@ -16,6 +16,18 @@ import starfish.core.common.Starfish.Log;
 
 /** handles &lt; output &gt; commands */
 public class OutputModule extends CommandModule {
+
+	/*
+	 * A set of all vars, scalars, ect are maintained here to be used by the VTK GUI Previewer.
+	 * Multiple animations can be made, so all the different variables made in each have to be
+	 * accumulated into these sets so all options can be available to be selected in the GUI.
+	 */
+	private final static Set<String> allVariables = new HashSet<>();
+	private final static Set<String> allScalars = new HashSet<>();
+	private final static Set<String> allCellData = new HashSet<>();
+	private final static Set<String[]> allVectors = new HashSet<>();
+
+
 	@Override
 	public void init() {
 		/* do nothing */
@@ -61,9 +73,13 @@ public class OutputModule extends CommandModule {
 
 		/* grab variables */
 		String variables[] = InputParser.getList("variables", element);
+		allVariables.addAll(List.of(variables));
 		String scalars[] = InputParser.getList("scalars", element); // alternate name of variables
+		allScalars.addAll(List.of(scalars));
 		String cell_data[] = InputParser.getList("cell_data", element);
+		allCellData.addAll(List.of(cell_data));
 		ArrayList<String[]> vectors = InputParser.getListOfPairs("vectors", element);
+		allVectors.addAll(vectors);
 
 		// combine "scalars" and "variables", keeping both for backwards compatibility
 		ArrayList<String> vars = new ArrayList();
@@ -147,4 +163,30 @@ public class OutputModule extends CommandModule {
 	public void start() {
 		/**/
 	}
+
+	/**
+	 * @return a set of all the vectors registered in Writers made in this class
+	 */
+	public static Set<String> getAllVariables() {
+		return allVariables;
+	}
+	/**
+	 * @return a set of all scalars registered in Writers made in this class
+	 */
+	public static Set<String> getAllScalars() {
+		return allScalars;
+	}
+	/**
+	 * @return a set of all cell data variables registered in Writers made in this class
+	 */
+	public static Set<String> getAllCellData() {
+		return allCellData;
+	}
+	/**
+	 * @return a set of all vector variables registered in Writers made in this class
+	 */
+	public static Set<String[]> getAllVectors() {
+		return allVectors;
+	}
+
 }

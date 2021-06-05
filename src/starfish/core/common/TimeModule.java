@@ -199,8 +199,8 @@ public class TimeModule extends CommandModule {
 
 		it++;
 		time += dt;
-		if (Starfish.parent_gui!=null) {
-			Starfish.parent_gui.updateProgress((double)it/num_it);
+		if (Starfish.parent_simulation_runner != null) {
+			Starfish.parent_simulation_runner.updateProgress((double) it / num_it);
 		}
 	}
 

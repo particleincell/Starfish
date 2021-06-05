@@ -1,0 +1,398 @@
+<root name="simulation">
+
+    <!-- Same order as User Guide -->
+
+    <!-- GENERAL -->
+
+    <blueprint name="log" required="false" allows_children="false" description="Controls logging level.">
+        <entry name="level" type="enum">
+            <enum_choice>DEBUG</enum_choice>
+            <enum_choice>LOG_LOW</enum_choice>
+            <enum_choice>LOG</enum_choice>
+            <enum_choice>MESSAGE</enum_choice>
+            <enum_choice>WARNING</enum_choice>
+            <enum_choice>ERROR</enum_choice>
+            <enum_choice>EXCEPTION</enum_choice>
+        </entry>
+    </blueprint>
+
+    <blueprint name="restart" required="false" allows_children="false"
+               description="Controls saving and reloading of restart data. Currently only particle data are saved.
+               Support for field and fluid materials saving and restarting is pending.">
+        <entry name="it_save" type="int" default="500" description="Frequency of restart data saves."/>
+        <entry name="nt_add" type="int" default="-1"
+               description="Number of additional time steps to run after restart load if &gt;0."/>
+        <entry name="load" type="bool" default="false" description="Controls whether restart file should be loaded."/>
+        <entry name="save" type="bool" default="false" description="Controls whether restart data should be saved."/>
+    </blueprint>
+
+    <blueprint name="starfish" required="true" visible="false" description="Runs the actual simulation."/>
+
+    <blueprint name="time" required="true" description="Controls the duration of the simulation.">
+        <entry name="dt" type="float" required="true" description="Simulation time step, in seconds."/>
+        <entry name="num_it" type="int" required="true" description="Number of time steps to simulate."/>
+        <entry name="steady_state" type="string" default="auto"
+               description="Time step at which the steady state is reached. If “auto”, Starfish automatically sets
+               steady state based on differences in particle counts."/>
+    </blueprint>
+
+    <blueprint name="animation" required="false"
+               description="Periodically save simulation results. Any &lt;output&gt; command nested in this command will
+                be executed at the rate specified in this command.">
+        <entry name="start_it" type="int" default="0" required="true"
+               description="Time step at which output should begin"/>
+        <entry name="frequency" type="int" default="10" required="true"
+               description="Number of time steps between file saves"/>
+        <entry name="clear_samples" type="bool" default="true" required="true"
+               description="Specifies whether density and velocity samples should be cleared after each save, but only
+               prior to steady state"/>
+    </blueprint>
+
+    <blueprint name="averaging" required="false"
+               description="Enables averaging of specified variables. The averaged values will have “-ave” append to the
+                prefix. For instance, the average number density of o+ will be called “nd-ave.o+”, while “nd.o+” will
+                contain the instantaneous data. Starting time step should correspond to time after steady state is
+                reached.">
+        <entry name="frequency" type="int" default="1" description="Number of time steps between averaging samples."/>
+        <entry name="start_it" type="int" default="-1" description="Starting time step for averaging."/>
+        <entry name="variables" type="s_list" description="List of variables to average."/>
+    </blueprint>
+
+    <blueprint name="load_field"
+               description="Loads field data from a file. Can be used, among other things, to load an external magnetic
+               field.">
+        <entry name="format" type="enum" description="File format. A TECPLOT file should list variables on a single
+        VARIABLES line. The TABLE format is assumed to start with ni,nj, and is hardcoded for “z,r,B,Bz,Br” data.">
+            <enum_choice>TECPLOT</enum_choice>
+            <enum_choice>TABLE</enum_choice>
+        </entry>
+        <entry name="file_name" type="string" description="name of the file to load."/>
+        <entry name="coords" type="s_list"
+               description="names of two file variables to correspond to XY, RZ, or ZR, according to the specified
+               &lt;domain&gt; type."/>
+        <entry name="vars" type="s_pairs" description="variables to load in “starfish_var=file_var” format.
+        The assignment part is not needed if the file variable is the same as the expected Starfish variable name."/>
+    </blueprint>
+
+    <blueprint name="output" required="false" allows_children="false"
+               description="Top level command to generate simulation result files. Inputs depend on the output type.">
+        <entry name="type" type="enum">
+            <enum_choice>1D</enum_choice>
+            <enum_choice>2D</enum_choice>
+            <enum_choice>boundaries</enum_choice>
+            <enum_choice>particles</enum_choice>
+        </entry>
+        <entry name="file_name" type="string"/>
+        <entry name="format" type="enum">
+            <enum_choice>VTK</enum_choice>
+            <enum_choice>TECPLOT</enum_choice>
+        </entry>
+        <entry name="output_for_mat" type="enum"
+               description="Applicable only for VTK files as of now. One of [ASCII, BINARY, APPENDED]. The BINARY option
+                corresponds to Base64 encoded data. The APPENDED option places the raw bytes in an &lt;AppendedData&gt;
+                section.">
+            <enum_choice>ASCII</enum_choice>
+            <enum_choice>BINARY</enum_choice>
+            <enum_choice>APPENDED</enum_choice>
+        </entry>
+        <entry name="scalars" type="s_list"
+               description="List of node-centered scalar variables to output."/>
+        <entry name="cell_data" type="s_list" description="List of cell-centered scalars to output."/>
+        <entry name="vectors" type="s_tuples"
+               description="Pairs of node-centered scalar variables to group together as vectors.
+               Only affects VTK output."/>
+    </blueprint>
+
+    <blueprint name="particle_trace" required="false"
+               description="Command to sample position and velocity of one or more particles to generate a trace file.
+               This file can be used to visualize the paths of individual particles.">
+        <entry name="file_name" type="string"/>
+        <entry name="format" type="enum">
+            <enum_choice>VTK</enum_choice>
+            <enum_choice>TECPLOT</enum_choice>
+        </entry>
+        <entry name="material" type="string" description="Material of the sampled particle"/>
+        <entry name="ids" type="i_list" description="Ids of particle(s) to sample."/>
+        <entry name="random_ids" type="int2"
+               description="Alternate method to specify particle ids if &lt;ids&gt; not used. The first value is the
+               number of particles to sample, and the second value is the maximum particle id used for picking random
+               ids."/>
+        <entry name="start_it" type="int" default="0" description="Starting time step for sampling."/>
+        <entry name="end_it" type="int" default="-1" description="Ending time step for sampling."/>
+        <entry name="sample_skip" type="int" default="1" description="Number of time steps between trace sampling"/>
+        <entry name="output_skip" type="int" default="50"
+               description="Frequency of how often the trace file gets updated. -1 means to output only after the
+               simulation terminates."/>
+    </blueprint>
+
+    <blueprint name="stats" required="false" description="Command to control frequency of screen and file output.">
+        <entry name="file_name" type="string" default="starfish_stats.csv"/>
+        <entry name="skip" type="int" default="1" description="Output frequency. Value &lt;=0 disables file output."/>
+    </blueprint>
+
+    <blueprint name="sample_vdf" required="false"
+               description="Produces histogram of the velocity distribution function of a given material with a box
+               region.">
+        <entry name="material" type="string" description="Kinetic material to sample."/>
+        <entry name="xmin" type="float2" description="[x1,y1] corner of the sampling region."/>
+        <entry name="xmax" type="float2" description="[x2,y2] corner of the sampling region."/>
+        <entry name="speed_bins" type="int" default="20" description="Number of histogram bins for speed."/>
+        <entry name="vel_bins" type="int3" default="20,20,20" description="Number of histogram bins for velocity."/>
+        <entry name="start_it" type="int" default="-1" description="Time step to start sampling."/>
+        <entry name="skip_sample" type="int" default="100" description="Number of time steps between sampling."/>
+        <entry name="skip_output" type="int" default="1000" description="Number of time steps between file outputs."/>
+        <entry name="file_name" type="string"
+               description="File name prefix to output to. Data is stored in .csv format."/>
+    </blueprint>
+
+    <!-- MATERIALS -->
+
+    <blueprint name="materials" required="false" allows_children="true"
+               description="Definition of materials known to the simulation. Nest &lt;material&gt; commands in this command">
+    </blueprint>
+    <blueprint name="material" required="false"
+               description="Definition of a single material. Must be nested within a &lt;materials&gt; command.">
+        <entry name="type" type="enum"
+               description="Material type. Can be one of “solid” (materials that do not change), “kinetic” (materials
+               simulated with particles), “fluid_diffusion” (density updated with advection-diffusion solver), or
+               “boltzmann_electrons” (tells Starfish to create a fluid electron population). Additional material types
+               can be provided by plugins.">
+            <enum_choice>solid</enum_choice>
+            <enum_choice>kinetic</enum_choice>
+            <enum_choice>fluid_diffusion</enum_choice>
+            <enum_choice>boltzmann_electrons</enum_choice>
+        </entry>
+        <entry name="name" type="string" description="Name that this material will be referenced by."/>
+        <entry name="init" type="s_list"
+               description="List of one or more initial values for the following fields: “nd”, “nd_back” (#/m3), “u”,
+               “v” (m/s), and “T” (K). With the exception of nd_back, these entries are currently used only to set the
+               initial values of density, velocity, or temperature on the computational mesh. The value of nd_back is
+               added to the density computed from particles and can be used to set a minimum material density floor."/>
+        <entry name="molwt" type="float" description="Material molecular weight."/>
+        <entry name="charge" type="float" description="Material charge in elementary charge units."/>
+        <entry name="work_function" type="float" description="Material work function in eV"/>
+        <entry name="p_vap_coeffs" type="float3"
+               description="Coefficient for vapor pressure computation using Antoine equation, log_10(p)=A-B/(C+T)"/>
+        <entry name="ionization_energy" type="float" default="-1"
+               description="Ionization energy in eV, used by ionization MCC algorithm"/>
+        <!-- MUST MAKE CASES -->
+    </blueprint>
+
+    <blueprint name="material_interactions" required="false" allows_children="true"
+               description="Controls inter-material interactions, including the gas material / surface boundary interface.
+               Nest &lt;surface_hit&gt;, &lt;dsmc&gt;, &lt;mcc&gt;, or &lt;chemistry&gt; commands in this command.">
+    </blueprint>
+    <blueprint name="surface_hit" description="Command to control frequency of saves to a global diagnostics file">
+        <entry name="file_name" type="string" default="starfish_stats.csv" description="Stats file name"/>
+        <entry name="skip" type="int" defualt="1" description="Output frequency. Value &lt;=0 disables file output."/>
+    </blueprint>
+    <blueprint name="dsmc" required="false" allows_children="false"
+               description="Enables DSMC collisions between two kinetic materials">
+        <entry name="pair" type="s_list" description="Names of the two materials participating in this interaction"/>
+        <entry name="model" type="enum">
+            <enum_choice>elastic</enum_choice>
+        </entry>
+        <entry name="frequency" type="int" default="1" description="Number of time steps between collisions."/>
+        <entry name="sig_cr_max" type="float" default="1e-16" description="Initial value for the &lt;sigma*cr&gt;_max NTC parameter"/>
+        <entry name="sigma" type="enum" description="Collision cross-section.">
+            <enum_choice>const</enum_choice>
+            <enum_choice>inv</enum_choice>
+            <enum_choice>bird463</enum_choice>
+            <enum_choice>tabulated</enum_choice>
+        </entry>
+        <entry name="sigma_coeffs" type="f_list" description="Collision cross-section coefficients."/>
+        <entry name="sigma_tabulated" type="f2_list"/>
+        <entry name="sigma_dep_var" type="enum" description="Specifies the variable used to compute cross-section.">
+            <enum_choice>VELOCITY</enum_choice>
+            <enum_choice>ENERGY</enum_choice>
+        </entry>
+    </blueprint>
+    <blueprint name="mcc" required="false" allows_children="false"
+               description="Enables MCC collisions between a kinetic and fluid / kinetic target. Properties of the target material
+are not affected by the collision and hence this interaction is suitable only for cases of a rarefied
+source material interacting with a much denser target. A kinetic material can be used as the target,
+in which case, the density obtained by scattering particles to the grid will be used to obtain collision
+probability. ">
+        <entry name="source" type="string" description="Name of the source kinetic material."/>
+        <entry name="target" type="string" description="Name of the target fluid or kinetic material."/>
+        <entry name="product" type="string"
+               description="Optional post-collision material of the source. By default, there is no species change."/>
+        <entry name="model" type="enum"
+               description="Collision model. MEX or ELASTIC uses VHS to approximate momentum transfer, CEX models charge
+                exchange, and IONIZATION models ionization.">
+            <enum_choice>MEX</enum_choice>
+            <enum_choice>ELASTIC</enum_choice>
+            <enum_choice>CEX</enum_choice>
+            <enum_choice>IONIZATION</enum_choice>
+        </entry>
+        <entry name="sigma" type="enum" description="Collision cross-section.">
+            <enum_choice>const</enum_choice>
+            <enum_choice>inv</enum_choice>
+            <enum_choice>bird463</enum_choice>
+            <enum_choice>tabulated</enum_choice>
+        </entry>
+        <entry name="max_target_temp" type="float" description="Maximum temperature of the target species."/>
+        <entry name="ionization_energy" type="string"/>
+    </blueprint>
+    <blueprint name="chemistry" required="false" allows_children="false"
+               description="Enables fluid-fluid interactions. Densities of source materials (which can be kinetic or fluid) along
+with temperature (or energy) of a dependent material are used to compute the reaction,XX .
+Products are then generated accordingly and source material densities are depleted.">
+        <entry name="sources" type="s_list" description="List of reactants with optional multipliers."/>
+        <entry name="products" type="s_list" description="List of products"/>
+        <!-- RATE, DEP_VAR -->
+
+    </blueprint>
+
+    <!-- BOUNDARIES -->
+
+    <blueprint name="boundaries" required="false" allows_children="true"
+               description="This command is used to define the surface geometry. It contains several &lt;boundary&gt;
+               elements each specifying a particular surface spline.">
+    </blueprint>
+    <blueprint name="boundary" required="false" allows_children="false"
+               description="Defines a single surface boundary spline.">
+        <entry name="name" type="string"/>
+        <entry name="type" type="enum" required="true"
+               description="Boundary type. Can be one of: SOLID for a solid surface with fixed Dirchlet b.c., OPEN for
+               Neumann b.c. (not fully supported), SYMMETRY for symmetric boundary reflecting particles, VIRTUAL for
+               boundaries useful for attaching sources but that are not affect material propagation, and SINK for an
+               absorbing boundary. Note that some of these are either extraneous or not yet fully implemented. ">
+            <enum_choice>SOLID</enum_choice>
+            <enum_choice>OPEN</enum_choice>
+            <enum_choice>SYMMETRY</enum_choice>
+            <enum_choice>VIRTUAL</enum_choice>
+        </entry>
+        <entry name="value" type="string" defualt="0" description="Boundary condition value. For SOLID boundaries this
+        sets the Dirichlet potential for the Poisson solver. Can be specified as a single value or a list of
+        [time1,value1], [time2,value2] pairs."/>
+        <entry name="material" type="string"/>
+        <entry name="temperature" type="string" default="273.15" description="Boundary temperature, used to compute
+        post-impact velocity. Can be specified as a single value, or a list of [time1,temp1], [time2, temp2] pairs"/>
+        <entry name="path" type="path" required="true" description="Spline definition in SVG-like format. The general
+        syntax is [COMMAND] x1,y1 x2,y2 ... [COMMAND] x,y. The following commands are supported: “M x,y” move to (x,y),
+        “m dx,dy” move by offset (dx,dy), “L x,y” line to (x,y) from the previous point, “l dx,dy” line to point offset
+        by (dx,dy) from the last point, “C x1,y1 x2,y2,...” smooth cubic spline through points (x1,y1), (x2,y2), ...
+        Commands do not need to be repeated, for instance “M x1,y1 L x2,y2 L x3,y3 L x4,y4” can be written as “M x1,y1 L
+        x2,y2 x3,y3 x4,y4”. Points need to be specified in counterclockwise order around an solid boundary (or in
+        clockwise order around an open boundary), as point ordering controls the normal vector orientation. Note that
+        unlike in SVG, cubic splines are specified by simply listing the points through which the spline will pass and
+        the control knot points are omitted."/>
+        <entry name="reverse" type="bool"
+               description="flips normal vector orientation, overridden by entry in &lt;transform&gt; if both defined."/>
+    </blueprint>
+
+    <!-- DOMAIN -->
+
+    <blueprint name="domain" required="false" allows_children="true" description="Specifies details of the computational
+     domain (simulation mesh). Contains one or more &lt;mesh&gt; elements.">
+        <entry name="type" type="enum" description="Controls the meaning of “i” and “j” indexes. Axisymmetric
+        corrections are applied for RZ and ZR types.">
+            <enum_choice>XY</enum_choice>
+            <enum_choice>RZ</enum_choice>
+            <enum_choice>ZR</enum_choice>
+        </entry>
+    </blueprint>
+    <blueprint name="mesh" required="false" allows_children="false" description="Specifies details of a single mesh.
+    Currently two types are supported: uniform Cartesian mesh or an elliptic, body fitted, mesh.">
+        <entry name="name" type="string"/>
+        <entry name="type" type="enum">
+            <enum_choice>UNIFORM</enum_choice>
+            <enum_choice>ELLIPTIC</enum_choice>
+        </entry>
+        <!-- not finished -->
+    </blueprint>
+
+    <!-- SOURCES -->
+
+    <blueprint name="sources" required="false" allows_children="true" description="Specifies material sources. Starfish
+    supports two types of sources: boundary sources that inject mass along a specified boundary, and volume source that
+    generate mass within the computational mesh. ">
+    </blueprint>
+
+    <blueprint name="boundary_source" required="false" allows_children="false" description="Specifies material sources.
+    Starfish supports three types of sources: boundary that inject mass along a specified boundary, material sources
+    that act like boundary sources but are applied to all boundaries with the given material, and volume source that
+    generate mass within the computational mesh. ">
+        <entry name="name"/>
+        <entry name="type" type="enum">
+            <enum_choice>UNIFORM</enum_choice>
+            <enum_choice>MAXWELLIAN</enum_choice>
+            <enum_choice>AMBIENT</enum_choice>
+            <enum_choice>COSINE</enum_choice>
+        </entry>
+        <entry name="material" type="string" description="Name of the injected material"/>
+        <entry name="boundary" type="string" description="Surface boundary name to attack source to"/>
+
+        <!-- type=UNIFORM and MAXWELLIAN and COSINE-->
+        <entry name="mdot" type="float" condition="type/(UNIFORM|MAXWELLIAN|COSINE)" description="Mass flow rate in kg/s"/>
+        <entry name="v_drift" type="float" condition="type/(UNIFORM|MAXWELLIAN|COSINE)" description="Drift velocity in m/s"/>
+
+        <!-- type=MAXWELLIAN -->
+        <entry name="current" type="float" condition="type/MAXWELLIAN" description="Current to inject in A"/>
+        <entry name="mp_count" type="int" condition="type/MAXWELLIAN"
+               description="Number of simulation particles to inject"/>
+        <entry name="temperature" type="float" condition="type/MAXWELLIAN" description="Temperature in K"/>
+        <entry name="start_it" type="int" default="0" condition="type/MAXWELLIAN"
+               description="Time step to begin injection"/>
+        <entry name="end_it" type="int" default="-1" condition="type/MAXWELLIAN"
+               description="time step to end injection"/>
+
+        <!-- type=AMBIENT -->
+        <entry name="drift_velocity" type="float3" default="0,0,0" condition="type/AMBIENT"
+               description="Drift velocity to apply to sampled material"/>
+        <entry name="temperature" type="float" condition="type/AMBIENT"
+               description="Assumed gas temperature in K, controls injection velocity and also used to scale pressure
+                to density from ??"/>
+        <entry name="enforce" type="enum" condition="type/AMBIENT">
+            <enum_choice>TOTAL_PRESSURE</enum_choice>
+            <enum_choice>PARTIAL_PRESSURE</enum_choice>
+            <enum_choice>DENSITY</enum_choice>
+        </entry>
+        <entry name="density" type="float" condition="type/AMBIENT"
+               description="Required for enforce=”DENSITY”, controls the desired number density in #/m^-3"/>
+        <entry name="total_pressure" type="float" condition="type/AMBIENT"
+               description="Required for enforce=”TOTAL_PRESSURE” or “PARTIAL_PRESSURE”, in Pa"/>
+        <entry name="partial_pressure" type="float" condition="type/AMBIENT"
+               description="Required for enforce=”PARTIAL_PRESSURE”, used to control the desired species fraction per ??"/>
+
+        <!-- type=TERMIONIC -->
+        <entry name="lambda_r" type="float" default=".5" condition="type/TERMIONIC"
+               description="Coefficient for emission current calculation"/>
+        <entry name="use_field" type="boolean" default="true" condition="type/TERMIONIC"
+               description="Controls whether Schottky (local electric field) emission should be included."/>
+    </blueprint>
+
+    <!-- SOLVER -->
+    <blueprint name="solver" required="false" allows_children="false"
+               description="Activates a field solver. Currently only plasma potential solvers are implemented.">
+        <entry name="type" type="enum">
+            <enum_choice>CONSTANT-EF</enum_choice>
+            <enum_choice>QN</enum_choice>
+            <enum_choice>POISSON</enum_choice>
+        </entry>
+        <entry name="initial_only" type="bool" default="false"
+               description="If set to true, only the initial field will be computed."/>
+        <entry name="max_it" type="float" default="5000" description="Maximum number of solver iterations."/>
+        <entry name="tol" type="float" default="1e-6" description="Solver tolerance."/>
+        <entry name="nl_max_it" type="float" default="50"
+               description="Maximum number of solver iterations for a non-linear solver"/>
+        <entry name="nl_tol" type="float" default="1e-4" description="Non-linear solver tolerance."/>
+
+        <entry name="comps" type="float2" condition="type/CONSTANT-EF" description="Values for E_i, E_j in V/m"/>
+
+        <entry name="n0" type="float" condition="type/QN" description="Reference number density, #/m^3"/>
+        <entry name="Te0" type="float" condition="type/QN" description="Reference temperature in eV"/>
+        <entry name="phi0" type="float" condition="type/QN" description="Reference potential in V"/>
+
+        <entry name="linear" type="bool" default="false" condition="type/POISSON"
+               description="Controls how the electron density term is computed."/>
+        <entry name="n0" type="float" default="1e15" condition="type/POISSON"
+               description="Reference density for the non-linear term in #/m^3"/>
+        <entry name="Te0" type="float" default="1" condition="type/POISSON"
+               description="Reference temperature for the non-linear term in eV"/>
+        <entry name="phi0" type="float" default="0" condition="type/POISSON"
+               description="Reference potential for the non-linear term in V"/>
+    </blueprint>
+
+</root>

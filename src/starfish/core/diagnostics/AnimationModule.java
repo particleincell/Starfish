@@ -48,7 +48,7 @@ public class AnimationModule extends CommandModule
 		if (first_time)
 		{
 		    for (Element output:output_list)
-			writer_list.add(OutputModule.createWriter(output));
+		    	writer_list.add(OutputModule.createWriter(output));
 		    first_time=false;
 		}
 		

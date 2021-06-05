@@ -46,7 +46,7 @@ public class InputParser implements Iterable {
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
 		Document document = null;
-		String path = wd+file_name;
+		String path = wd + file_name;
 		
 		Log.log("Loading " + path);
 

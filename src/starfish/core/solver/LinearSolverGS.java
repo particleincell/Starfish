@@ -54,7 +54,7 @@ public class LinearSolverGS implements LinearSolver
 		double g = (b[u] - Ax_neigh[u] - tau) / A.get(u,u);
 
 		 x[u] = x[u] + 1.4*(g-x[u]); /*SOR*/
-	    }
+		}
 	    
 	    return "OK";
 	}
