@@ -129,13 +129,13 @@ public class VolumeMaxwellianSource extends VolumeSource {
 			pos[0] = x1[0] + Starfish.rnd() * (x2[0] - x1[0]);
 			pos[1] = x1[1] + Starfish.rnd() * (x2[1] - x1[1]);
 		} else if (Starfish.getDomainType() == DomainType.RZ) {
-			double r1 = x1[0];
+			double r1 = x1[0];  if (r1<0) r1=0;
 			double r2 = x2[0];
 			pos[0] = Math.sqrt(Starfish.rnd() * (r2 * r2 - r1 * r1) + r1 * r1);
 			pos[1] = x1[1] + Starfish.rnd() * (x2[1] - x1[1]);
 		} else if (Starfish.getDomainType() == DomainType.ZR) {
-			double r1 = x1[1];
-			double r2 = x2[1];
+			double r1 = x1[1];  if (r1<0) r1=0;
+			double r2 = x2[1];  
 			pos[0] = x1[0] + Starfish.rnd() * (x2[0] - x1[0]);
 			pos[1] = Math.sqrt(Starfish.rnd() * (r2 * r2 - r1 * r1) + r1 * r1);
 		} else

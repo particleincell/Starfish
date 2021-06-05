@@ -16,6 +16,7 @@ import starfish.core.common.Vector;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.DomainBoundaryType;
 import starfish.core.domain.Mesh.Face;
+import starfish.core.domain.Mesh.NodeType;
 import starfish.core.io.InputParser;
 import starfish.core.solver.LinearSolverADI;
 import starfish.core.solver.LinearSolverDirect1D;
@@ -129,6 +130,9 @@ public class PoissonSolver extends PotentialSolver
 		{
 		    //skip dirichlet nodes
 		    if (mesh.isDirichletNode(i, j)) continue;
+		    
+		    if (mesh.nodeType(i, j)==NodeType.INSULATOR)
+		    	md.b[mesh.IJtoN(i, j)]=0;
 		    
 		    //skip internal nodes
 		    if (i!=0 && i!=mesh.ni-1 && j!=0 && j!=mesh.nj-1) continue;
