@@ -1310,6 +1310,7 @@ public abstract class Mesh {
 		/* now loop through all nodes and set the ones with cuts */
 		for (i = 0; i < ni; i++)
 			for (j = 0; j < nj; j++) {
+						
 				ArrayList<Segment> blist = node[i][j].segments;
 				if (blist.isEmpty())
 					continue;
@@ -1328,7 +1329,10 @@ public abstract class Mesh {
 						if (seg.isSmooth()) t = seg.nearestPosition(pos(i,j),5);
 						node[i][j].surf_normal = seg.normal(t);
 					}
-					else node[i][j].bc_value = seg.boundary.getValue();
+					else {
+						node[i][j].type = NodeType.DIRICHLET;
+						node[i][j].bc_value = seg.boundary.getValue();
+					}
 				} else if (node[i][j].type == NodeType.UNKNOWN) // do not overwrite MESH nodes
 				{
 					node[i][j].type = NodeType.OPEN;
