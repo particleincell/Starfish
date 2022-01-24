@@ -70,12 +70,25 @@ public class Vector
      * @return */
     public static double[] mult(double v[], double t)
     {
-	double r[] = new double[v.length];
-	for (int i=0;i<v.length;i++)
-	    r[i] = v[i]*t;			
-	return r;
+		double r[] = new double[v.length];
+		for (int i=0;i<v.length;i++)
+		    r[i] = v[i]*t;			
+		return r;
     }
 
+    
+    /** Multiplies vector by t
+     * @param v
+     * @param t scalar to multiply by
+     * @return */
+    public static double[] mult(double t, double v[])
+    {
+		double r[] = new double[v.length];
+		for (int i=0;i<v.length;i++)
+		    r[i] = v[i]*t;			
+		return r;
+    }
+    
     /** Multiplies vector by t and stores in result vector
      * @param v
      * @param t scalar to multiply by
@@ -304,11 +317,21 @@ public class Vector
      * @return */
     public static double[] CrossProduct3(double v1[], double v2[])
     {
-	double r[]=new double[3];
-	r[0] = v1[1]*v2[2]-v1[2]*v2[1];
-	r[1] = -v1[0]*v2[2]+v1[2]*v2[0];
-	r[2] = v1[0]*v2[1]-v1[1]*v2[0];
-	return r;
+		double r[]=new double[3];
+		r[0] = v1[1]*v2[2]-v1[2]*v2[1];
+		r[1] = -v1[0]*v2[2]+v1[2]*v2[0];
+		r[2] = v1[0]*v2[1]-v1[1]*v2[0];
+		return r;
+    }
+    
+    /**cross product of 3D arrays
+     * 
+     * @param v1  3D vector 1
+     * @param v2  3D vector 2
+     * @return 3D vector
+     */
+    public static double[] cross(double v1[], double v2[]) {
+    	return CrossProduct3(v1,v2);
     }
 
     /**
