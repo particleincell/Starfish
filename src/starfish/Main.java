@@ -25,7 +25,7 @@
  *    prior approval of the copyright holder.
  */
 
-package main;
+package starfish;
 
 import starfish.collisions.CollisionsPlugin;
 import starfish.core.common.Options;

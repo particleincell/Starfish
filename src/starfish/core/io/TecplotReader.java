@@ -160,7 +160,7 @@ public class TecplotReader extends Reader
 		    for (int i=0;i<ni;i++)
 		    {
 			String pieces[] = sc.nextLine().trim().split("\\s+");
-
+		
 			IPOS[i][j] = Double.parseDouble(pieces[vi])*dim_scale;
 			JPOS[i][j] = Double.parseDouble(pieces[vj])*dim_scale;
 

@@ -25,13 +25,14 @@
  *    prior approval of the copyright holder.
  */
 
-package main;
+package starfish;
 
 import starfish.collisions.CollisionsPlugin;
 import starfish.core.common.Options;
 import starfish.core.common.Plugin;
 import starfish.core.common.SimStatus;
 import starfish.core.common.Starfish;
+import starfish.plugins.plasma_dynamics.PlasmaDynamicsPlugin;
 
 import java.io.Console;
 import java.io.IOException;
@@ -51,6 +52,7 @@ public class MainHeadless {
         /* demo of starting Starfish with plugins */
         ArrayList<Plugin> plugins = new ArrayList<Plugin>();
         plugins.add(new CollisionsPlugin());
+        plugins.add(new PlasmaDynamicsPlugin());
 
         /* command line settings */
         Options options = new Options(args);

@@ -9,10 +9,6 @@ import starfish.core.common.Vector;
 
 public class MagCoil {
 
-	
-
-	
-
     void make_b_dat(double h, double j, int number_coils, int dist_cl) {
     	
 	    // Define Field Mesh
@@ -57,9 +53,9 @@ public class MagCoil {
 	            
 	    // i,j -> r,z
 
-	    // Setting boundries to dipole at coil centers
+	    // Setting boundaries to dipole at coil centers
 
-	    // Buondry conditions opposite center line
+	    // Boundary conditions opposite center line
 	    for (int n=0; n<number_coils; n++) 
 	        for (int z=2;z<Nz;z++) {
 	            double dipole_moment = j*(h*h*h*h)*coil_centers[n][0]*coil_centers[n][0]*Math.PI;
