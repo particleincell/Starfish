@@ -772,7 +772,7 @@ public class VTKWriter extends Writer {
 
 		for (Boundary boundary : bl) {
 			num_points += boundary.numPoints();
-			num_lines += boundary.numPoints() - 1;
+			num_lines++;
 		}
 		
 		num_points *= theta_sections;
@@ -826,26 +826,25 @@ public class VTKWriter extends Writer {
 
 		if (num_lines>0) {
 			pw.println("<Lines>");
-			int con[] = new int[num_points * 2];
+			int con[] = new int[num_points];
 			a = 0;
 			int p0 = 0;
 			for (Boundary boundary : bl) {
-				for (int i = 0; i < boundary.numPoints() - 1; i++) {
+				for (int i = 0; i < boundary.numPoints(); i++) {
 					con[a++] = p0 + i;
-					con[a++] = p0 + i + 1;
 				}
 				p0 += boundary.numPoints();
 			}
 			outputDataArrayScalar(pw, "connectivity", con);
 	
-			int off[] = new int[num_points];
-			p0 = 2;
+			int off[] = new int[num_lines];
+			p0 = 0;
 			a = 0;
 			for (Boundary boundary : bl) {
-				for (int i = 0; i < boundary.numPoints() - 1; i++, p0 += 2)
-					off[a++] = p0;
+				p0+=boundary.numPoints();
+				off[a++] = p0;				
 			}
-			outputDataArrayScalar(pw, "offsets", con);
+			outputDataArrayScalar(pw, "offsets", off);
 			pw.println("</Lines>");
 		}
 		else {   /*output polygons*/

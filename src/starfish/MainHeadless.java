@@ -46,19 +46,18 @@ import java.util.Scanner;
  */
 public class MainHeadless {
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         Locale.setDefault(new Locale("en", "US"));	 //force the code to use dots for decimals
 
-        /* demo of starting Starfish with plugins */
+        // demo of starting Starfish with plugins 
         ArrayList<Plugin> plugins = new ArrayList<Plugin>();
         plugins.add(new CollisionsPlugin());
-        plugins.add(new PlasmaDynamicsPlugin());
 
-        /* command line settings */
+        // command line settings
         Options options = new Options(args);
 
         run(options, plugins);
-    }
+    }*/
 
     public static void run(Options options, ArrayList<Plugin> plugins) {
         Starfish sim = new Starfish();

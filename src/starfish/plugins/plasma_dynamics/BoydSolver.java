@@ -1,8 +1,5 @@
 /*
-Detailed electron potential solver based on div(j)=0
-with j obtained from generalized Ohm's law
-
-This is similar to  Boyd's
+Detailed electron potential solver based on Boyd's
 'Modeling of the near field plume of a Hall thruster'
 for now, polytropic model from
 'Far field modeling of the plasma plume of a Hall thruster'
@@ -22,9 +19,9 @@ import starfish.core.solver.Solver;
 import starfish.core.solver.SolverModule;
 import starfish.pic.PotentialSolver;
 
-public class DivJZeroSolver extends PotentialSolver
+public class BoydSolver extends PotentialSolver
 {	
-    public DivJZeroSolver (double den0, double kTe, double gamma)
+    public BoydSolver (double den0, double kTe, double gamma)
     {
 		super();
 			
@@ -92,7 +89,7 @@ public class DivJZeroSolver extends PotentialSolver
 		    /*update boundaries */
 		    for (int j=0;j<5;j++) 
 		    {
-			md.b[md.mesh.IJtoN(0, j)] = -1e17*1500;		
+		    	md.b[md.mesh.IJtoN(0, j)] = -1e17*1500;		
 		    }
 		    /*
 		    for (int i=0;i<md.mesh.ni;i++) 
@@ -160,8 +157,7 @@ public class DivJZeroSolver extends PotentialSolver
 			    if (te[i][j]<0.01*Constants.EVtoK) te[i][j] = 0.01*Constants.EVtoK;
 			    
 			    double v = Math.sqrt(Constants.K*te[i][j]/Constants.ME);	//v_rms also from (1/2)m*v^2=(3/2)kTe
-			    sigma[i][j] = 16*Math.PI*Constants.EPS0*Constants.EPS0*Constants.ME*v*v*v/(Constants.QE*Constants.QE);
-			    
+			    sigma[i][j] = 16*Math.PI*Constants.EPS0*Constants.EPS0*Constants.ME*v*v*v/(Constants.QE*Constants.QE);  
 			}	    
 		    
 		    //perform smoothing passes
@@ -169,11 +165,10 @@ public class DivJZeroSolver extends PotentialSolver
 			for (int i=1;i<mesh.ni-1;i++)
 			    for (int j=1;j<mesh.nj-1;j++)
 			    {
-				sigma[i][j] = (1/8.0)*(4*sigma[i][j]+
+			    	sigma[i][j] = (1/8.0)*(4*sigma[i][j]+
 					sigma[i-1][j]+sigma[i+1][j]+
 					sigma[i][j-1]+sigma[i][j+1]);
-			    }	    
-		    	
+			    }	       	
 		}
     }
     
@@ -191,8 +186,7 @@ public class DivJZeroSolver extends PotentialSolver
 		    
 		    double nab_ne[][] = new double[mesh.ni][mesh.nj];
 		    double grad_grad_2[][] = new double[mesh.ni][mesh.nj];
-		    
-		    
+		    	    
 		    double dx = mesh.dh[0];
 		    double dy = mesh.dh[1];
 		    double dx2 = dx*dx;
@@ -256,17 +250,13 @@ public class DivJZeroSolver extends PotentialSolver
 	
 			 //converge
 			 int it;
-			for ( it=0;it<50000;it++)
+			for ( it=0;it<500;it++)
 			{
 			    for (int i=0;i<mesh.ni;i++)
 				for (int j=0;j<mesh.nj;j++)
 				{
 				    if (i==0) {
-					if (j>4)
-					    phi[i][j] = phi[i+1][j];
-					else 
-					    //phi[i][j] = phi[i+1][j]+500*dx;	//500V/m
-					    phi[i][j] = 10;	//500V/m
+					    phi[i][j] = 0;	//500V/m
 				    }
 				    else if (i==mesh.ni-1) phi[i][j] = 0;	    //chamber wall
 				    else if (j==0) phi[i][j] = phi[i][j+1];	    //symmetry
@@ -299,13 +289,11 @@ public class DivJZeroSolver extends PotentialSolver
 				norm = Math.sqrt(sum/((mesh.ni-2)*(mesh.nj-2)));
 				if (norm<1e-3) break;		    
 			    }
-	
 			}
 	
 			System.out.printf("outer_it %d, Norm: %g in it:%d\n",outer_it, norm,it);
 		    } //outer it		    
 		}
-	
     }
     
     protected void evalCurrentDensity()
@@ -332,13 +320,13 @@ public class DivJZeroSolver extends PotentialSolver
 			    
 			    if (i==0)
 			    {
-				grad_phi_x = (phi[i+1][j]-phi[i][j])/(dx);
-				grad_ne_te_x = (ne[i+1][j]*te[i+1][j] - ne[i][j]*te[i][j])/(2*dx);
+			    	grad_phi_x = (phi[i+1][j]-phi[i][j])/(dx);
+			    	grad_ne_te_x = (ne[i+1][j]*te[i+1][j] - ne[i][j]*te[i][j])/(2*dx);
 			    }
 			    else if (i==mesh.ni-1)
 			    {
-				grad_phi_x = (phi[i][j]-phi[i-1][j])/(dx);
-				grad_ne_te_x = (ne[i][j]*te[i][j] - ne[i-1][j]*te[i-1][j])/(dx);
+			    	grad_phi_x = (phi[i][j]-phi[i-1][j])/(dx);
+			    	grad_ne_te_x = (ne[i][j]*te[i][j] - ne[i-1][j]*te[i-1][j])/(dx);
 			    }
 			    else
 			    {
@@ -386,26 +374,23 @@ public class DivJZeroSolver extends PotentialSolver
 		
 		return it;
     }
-    
-    
-    
+   
     /*SOLVER FACTORY*/
-    public static SolverModule.SolverFactory divJZeroSolverFactory = new SolverModule.SolverFactory()
+    public static SolverModule.SolverFactory BoydSolverFactory = new SolverModule.SolverFactory()
     {
 		@Override
 		public Solver makeSolver(Element element)
 		{
 		    Solver solver;
 		    
-		    
 		    double n0=InputParser.getDouble("n0", element);
 		    double Te0=InputParser.getDouble("Te0", element)*Constants.EVtoK;
 		    double gamma = InputParser.getDouble("gamma",element,5.0/3.0);
 			
-		    solver=new DivJZeroSolver(n0, Te0, gamma);
+		    solver=new BoydSolver(n0, Te0, gamma);
 		
 		    /*log*/
-		    Starfish.Log.log("Added Detailed Div(j)=0 Electron solver");
+		    Starfish.Log.log("Added Boyd Detailed Electron solver");
 		    Starfish.Log.log("> n0: " + n0 + " (#/m^3)");
 		    Starfish.Log.log("> T0: " + Te0 + " (eV)");
 		    Starfish.Log.log("> gamma: " + gamma );

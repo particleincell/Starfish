@@ -5,7 +5,7 @@
 package starfish.plugins.plasma_dynamics;
 
 import starfish.core.common.Plugin;
-import starfish.core.interactions.RateParser;
+//import starfish.core.interactions.RateParser;
 import starfish.core.solver.SolverModule;
 
 public class PlasmaDynamicsPlugin implements Plugin
@@ -14,7 +14,9 @@ public class PlasmaDynamicsPlugin implements Plugin
     public void register()
     {
 //RateParser.registerMathParser("BOSCH_HALE",BoschHale.MathParserBoschHale);
-		SolverModule.registerSolver("DIVJZERO",DivJZeroSolver.divJZeroSolverFactory);
+		SolverModule.registerSolver("BOYD",BoydSolver.BoydSolverFactory);
+		SolverModule.registerSolver("GENG",GengSolver.GengSolverFactory);
+		
     }
     
 }

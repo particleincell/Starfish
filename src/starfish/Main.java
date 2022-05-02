@@ -31,6 +31,7 @@ import starfish.collisions.CollisionsPlugin;
 import starfish.core.common.Options;
 import starfish.core.common.Plugin;
 import starfish.gui.GUI;
+import starfish.plugins.plasma_dynamics.PlasmaDynamicsPlugin;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -50,6 +51,7 @@ public class Main {
 		/* demo of starting Starfish with plugins */
 		ArrayList<Plugin> plugins = new ArrayList<Plugin>();
 		plugins.add(new CollisionsPlugin());
+        plugins.add(new PlasmaDynamicsPlugin());
 
 		/* command line settings */
 		Options options = new Options(args);
