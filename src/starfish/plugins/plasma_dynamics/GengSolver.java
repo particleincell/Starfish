@@ -122,8 +122,6 @@ public class GengSolver extends PotentialSolver
     		        double nuew = veth/H/(2.e6/(4*2.e9*0.015)); // double-check this to see how to solve the literature
     		        double nu = nuen + nueb + nuew;
     		        
-    		        nu = nuen;
-    		        
     		        mu[i][j] = 0;
     		        if (nu>0)  mu[i][j] = Constants.QE/(Constants.ME*nu);    		        
     			}
@@ -190,6 +188,7 @@ public class GengSolver extends PotentialSolver
     		double mu[][] = this.mu.getField(md.mesh).getData();
     		double ne[][] = this.ne.getField(md.mesh).getData();
     		double te[][] = this.te.getField(md.mesh).getData();
+    		double phi[][] = Starfish.domain_module.getPhi(md.mesh).getData();
     		
     		for (int i=0;i<md.mesh.ni;i++)
     			for (int j=0;j<md.mesh.nj;j++) {
@@ -229,6 +228,7 @@ public class GengSolver extends PotentialSolver
     				R2[i][j] = mu22[i][j]*sigma;
     				R3[i][j] = mu21[i][j]*sigma*(gradz_te+te[i][j]*gradz_lnn) + 
     						   mu22[i][j]*sigma*(gradr_te+te[i][j]*gradr_lnn);
+    			    		
     			}
     		
     	}
@@ -237,6 +237,19 @@ public class GengSolver extends PotentialSolver
     //updates potential by solving ohm's law
     protected void updatePotential()
     {
+    	for (MeshData md:mesh_data)
+		{
+		    double phi[][] = Starfish.domain_module.getPhi(md.mesh).getData();
+
+    		for (int i=0;i<md.mesh.ni;i++) 
+    			for (int j=0;j<md.mesh.nj;j++) {
+    				if (md.mesh.isDirichletNode(i, j)) 
+    					phi[i][j] = md.mesh.nodeBCValue(i,j);
+    				else phi[i][j] = 0;
+    			}
+		}
+		
+		
 		for (int it=0;it<solver_it;it++) {
 			
 			double R_sum = 0;
@@ -258,22 +271,21 @@ public class GengSolver extends PotentialSolver
 	    		
 			    double dz = mesh.dh[0];
 			    double dr = mesh.dh[1];
-			    double dz2 = dz*dz;
-			    double dr2 = dr*dr;
 			    
 			    for (int i=1;i<mesh.ni-1;i++) { 
 			    	
 			    	for (int j=0;j<mesh.nj-1;j++) {
 			    
 			    		// skip over dirichlet nodes
-			    		if (mesh.isDirichletNode(i, j)) continue;
+			    		if (mesh.isDirichletNode(i, j)) {
+			    			continue;
+			    		}
 			    	 	
 			    		// symmetry on r 0
 			    		if (j==0) {
 			    			phi[i][j] = phi[i][j+1];	
 			    			continue;
-			    		}
-				    	
+			    		}			    	
 			    		
 			    		double r = mesh.R(i,j);
 			    		
@@ -305,16 +317,14 @@ public class GengSolver extends PotentialSolver
 			    			
 			    		double S = -((R1n*Ezn+R3n) - (R1s*Ezs+R3s))*dz 
 			    				   -((Z2e*Ere+Z3e) - (Z2w*Erw+Z3w))*dr
-			    				   -(1/r)*(R1[i][j]*Ez + R2[i][j]*Er + R3[i][j])*dz*dr;
-			    		
+			    				   -(1/r)*(R1[i][j]*Ez + R2[i][j]*Er + R3[i][j])*dz*dr;		    		
 			    		
 			    		double phi_s = phi[i][j];			    		
 			    		double denom = (Z1e+Z1w+R2n+R2s);
 			    		double term = (Z1e*phi[i+1][j] + Z1w*phi[i-1][j] + R2n*phi[i][j+1] + R2s*phi[i][j-1] - S);
 			    		if (denom!=0) 
 			    			phi_s = (1/denom) * term;
-			    				
-			    		
+			    						    		
 			    		phi[i][j] = phi[i][j] + 1.4*(phi_s-phi[i][j]);
 			    		
 			    		// add to residue sum

@@ -35,15 +35,15 @@ abstract public class PotentialSolver extends Solver
     /** updates den0 if sampling positions are specified*/
     public void updateDen0()
     {
-	if (den0_pos==null || den0_pos.isEmpty()) return;
-	
-	FieldCollection2D rho_fc = Starfish.domain_module.getRho();
-	double rho = 0;
-	for (double[] pos : den0_pos)
-	    rho+=rho_fc.eval(pos);
-	
-	den0 = rho/(den0_pos.size()*Constants.QE);	
-	Starfish.Log.log("Reference plasma density: "+den0);
+		if (den0_pos==null || den0_pos.isEmpty()) return;
+		
+		FieldCollection2D rho_fc = Starfish.domain_module.getRho();
+		double rho = 0;
+		for (double[] pos : den0_pos)
+		    rho+=rho_fc.eval(pos);
+		
+		den0 = rho/(den0_pos.size()*Constants.QE);	
+		Starfish.Log.log("Reference plasma density: "+den0);
     }
 
     /**

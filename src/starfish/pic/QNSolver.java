@@ -56,8 +56,10 @@ public class QNSolver extends PotentialSolver
 	    for (int i=0;i<ni;i++)
 		for (int j=0;j<nj;j++)
 		{
-		    if (mesh.nodeType(i, j) == NodeType.DIRICHLET)
-			continue;
+		    if (mesh.nodeType(i, j) == NodeType.DIRICHLET) {
+			   phi[i][j] = mesh.nodeBCValue(i, j);
+			   continue;
+		    }
 					
 		    double ion_den = rho[i][j]/Constants.QE;
 		    if (ion_den>0)

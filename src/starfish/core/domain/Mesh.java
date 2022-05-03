@@ -196,7 +196,7 @@ public abstract class Mesh {
 	public DomainBoundaryType boundaryType(Face face, int index) {
 		return boundary_data[face.val()][index].type;
 	}
-
+	
 	/* mesh definition */
 	public int ni, nj; /* number of nodes */
 	public int n_nodes, n_cells;
@@ -261,6 +261,12 @@ public abstract class Mesh {
 		return node[i][j].type;
 	}
 
+	/**returns node bc value
+	 * */
+	public double nodeBCValue(int i, int j) {
+		return node[i][j].bc_value;
+	}
+	
 	/**
 	 * Returns mesh boundary normal vector at corresponding face and position
 	 * 
