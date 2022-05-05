@@ -49,7 +49,7 @@ public class SolverModule extends CommandModule {
 		registerSolver("CONSTANT-EF", ConstantEF.constantEFSolverFactory);
 		registerSolver("QN", QNSolver.boltzmannSolverFactory);
 		registerSolver("POISSON", PoissonSolver.poissonSolverFactory);
-		registerSolver("MAG", MagSolver.magSolverFactory);
+	//	registerSolver("MAG", MagSolver.magSolverFactory);
 		
 	}
 

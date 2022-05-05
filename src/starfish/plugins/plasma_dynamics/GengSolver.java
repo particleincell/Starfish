@@ -188,7 +188,6 @@ public class GengSolver extends PotentialSolver
     		double mu[][] = this.mu.getField(md.mesh).getData();
     		double ne[][] = this.ne.getField(md.mesh).getData();
     		double te[][] = this.te.getField(md.mesh).getData();
-    		double phi[][] = Starfish.domain_module.getPhi(md.mesh).getData();
     		
     		for (int i=0;i<md.mesh.ni;i++)
     			for (int j=0;j<md.mesh.nj;j++) {
@@ -227,8 +226,7 @@ public class GengSolver extends PotentialSolver
     				R1[i][j] = mu21[i][j]*sigma;
     				R2[i][j] = mu22[i][j]*sigma;
     				R3[i][j] = mu21[i][j]*sigma*(gradz_te+te[i][j]*gradz_lnn) + 
-    						   mu22[i][j]*sigma*(gradr_te+te[i][j]*gradr_lnn);
-    			    		
+    						   mu22[i][j]*sigma*(gradr_te+te[i][j]*gradr_lnn);   		
     			}
     		
     	}
@@ -245,7 +243,7 @@ public class GengSolver extends PotentialSolver
     			for (int j=0;j<md.mesh.nj;j++) {
     				if (md.mesh.isDirichletNode(i, j)) 
     					phi[i][j] = md.mesh.nodeBCValue(i,j);
-    				else phi[i][j] = 0;
+    				//else phi[i][j] = 0;
     			}
 		}
 		
@@ -288,14 +286,11 @@ public class GengSolver extends PotentialSolver
 			    		}			    	
 			    		
 			    		double r = mesh.R(i,j);
-			    		
-			    		double Ez = ez[i][j];
-			    		double Er = er[i][j];
-			    		
-			    		double Ezn = ez[i][j+1];
-			    		double Ezs = ez[i][j-1];
-			    		double Ere = er[i+1][j];
-			    		double Erw = er[i-1][j];
+			    					    		
+			    		double Ezn = 0.5*(ez[i][j]+ez[i][j+1]);
+			    		double Ezs = 0.5*(ez[i][j]+ez[i][j-1]);
+			    		double Ere = 0.5*(er[i][j]+er[i+1][j]);
+			    		double Erw = 0.5*(er[i][j]+er[i-1][j]);
 			    		
 			    		double R1n = 0.5*(R1[i][j]+R1[i][j+1]);
 			    		double R1s = 0.5*(R1[i][j]+R1[i][j-1]);
@@ -314,14 +309,19 @@ public class GengSolver extends PotentialSolver
 			    		
 			    		double R2n = 0.5*(R2[i][j]+R2[i][j+1]);
 			    		double R2s = 0.5*(R2[i][j]+R2[i][j-1]);
+			    		
+			    		double a = Z1e/(dz*dz);
+			    		double b = Z1w/(dz*dz);
+			    		double c = R2n/(dr*dr);
+			    		double d = R2s/(dr*dr);
 			    			
-			    		double S = -((R1n*Ezn+R3n) - (R1s*Ezs+R3s))*dz 
-			    				   -((Z2e*Ere+Z3e) - (Z2w*Erw+Z3w))*dr
-			    				   -(1/r)*(R1[i][j]*Ez + R2[i][j]*Er + R3[i][j])*dz*dr;		    		
+			    		double S = -((Z2e*Ere+Z3e) - (Z2w*Erw+Z3w))*dr
+			    				   -((R1n*Ezn+R3n) - (R1s*Ezs+R3s))*dz*(1+dr/(2*r));
+			    		
 			    		
 			    		double phi_s = phi[i][j];			    		
-			    		double denom = (Z1e+Z1w+R2n+R2s);
-			    		double term = (Z1e*phi[i+1][j] + Z1w*phi[i-1][j] + R2n*phi[i][j+1] + R2s*phi[i][j-1] - S);
+			    		double denom = (a+b+c+d);
+			    		double term = (S/(dr*dz)+a*phi[i+1][j]+b*phi[i-1][j]+c*phi[i][j+1]+d*phi[i][j-1]);
 			    		if (denom!=0) 
 			    			phi_s = (1/denom) * term;
 			    						    		
