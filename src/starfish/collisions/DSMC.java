@@ -292,8 +292,10 @@ public class DSMC extends VolumeInteraction
 	int nsel = (int)(nsel_f);	/*number of groups, round down*/
 	    
 	/*make sure we have enough particles to collide*/
-	if ((mat1==mat2 && (np1<2 || np2<2)) ||	np1<1 || np2<1)    
+	if ((mat1==mat2 && (np1<2 || np2<2)) ||	np1<1 || np2<1) {    
 	    nsel=0;
+	    return sums;
+	}
 	    
 	cell_info.rem=nsel_f-nsel;
 	
@@ -334,13 +336,13 @@ public class DSMC extends VolumeInteraction
 
 	    /*eval prob*/
 	    double P=sigma_cr/cell_info.sig_cr_max;
-
+	    
 	    if (Starfish.rnd()<P)
 	    {
-		model.perform(part1, part2,vss_inv);
-		
-		sums[0]+=1.0;
-		sums[1]+=0.5*(part1.mpw+part2.mpw);		
+			model.perform(part1, part2,vss_inv);
+			
+			sums[0]+=1.0;
+			sums[1]+=0.5*(part1.mpw+part2.mpw);		
 	    }
 	}
 
