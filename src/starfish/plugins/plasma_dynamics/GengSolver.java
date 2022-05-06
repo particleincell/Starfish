@@ -56,8 +56,9 @@ public class GengSolver extends PotentialSolver
 		R2 = Starfish.domain_module.getFieldManager().add("R2","",null);
 		R3 = Starfish.domain_module.getFieldManager().add("R3","",null);
 		
-		
-				
+		// jz and jr for visualization
+		jz = Starfish.domain_module.getFieldManager().add("jz","",null);
+		jr = Starfish.domain_module.getFieldManager().add("jr","",null);
     }
     
     FieldCollection2D efi,efj;
@@ -70,6 +71,7 @@ public class GengSolver extends PotentialSolver
     FieldCollection2D Z1,Z2,Z3;
     FieldCollection2D R1,R2,R3;
     FieldCollection2D phi0;
+    FieldCollection2D jz,jr;
     
  
     double Te0;		// electron temperature to use in eV
@@ -97,6 +99,8 @@ public class GengSolver extends PotentialSolver
 		updatePotential();
 		
 		updateGradientField();
+		
+		setCurrent();
     }
 
     // evaluates nu
@@ -232,6 +236,29 @@ public class GengSolver extends PotentialSolver
     	}
     }
     
+    // sets jz and jr terms for visualization
+    void setCurrent() {
+    	for (MeshData md:mesh_data)
+		{
+    		double Z1[][] = this.Z1.getField(md.mesh).getData();
+    		double Z2[][] = this.Z2.getField(md.mesh).getData();
+    		double Z3[][] = this.Z3.getField(md.mesh).getData();
+    		double R1[][] = this.R1.getField(md.mesh).getData();
+    		double R2[][] = this.R2.getField(md.mesh).getData();
+    		double R3[][] = this.R3.getField(md.mesh).getData();
+    		double ez[][] = this.efi.getField(md.mesh).getData();
+    		double er[][] = this.efj.getField(md.mesh).getData();		  
+    		double jz[][] = this.jz.getField(md.mesh).getData();
+    		double jr[][] = this.jr.getField(md.mesh).getData();
+    		for (int i=0;i<md.mesh.ni;i++) 
+    			for (int j=0;j<md.mesh.nj;j++) {
+    				jz[i][j] = Z1[i][j]*ez[i][j] + Z2[i][j]*er[i][j] + Z3[i][j];
+    				jr[i][j] = R1[i][j]*ez[i][j] + R2[i][j]*er[i][j] + R3[i][j];    				
+    			}
+    		
+		}
+
+    }
     //updates potential by solving ohm's law
     protected void updatePotential()
     {
@@ -243,7 +270,7 @@ public class GengSolver extends PotentialSolver
     			for (int j=0;j<md.mesh.nj;j++) {
     				if (md.mesh.isDirichletNode(i, j)) 
     					phi[i][j] = md.mesh.nodeBCValue(i,j);
-    				//else phi[i][j] = 0;
+    				else phi[i][j] = 0;
     			}
 		}
 		
@@ -252,7 +279,7 @@ public class GengSolver extends PotentialSolver
 			
 			double R_sum = 0;
 			int node_count = 0;
-			
+						
 			for (MeshData md:mesh_data)
 			{
 			    UniformMesh mesh = (UniformMesh)md.mesh;
@@ -269,10 +296,23 @@ public class GengSolver extends PotentialSolver
 	    		
 			    double dz = mesh.dh[0];
 			    double dr = mesh.dh[1];
+			
+			    // recompute electric field
+			    for (int i=0;i<mesh.ni;i++) 
+			    	for (int j=0;j<mesh.nj;j++) {
+			    		if (i==0) ez[i][j] = -(phi[i+1][j]-phi[i][j])/dz;
+			    		else if (i==mesh.ni-1) ez[i][j] = -(phi[i][j]-phi[i-1][j])/dz;
+			    		else ez[i][j] = -(phi[i+1][j]-phi[i-1][j])/(2*dz);
+			    		
+			    		if (j==0) er[i][j] = -(phi[i][j+1]-phi[i][j])/dr;
+			    		else if (j==mesh.nj-1) er[i][j] = -(phi[i][j]-phi[i][j-1])/dr;
+			    		else er[i][j] = -(phi[i][j+1]-phi[i][j-1])/(2*dr);			    		
+			    	}
+							
 			    
-			    for (int i=1;i<mesh.ni-1;i++) { 
+			    for (int i=0;i<mesh.ni;i++) { 
 			    	
-			    	for (int j=0;j<mesh.nj-1;j++) {
+			    	for (int j=0;j<mesh.nj;j++) {
 			    
 			    		// skip over dirichlet nodes
 			    		if (mesh.isDirichletNode(i, j)) {
@@ -280,11 +320,23 @@ public class GengSolver extends PotentialSolver
 			    		}
 			    	 	
 			    		// symmetry on r 0
-			    		if (j==0) {
+			    		if (i==0) {
+			    			phi[i][j] = phi[i+1][j];
+			    			continue;
+			    		} 
+			    		else if (i==mesh.ni-1) {
+			    			phi[i][j] = phi[i-1][j];
+			    			continue;
+			    		}
+			    		else if (j==0) {
 			    			phi[i][j] = phi[i][j+1];	
 			    			continue;
-			    		}			    	
-			    		
+			    		}	
+			    		else if (j==mesh.nj-1) {
+			    			phi[i][j] = phi[i][j-1];
+			    			continue;
+			    		}
+			    					    		
 			    		double r = mesh.R(i,j);
 			    					    		
 			    		double Ezn = 0.5*(ez[i][j]+ez[i][j+1]);
