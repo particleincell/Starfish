@@ -48,9 +48,7 @@ public class SolverModule extends CommandModule {
 	public void init() {
 		registerSolver("CONSTANT-EF", ConstantEF.constantEFSolverFactory);
 		registerSolver("QN", QNSolver.boltzmannSolverFactory);
-		registerSolver("POISSON", PoissonSolver.poissonSolverFactory);
-	//	registerSolver("MAG", MagSolver.magSolverFactory);
-		
+		registerSolver("POISSON", PoissonSolver.poissonSolverFactory);		
 	}
 
 	@Override

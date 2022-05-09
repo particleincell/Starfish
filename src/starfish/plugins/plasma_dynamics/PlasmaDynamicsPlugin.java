@@ -16,6 +16,7 @@ public class PlasmaDynamicsPlugin implements Plugin
 //RateParser.registerMathParser("BOSCH_HALE",BoschHale.MathParserBoschHale);
 		SolverModule.registerSolver("BOYD",BoydSolver.BoydSolverFactory);
 		SolverModule.registerSolver("GENG",GengSolver.GengSolverFactory);
+		SolverModule.registerSolver("MAG", MagSolver.MagSolverFactory);
 		
     }
     
