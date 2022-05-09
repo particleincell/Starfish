@@ -48,6 +48,9 @@ public class Boundary extends Spline {
 	protected LinearList value_list;
 	protected double value;
 
+	/** Magnetization data*/
+	protected double[] mag_M;
+	
 	/**
 	 *
 	 * @param name
@@ -69,6 +72,12 @@ public class Boundary extends Spline {
 
 		/* b.c. */
 		value_list = InputParser.getLinearList("value", "time", element, 0);
+		
+		/*magnetization*/
+		mag_M = InputParser.getDoubleList("mag_M",element,new double[3]);
+		if (mag_M.length!=3) {
+			Starfish.Log.error("mag_M length must be 3");
+		}
 
 		/* set boundary type */
 		if (type_name.equalsIgnoreCase("OPEN"))
@@ -201,6 +210,12 @@ public class Boundary extends Spline {
 		return value;
 	}
 
+	/** returns magnetization*/
+	public double[] getMagM() {
+		return mag_M;
+	}
+
+	
 	/** @return boundary material */
 	public Material getMaterial() {
 		return material;

@@ -18,6 +18,7 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
+import starfish.core.common.Vector;
 import starfish.core.domain.DomainModule.DomainType;
 
 /** abstract implementation of a mesh with a structured topology */
@@ -106,6 +107,7 @@ public abstract class Mesh {
 		public NodeType type;
 
 		public double bc_value;
+		public double[] mag_M;		// magnetization data
 
 		/** list of splines in this control volume */
 		public ArrayList<Segment> segments = new ArrayList<>();
@@ -1338,11 +1340,13 @@ public abstract class Mesh {
 					else {
 						node[i][j].type = NodeType.DIRICHLET;
 						node[i][j].bc_value = seg.boundary.getValue();
+						node[i][j].mag_M = seg.boundary.getMagM();
 					}
 				} else if (node[i][j].type == NodeType.UNKNOWN) // do not overwrite MESH nodes
 				{
 					node[i][j].type = NodeType.OPEN;
 					node[i][j].bc_value = 0;
+					node[i][j].mag_M = new double[3];
 				}
 			}
 	}
@@ -1368,18 +1372,22 @@ public abstract class Mesh {
 					if (i > 0 && okToCopy(i - 1, j)) {
 						node[i][j].type = node[i - 1][j].type;
 						node[i][j].bc_value = node[i - 1][j].bc_value;
+						node[i][j].mag_M = Vector.copy(node[i - 1][j].mag_M);												
 						count++;
 					} else if (i < ni - 1 && okToCopy(i + 1, j)) {
 						node[i][j].type = node[i + 1][j].type;
 						node[i][j].bc_value = node[i + 1][j].bc_value;
+						node[i][j].mag_M = Vector.copy(node[i + 1][j].mag_M);						
 						count++;
 					} else if (j > 0 && okToCopy(i, j - 1)) {
 						node[i][j].type = node[i][j - 1].type;
 						node[i][j].bc_value = node[i][j - 1].bc_value;
+						node[i][j].mag_M = Vector.copy(node[i][j - 1].mag_M);
 						count++;
 					} else if (j < nj - 1 && okToCopy(i, j + 1)) {
 						node[i][j].type = node[i][j + 1].type;
 						node[i][j].bc_value = node[i][j + 1].bc_value;
+						node[i][j].mag_M = Vector.copy(node[i][j + 1].mag_M);						
 						count++;
 					}
 				} /* j */
