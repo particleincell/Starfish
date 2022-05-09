@@ -347,7 +347,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	}
 
 	/* code version */
-	public static String VERSION = "v0.23";
+	public static String VERSION = "v0.24";
 
 	/**
 	 *
@@ -735,7 +735,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 		Log.forced("================================================================");
 		Log.forced("> Starfish " + VERSION);
 		Log.forced("> " + HEADER_MESSAGE);
-		Log.forced("> (c) 2012-2019, Particle In Cell Consulting LLC");
+		Log.forced("> (c) 2012-2022, Particle In Cell Consulting LLC");
 		Log.forced("> info@particleincell.com, www.particleincell.com");
 		Log.forced("");
 		Log.forced("!! This is a development version. The software is provided as-is, \n"
