@@ -367,13 +367,14 @@ public class GengSolver extends PotentialSolver
 			    		double c = R2n/(dr*dr);
 			    		double d = R2s/(dr*dr);
 			    			
-			    		double S = -((Z2e*Ere+Z3e) - (Z2w*Erw+Z3w))*dr
-			    				   -((R1n*Ezn+R3n) - (R1s*Ezs+R3s))*dz*(1+dr/(2*r));
+			    		double S = -((Z2e*Ere+Z3e) - (Z2w*Erw+Z3w))/dz
+			    				   -((R1n*Ezn+R3n) - (R1s*Ezs+R3s))/dr
+			    				   -((R1n*Ezn+R3n) + (R1s*Ezs+R3s))/(2*r);
 			    		
 			    		
 			    		double phi_s = phi[i][j];			    		
-			    		double denom = (a+b+c+d);
-			    		double term = (S/(dr*dz)+a*phi[i+1][j]+b*phi[i-1][j]+c*phi[i][j+1]+d*phi[i][j-1]);
+			    		double denom = (a+b+c*(1+dr)+d*(1-dr));
+			    		double term = (S + a*phi[i+1][j] + b*phi[i-1][j] + c*(1+dr)*phi[i][j+1] + d*(1-dr)*phi[i][j-1]);
 			    		if (denom!=0) 
 			    			phi_s = (1/denom) * term;
 			    						    		
