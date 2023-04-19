@@ -154,12 +154,12 @@ public class VolumeMaxwellianSource extends VolumeSource {
 			pos = samplePosRect(x0, x1);
 			break;
 		case CIRCLE:
-			do {
-				// pick random position in square, check if in bounds
-				double x1[] = { x0[0] - 0.5 * radius, x0[1] - 0.5 * radius };
-				double x2[] = { x0[0] + 0.5 * radius, x0[1] + 0.5 * radius };
-				pos = samplePosRect(x1, x2);
-			} while (!inShape(pos));
+			
+			double theta =  Starfish.rnd()*2*Math.PI;
+			double r = Math.sqrt(Starfish.rnd())*radius;
+			pos[0] = x0[0]+Math.cos(theta)*r;
+			pos[1] = x0[1]+Math.sin(theta)*r;
+			break;
 		}
 		return pos;
 	}

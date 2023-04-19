@@ -83,6 +83,8 @@ public class MainHeadless {
 
         }
     }
+    
+    //TODO: what is this
     private static void terminalControlsWithConsole(Starfish sim) {
         Console console = System.console();
         while (sim.getStatus() != SimStatus.STOP) {

@@ -45,8 +45,11 @@ public class MaxwellianSource extends Source {
 
 		mdot0 = InputParser.getDouble("mdot", element, 0);
 		double current = InputParser.getDouble("current", element, 0);
-		if (mdot0 != 0.0 && current != 0.0)
-			Log.error("only one of <mdot> and <current> can be specified");
+		double den = InputParser.getDouble("den", element,0);
+		int num = 0;
+		if (mdot0>0) num++; if (current>0) num++; if (den>0) num++;
+		if (num!=1)
+			Log.error("only one of <mdot>, <current>, and <den> can be specified");
 		if (current != 0.0) {
 			if (source_mat.charge == 0.0)
 				Log.error("Cannot use <current> with neutral materials");
@@ -62,6 +65,10 @@ public class MaxwellianSource extends Source {
 
 		/* calculate density */
 		double A = boundary.area();
+		if (den>0) {	// compute mdot if density specified
+			mdot0 = den*(A*v_drift*source_mat.getMass());
+		}
+		
 		den0 = mdot0 / (A * v_drift * source_mat.getMass());
 		v_th = Utils.computeVth(temp, source_mat.getMass());
 		
