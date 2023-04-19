@@ -1064,6 +1064,8 @@ public class KineticMaterial extends Material {
 
 		/* sort particles to velocity grid */
 		for (Particle part : parts_in_cell) {
+			if (part.mpw<=0) continue;		// skip deleted particles
+			
 			int ui[] = new int[3];
 			for (int d = 0; d < 3; d++) {
 				ui[d] = (int) ((part.vel[d] - vel_min[d]) / du[d]);
