@@ -64,7 +64,7 @@ public class GUI extends JFrame {
         simulationResultViewer = new SimulationResultViewer(simulationRunner);
 
         try {
-            File simBuilderFile = new File(GUI.class.getResource("/gui/builder/simbuilder.xml").getPath());
+            File simBuilderFile = new File(GUI.class.getResource("/starfish/resources/gui/builder/simbuilder.xml").getPath());
             simulationFileBuilder.addCommandsFrom(simBuilderFile);
             File userDeterminedSimBuilderFile = settings.getSimBuilderBlueprintFile();
             if (userDeterminedSimBuilderFile != null) {
@@ -81,8 +81,10 @@ public class GUI extends JFrame {
         setContentPane(contentPane);
     }
     private void applyFrameCustomization() {
-        URL icon = GUI.class.getResource("/gui/starfish-100.png");
-        setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
+        URL iconURL = GUI.class.getResource("/starfish/resources/gui/starfish-100.png");
+        if (iconURL != null) {
+            setIconImage(Toolkit.getDefaultToolkit().getImage(iconURL));
+        }
 
         setTitle("Starfish " + Starfish.VERSION);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

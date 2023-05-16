@@ -1,9 +1,9 @@
 {
-    "java.project.sourcePaths": [
-        "src"
-    ],
+    "java.project.sourcePaths": ["src"],
+    "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
         "/vtk/vtk.jar"
-    ]
+    ],
+    "java.project.explorer.showNonJavaResources": true
 }
