@@ -22,7 +22,6 @@ public class BoschHale
 	    var is the temperature
 	    d[0] is Bg, d[1] is mrc2
 	    */
-	    @Override
 	    public double eval (double var, double c[], double d[])
 	    {
 		double T = var*Constants.KtoEV*1e-3;	//convert to kEv
