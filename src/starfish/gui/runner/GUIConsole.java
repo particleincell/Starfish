@@ -7,7 +7,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import java.awt.*;
 
-public class GUIConsole extends JScrollPane implements starfish.gui.common.ConsoleOutputStream {
+public class GUIConsole extends JScrollPane implements starfish.ui.ConsoleOutputStream {
 
     private JTextPane textPane;
 

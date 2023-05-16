@@ -6,7 +6,8 @@ import starfish.core.common.SimStatus;
 import starfish.core.common.Starfish;
 import starfish.gui.GUI;
 import starfish.gui.GUISettings;
-import starfish.gui.common.ConsoleOutputStream;
+import starfish.ui.ConsoleOutputStream;
+import starfish.ui.SimulationRunner;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -16,7 +17,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
-public class GUISimulationRunner extends JPanel {
+public class GUISimulationRunner extends JPanel implements SimulationRunner {
 
     private final ArrayList<Plugin> plugins;
 

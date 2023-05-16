@@ -46,7 +46,7 @@ import java.util.Scanner;
  */
 public class MainHeadless {
 
-    /*public static void main(String[] args) {
+    public static void main(String[] args) {
         Locale.setDefault(new Locale("en", "US"));	 //force the code to use dots for decimals
 
         // demo of starting Starfish with plugins 
@@ -57,7 +57,7 @@ public class MainHeadless {
         Options options = new Options(args);
 
         run(options, plugins);
-    }*/
+    }
 
     public static void run(Options options, ArrayList<Plugin> plugins) {
         Starfish sim = new Starfish();
@@ -84,7 +84,11 @@ public class MainHeadless {
         }
     }
     
-    //TODO: what is this
+    /**
+     * This listens for the user pressing specific keys while the simulation is running
+     * so the user can control the simulation through the CLI.
+     * See inInput() for implemented keybindings
+     */
     private static void terminalControlsWithConsole(Starfish sim) {
         Console console = System.console();
         while (sim.getStatus() != SimStatus.STOP) {

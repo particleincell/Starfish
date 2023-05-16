@@ -1,4 +1,4 @@
-package starfish.gui.common;
+package starfish.ui;
 
 import java.awt.*;
 
