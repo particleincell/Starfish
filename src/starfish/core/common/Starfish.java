@@ -60,7 +60,7 @@ import starfish.core.materials.Material;
 import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
 import starfish.core.source.SourceModule;
-import starfish.gui.runner.SimulationRunner;
+import starfish.gui.runner.GUISimulationRunner;
 
 public final class Starfish extends CommandModule implements UncaughtExceptionHandler {
 	/** simulation main loop */
@@ -127,7 +127,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	 * @param args
 	 * @param plugins
 	 */
-	public void start(Options options, List<Plugin> plugins, SimulationRunner runner) {
+	public void start(Options options, List<Plugin> plugins, GUISimulationRunner runner) {
 		try {
 			parent_simulation_runner = runner;
 			this.options = options;
@@ -260,7 +260,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
 	public static DiagnosticsModule diagnostics_module;
 
-	public static SimulationRunner parent_simulation_runner;
+	public static GUISimulationRunner parent_simulation_runner;
 	private SimStatus status;
 	
 	public void setStatus(SimStatus status) {this.status=status;}

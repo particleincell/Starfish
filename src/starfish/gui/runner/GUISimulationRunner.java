@@ -16,7 +16,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
-public class SimulationRunner extends JPanel {
+public class GUISimulationRunner extends JPanel {
 
     private final ArrayList<Plugin> plugins;
 
@@ -30,7 +30,7 @@ public class SimulationRunner extends JPanel {
     private JProgressBar progressBar;
     private GUIConsole console;
 
-    public SimulationRunner(GUISettings settings, ArrayList<Plugin> plugins) {
+    public GUISimulationRunner(GUISettings settings, ArrayList<Plugin> plugins) {
         super(new BorderLayout());
         this.settings = settings;
         this.plugins = plugins;

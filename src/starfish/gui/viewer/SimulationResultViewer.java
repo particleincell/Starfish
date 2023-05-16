@@ -4,7 +4,7 @@ import starfish.core.common.Starfish;
 import starfish.core.domain.Mesh;
 import starfish.core.io.OutputModule;
 import starfish.core.io.VTKWriter;
-import starfish.gui.runner.SimulationRunner;
+import starfish.gui.runner.GUISimulationRunner;
 import vtk.*;
 
 import javax.swing.*;
@@ -17,7 +17,7 @@ import java.util.List;
 
 public class SimulationResultViewer extends JPanel {
 
-    private SimulationRunner simRunner;
+    private GUISimulationRunner simRunner;
 
     private File vtkTempFile;
     private vtkXMLStructuredGridReader reader;
@@ -29,7 +29,7 @@ public class SimulationResultViewer extends JPanel {
         this(null);
     }
 
-    public SimulationResultViewer(SimulationRunner simRunner) {
+    public SimulationResultViewer(GUISimulationRunner simRunner) {
         super(new BorderLayout());
         this.simRunner = simRunner;
 

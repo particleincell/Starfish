@@ -5,7 +5,7 @@ import starfish.core.common.Plugin;
 import starfish.core.common.Starfish;
 import starfish.gui.builder.SimulationFileBuilder;
 import starfish.gui.common.GUIUtil;
-import starfish.gui.runner.SimulationRunner;
+import starfish.gui.runner.GUISimulationRunner;
 import starfish.gui.viewer.SimulationResultViewer;
 
 import javax.swing.*;
@@ -49,7 +49,7 @@ public class GUI extends JFrame {
     private JPanel contentPane; // Side panel and main
     private JPanel main; // Main panel itself
     private SimulationFileBuilder simulationFileBuilder;
-    private SimulationRunner simulationRunner;
+    private GUISimulationRunner simulationRunner;
     private SimulationResultViewer simulationResultViewer;
 
     // Instances should only be made through GUI.makeNewGUI()
@@ -60,7 +60,7 @@ public class GUI extends JFrame {
         applyFrameCustomization();
 
         simulationFileBuilder = new SimulationFileBuilder();
-        simulationRunner = new SimulationRunner(settings, plugins);
+        simulationRunner = new GUISimulationRunner(settings, plugins);
         simulationResultViewer = new SimulationResultViewer(simulationRunner);
 
         try {
