@@ -1,5 +1,8 @@
 package starfish.core.common;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Data class containing the configuration to run Starfish simulations with
  */
@@ -29,39 +32,62 @@ public class Options implements Cloneable {
 
         max_cores = Runtime.getRuntime().availableProcessors();
 
-        // process arguments
-        for (String arg : args) {
-            // gui will set working dir and sim file so ignore those parameters
-            if (arg.startsWith("-dir")) {
-                wd = arg.substring(5);
-                if (!wd.endsWith("/") && !wd.endsWith("\\"))
-                    wd += "/"; // add terminating slash if not present
-                Starfish.Log.log("Setting working directory to " + wd);
-            } else if (arg.startsWith("-sf")) {
-                sim_file = arg.substring(4);
-            } else if (arg.startsWith("-randomize")) {
-                String opt = arg.substring(11);
-                if (opt.equalsIgnoreCase("true"))
-                    randomize = true;
-            } else if (arg.startsWith("-log_level")) {
-                log_level = arg.substring(10);
-            } else if (arg.startsWith("-max_threads")) {
-                String opt = arg.substring(13);
-                max_cores = Integer.parseInt(opt);
-            } else if (arg.startsWith("-gui")) {
-                String opt = arg.substring(5);
-                if (opt.equalsIgnoreCase("off"))
-                    run_mode = RunMode.CONSOLE;
-                else if (opt.isEmpty() || opt.equalsIgnoreCase("on"))
-                    run_mode = RunMode.GUI;
-                else if (opt.equalsIgnoreCase("run"))
-                    run_mode = RunMode.GUI_RUN;
-            } else if (arg.startsWith("-nr")) {
-                randomize = false;
-            } else if (arg.startsWith("-serial")) {
-                max_cores = 1;
-            }
 
+        String argPattern = "--?([a-z\\-\\_]+)=?(.*)"; // Matches -name, -name=val, --name, --name=val
+        Pattern r = Pattern.compile(argPattern);
+
+        for (String arg : args) {
+            Matcher m = r.matcher(arg);
+            if (!m.find()) {
+                Starfish.Log.error("Unrecognized argument " + arg + ", skipped.");
+                continue;
+            }
+            // Splits the string up into -(argName)=(argValue)
+            String argName = m.group(1).toLowerCase();
+            String argValue = m.group(2);
+
+            switch (argName) {
+                case "dir":
+                    if (!wd.endsWith("/") && !wd.endsWith("\\"))
+                        wd += "/"; // add terminating slash if not present
+                        Starfish.Log.log("Setting working directory to " + wd);
+                    break;
+                case "sim_file":
+                case "sf":
+                    sim_file = argValue;
+                    break;
+                case "randomize":
+                    randomize = argValue.equals("true");
+                    break;
+                case "log_level":
+                    log_level = argValue;
+                    break;
+                case "max_threads":
+                    int cores = max_cores;
+                    try {
+                        cores = Integer.parseInt(argValue);
+                    } catch (NumberFormatException e) {
+                        Starfish.Log.error(arg + ": " + argValue + " is not a valid integer! Skipped arg.");
+                    }
+                    max_cores = cores;
+                    break;
+                case "gui":
+                    if (argValue.equalsIgnoreCase("off"))
+                        run_mode = RunMode.CONSOLE;
+                    else if (argValue.isEmpty() || argValue.equalsIgnoreCase("on"))
+                        run_mode = RunMode.GUI;
+                    else if (argValue.equalsIgnoreCase("run"))
+                        run_mode = RunMode.GUI_RUN;
+                    break;
+                case "nr":
+                    randomize = false;
+                    break;
+                case "serial":
+                    max_cores = 1;
+                    break;
+                default:
+                    System.out.println("Unrecognized arg " + arg + ", ignored.");
+            }
         }
     }
 
