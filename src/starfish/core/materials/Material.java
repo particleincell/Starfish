@@ -285,7 +285,7 @@ public abstract class Material
 	    em.callSurfaceImpactHandler(vel, spwt, segment, t);
 	}
 	
-	/*now process source particl impact*/
+	/*now process source particle impact*/
 	ArrayList<MaterialInteraction> list = source_interactions.getInteractionList(source_index);
 
 	/*check for special case of not set, kill particle*/
@@ -758,42 +758,46 @@ public abstract class Material
     
     void addSurfaceMomentum(Boundary boundary, double spline_t, double vel[], double spwt)
     {
-	if (Starfish.time_module.steady_state && !steady_state)
-	{
-	    flux_collection.clear();
-	    flux_normal_collection.clear();
-	    steady_state = true;
-	}
-
-	Field1D flux_field = flux_collection.getField(boundary);
-
-	if (spline_t >= 0 && spline_t < flux_field.getNi())
-	{
-	    flux_field.scatter(spline_t, spwt);
-	} else
-	{
-	    return;
-	}
+		if (Starfish.time_module.steady_state && !steady_state)
+		{
+		    flux_collection.clear();
+		    flux_normal_collection.clear();
+		    steady_state = true;
+		}
+	
+		Field1D flux_field = flux_collection.getField(boundary);
+	
+		if (spline_t >= 0 && spline_t < flux_field.getNi())
+		{
+		    flux_field.scatter(spline_t, spwt);
+		} else
+		{
+		    return;
+		}
 
 	/*normal vector*/
-	double n[] = boundary.normal(spline_t);
-	double dot = Vector.dot(n, vel)/Vector.mag3(vel);	
-	flux_normal_collection.getField(boundary).scatter(spline_t, dot * spwt);
+		double n[] = boundary.normal(spline_t);
+		double dot = Vector.dot(n, vel)/Vector.mag3(vel);	
+		flux_normal_collection.getField(boundary).scatter(spline_t, dot * spwt);
+	    }
+	
+	    void addSurfaceMassDeposit(Boundary boundary, double spline_t, double spwt)
+	    {
+		if (Starfish.time_module.steady_state && !steady_state)
+		{
+		    deprate_collection.clear();
+		    steady_state = true;
+		}
+			
+		Field1D dep = deprate_collection.getField(boundary);
+		dep.scatter(spline_t, spwt);
+		Field1D dep_inst = deprate_collection_inst.getField(boundary);
+		dep_inst.scatter(spline_t,spwt);
     }
-
-    void addSurfaceMassDeposit(Boundary boundary, double spline_t, double spwt)
-    {
-	if (Starfish.time_module.steady_state && !steady_state)
-	{
-	    deprate_collection.clear();
-	    steady_state = true;
+	    
+	public void deleteMass() {
+		Log.error("Delete mass not implemented for base Material");
 	}
-		
-	Field1D dep = deprate_collection.getField(boundary);
-	dep.scatter(spline_t, spwt);
-	Field1D dep_inst = deprate_collection_inst.getField(boundary);
-	dep_inst.scatter(spline_t,spwt);
-    }
     
     public void clearInstData(Boundary boundary) { 
 	deprate_collection_inst.getField(boundary).clear();

@@ -8,7 +8,7 @@
  * This software is governed by the following license:
  * 
  *  == Simplified BSD *** MODIFIED FOR NON-COMMERCIAL USE ONLY!!! *** ==
- * Copyright (c) 2012-2019, Particle In Cell Consulting LLC
+ * Copyright (c) 2012-2024, Particle In Cell Consulting LLC
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without modification, 
@@ -32,6 +32,7 @@ import starfish.core.common.Options;
 import starfish.core.common.Plugin;
 import starfish.gui.GUI;
 import starfish.plugins.plasma_dynamics.PlasmaDynamicsPlugin;
+import starfish.plugins.surface_processing.SurfaceProcessingPlugin;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -52,6 +53,7 @@ public class Main {
 		ArrayList<Plugin> plugins = new ArrayList<Plugin>();
 		plugins.add(new CollisionsPlugin());
         plugins.add(new PlasmaDynamicsPlugin());
+        plugins.add(new SurfaceProcessingPlugin());
 
 		/* command line settings */
 		Options options = new Options(args);

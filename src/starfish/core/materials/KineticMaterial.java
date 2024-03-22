@@ -1518,6 +1518,24 @@ public class KineticMaterial extends Material {
 		field_manager2d.get(md.mesh, "ww-sum").clear();
 		field_manager2d.get(md.mesh, "mpc-sum").clear();
 	}
+	
+	public void deleteMass() {
+		for (MeshData md : mesh_data) {		
+			Field2D dn_field = getDeltaN(md.mesh);
+			Iterator<Particle> iterator = md.getIterator();
+			while (iterator.hasNext()) {
+				Particle part = iterator.next();
+				int part_ij[] = {(int)part.lc[0],(int)part.lc[1]};     // particle's cell
+				double dn = dn_field.at(part_ij[0],part_ij[1]);
+				if (dn>0) {
+					if (part.mpw<dn) dn = part.mpw;    // set to min(dn,part.mpw)
+					part.mpw -= dn;
+					dn_field.add(part_ij[0],part_ij[1],-dn);				
+				}
+			}
+		}
+	}
+	
 
 	/**
 	 * updates velocity samples and recomputes average density, temperature and

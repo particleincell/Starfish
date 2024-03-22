@@ -27,8 +27,6 @@ import starfish.core.source.VolumeSource;
 /** base for chemical reactions*/
 public class ChemicalReaction extends VolumeInteraction
 {
-
-
     public Material source_mat[];
     public Material prod_mat[];
 
