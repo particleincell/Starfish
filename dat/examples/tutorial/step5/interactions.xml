@@ -10,8 +10,6 @@
 <c_rest>0.9</c_rest>
 </surface_hit>
 
-
-
 <!-- chemical reaction -->
 <chemistry name="ionization" >
 <sources>O,e-</sources>
@@ -23,9 +21,6 @@
 <!--	<input_wrappers>energy,JtoEv</input_wrappers> -->
 </rate>
 </chemistry> 
-
-
-
 
 <!-- MCC charge exchange -->
 <mcc model="cex">
