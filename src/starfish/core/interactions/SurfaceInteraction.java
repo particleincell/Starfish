@@ -28,11 +28,11 @@ public class SurfaceInteraction
 {
     static void registerModels()
     {
-	registerSurfaceModel("NONE",SurfaceEmissionNone);
-	registerSurfaceModel("ABSORB",SurfaceEmissionAbsorb);
-	registerSurfaceModel("SPECULAR",SurfaceEmissionSpecular);
-	registerSurfaceModel("DIFFUSE",SurfaceEmissionCosine);
-	registerSurfaceModel("COSINE",SurfaceEmissionCosine);
+	registerSurfaceModel("NONE",SurfaceImpactNone);
+	registerSurfaceModel("ABSORB",SurfaceImpactAbsorb);
+	registerSurfaceModel("SPECULAR",SurfaceImpactSpecular);
+	registerSurfaceModel("DIFFUSE",SurfaceImpactCosine);
+	registerSurfaceModel("COSINE",SurfaceImpactCosine);
     }
     
     /**
@@ -82,7 +82,7 @@ public class SurfaceInteraction
     }
 	
     /** doesn't do anything - particles will pass*/
-    public static SurfaceImpactHandler SurfaceEmissionNone = new SurfaceImpactHandler() 
+    public static SurfaceImpactHandler SurfaceImpactNone = new SurfaceImpactHandler() 
     {
 	@Override
 	public boolean perform(double[] vel, double spwt, Segment segment, double t_int, MaterialInteraction mat_int) 
@@ -92,7 +92,7 @@ public class SurfaceInteraction
     };
 
         /** absorbs particles*/
-    public static SurfaceImpactHandler SurfaceEmissionAbsorb = new SurfaceImpactHandler() 
+    public static SurfaceImpactHandler SurfaceImpactAbsorb = new SurfaceImpactHandler() 
     {
 	@Override
 	public boolean perform(double[] vel, double spwt_source, Segment segment, double t_int, MaterialInteraction mat_int) 
@@ -102,7 +102,7 @@ public class SurfaceInteraction
     };
 
     /** specularly reflects all particles*/
-    public static SurfaceImpactHandler SurfaceEmissionSpecular = new SurfaceImpactHandler()
+    public static SurfaceImpactHandler SurfaceImpactSpecular = new SurfaceImpactHandler()
     {
 	@Override
 	public boolean perform(double vel[], double spwt_source, Segment segment, double t_int, MaterialInteraction mat_int) 
@@ -151,7 +151,7 @@ public class SurfaceInteraction
     };
     		
     /** Reflects particles in direction following cosine law*/
-    public static SurfaceImpactHandler SurfaceEmissionCosine = new SurfaceImpactHandler()
+    public static SurfaceImpactHandler SurfaceImpactCosine = new SurfaceImpactHandler()
     {
 	@Override
 	public boolean perform(double vel[], double spwt_source, Segment segment, double t_int, MaterialInteraction mat_int) 

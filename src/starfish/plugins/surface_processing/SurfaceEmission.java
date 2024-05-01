@@ -17,24 +17,24 @@ public class SurfaceEmission extends SurfaceInteraction
     
     SurfaceEmission(String target, String source) 
     {
-	this.target = Starfish.getMaterial(target);
-	this.source = Starfish.getMaterial(source);
+    	this.target = Starfish.getMaterial(target);
+    	this.source = Starfish.getMaterial(source);
     }
    
     /**Parses surface emission element*/
     public static InteractionFactory SurfaceEmissionFactory = new InteractionFactory()
     {
-	@Override
-	public void getInteraction(Element element)
-	{
-	    String pair[] = InputParser.getList("pair", element);
-	    if (pair.length!=2)
-		Log.error("Must specify collision pair, pair=\"mat1,mat2\"");
-	    String model_name = InputParser.getValue("model", element);
-
-	    Sigma sigma = InteractionsModule.parseSigma(element);
-	    
-	    Starfish.interactions_module.addInteraction(new Sputtering(pair[0],pair[1]));
-	}
+		@Override
+		public void getInteraction(Element element)
+		{
+		    String pair[] = InputParser.getList("pair", element);
+		    if (pair.length!=2)
+			Log.error("Must specify collision pair, pair=\"mat1,mat2\"");
+		    String model_name = InputParser.getValue("model", element);
+	
+		    Sigma sigma = InteractionsModule.parseSigma(element);
+		    
+		    //Starfish.interactions_module.addInteraction(new Sputtering(pair[0],pair[1]));
+		}
     };
 }
