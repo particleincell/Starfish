@@ -1,0 +1,80 @@
+<simulation>    
+<note>Starfish Tutorial: Part 6</note>
+
+<!-- load input files -->
+<load>domain.xml</load>
+<load>materials.xml</load>
+<load>boundaries.xml</load>
+<load>interactions.xml</load>
+
+<!-- set potential solver -->
+<solver type="poisson">
+<method>gs</method>
+<n0>1e10</n0>
+<Te0>1.5</Te0>
+<phi0>0</phi0>
+<max_it>1e4</max_it>
+<nl_max_it>25</nl_max_it>
+<tol>1e-6</tol>
+<nl_tol>1e-4</nl_tol>
+</solver>
+
+<!--
+<solver type="constant-ef">
+<comps>0,-500</comps>
+</solver>
+-->
+
+<!-- set sources -->
+<sources>
+<boundary_source name="space">
+<type>uniform</type>
+<material>O+</material>
+<boundary>inlet</boundary>
+<mdot>3.72e-13</mdot>
+<v_drift>7000</v_drift>
+</boundary_source>
+</sources>
+
+<!-- set time parameters -->
+<time>
+<num_it>400</num_it>
+<dt>1e-7</dt>
+</time>	
+
+<!-- save animation -->
+<animation start_it="1" frequency="10">
+<output type="2D" file_name="results/field_ani.vts" format="vtk"> 
+<scalars>phi,rho, nd.e-, nd.o+, nd.o, nd.io+, mcc-nu, dsmc-nu, t.o+, t.o, t.io+</scalars>
+<vectors>[u.o+,v.o+],[u.o,v.o],[u.io+,v.io+]</vectors>
+</output>
+</animation>
+
+<!-- setup averaging -->
+<averaging frequency="2">
+<variables>phi,nd.o+,nd.o,nd.io+</variables>
+</averaging>
+
+<!-- run simulation -->
+<starfish />
+        
+<!-- save mesh-based results in VTK format-->
+<output type="2D" file_name="results/field.vts" format="vtk">
+<scalars>phi, rho, nd-ave.o+, nd-ave.o, nd-ave.io+, t.o+, t.o, t.io+</scalars>
+<vectors>[efi, efj], [u.o+,v.o+], [u.o,v.o], [u.io+,v.io+]</vectors>
+</output>
+
+<!-- save data along a single mesh grid line -->
+<output type="1D" file_name="results/profile.vts" format="vtk">
+<mesh>mesh1</mesh>
+<index>J=0</index>
+<scalars>phi, rho, nd.o+</scalars>
+<vectors>[efi, efj],[u.o+,v.o+]</vectors>
+</output>
+
+<!-- save geometry in VTK format -->
+<output type="boundaries" file_name="results/boundaries.vtp" format="vtk" >
+<variables>flux.o+, flux-normal.o+, deprate, depflux</variables>
+</output>
+
+</simulation>
