@@ -30,20 +30,22 @@ public class VaporizationSource extends Source
     {
 	super(name,source_mat,boundary,element);
 	
-	/*make sure vaporization coefficients are defined*/
-	if (boundary.getMaterial().p_vap_coeffs.length<3) 
-	    Log.error("<p_vap_coeffs> need to be defined for material "+boundary.getMaterial().name);
+	double p_vap_coeffs[] = source_mat.p_vap_coeffs;
 	
-	A = boundary.getMaterial().p_vap_coeffs[0];
-	B = boundary.getMaterial().p_vap_coeffs[1];
-	C = boundary.getMaterial().p_vap_coeffs[2];
+	/*make sure vaporization coefficients are defined*/
+	if (p_vap_coeffs.length<3) 
+	    Log.error("<p_vap_coeffs> need to be defined for material "+source_mat.name);
+	
+	A = p_vap_coeffs[0];
+	B = p_vap_coeffs[1];
+	C = p_vap_coeffs[2];
 
 	if (A == 0.0 && B == 0.0 && C == 0.0)
-	    Log.error("<p_vap_coeffs> are all zero for material "+boundary.getMaterial().name);
+	    Log.error("<p_vap_coeffs> are all zero for material "+source_mat.name);
 	
 	Log.log("Added VAPORIZATION_SOURCE");
 	Log.log(String.format("log10(Pvap) = %g + %g/T + %g*log10(T)", A,B,C));
-	Log.log(String.format("Boundary surface = %s",boundary.getMaterial().getName()));
+	Log.log(String.format("Boundary surface = %s",source_mat.getName()));
     }
     
     @Override
@@ -84,22 +86,22 @@ public class VaporizationSource extends Source
     @Override
     public void update()
     {
-	/*number density of titanium*/
-	T_surf = boundary.getTemp();
-	double f = A + B/T_surf + C*Math.log10(T_surf);
-	double p_vap = Math.pow(10,f);	//liquid from https://en.wikipedia.org/wiki/Vapor_pressures_of_the_elements_(data_page)
-	num_den = p_vap/(2*Constants.K*T_surf);		//eq. 1 in Benilov
+    	T_surf = boundary.getTemp();
+    	//double f = A + B/T_surf + C*Math.log10(T_surf);
+    	double f = A - B/(C+T_surf);
+    	double p_vap = Math.pow(10,f);	//liquid from https://en.wikipedia.org/wiki/Vapor_pressures_of_the_elements_(data_page)
+    	num_den = p_vap/(2*Constants.K*T_surf);		//eq. 1 in Benilov
 	
-	v_th = boundary.getVth(source_mat);
+    	v_th = boundary.getVth(source_mat);
 	
     }
     
     public double mdot(double time)
     {
-	/*mdot is (J/e)*A*mass */
-	double va_e =0.5*Math.sqrt(8*Constants.K*T_surf/(Constants.PI*source_mat.mass));
-	double Ndot = num_den * boundary.area() * va_e;
-	return Ndot * source_mat.mass;	 
+		/*mdot is (J/e)*A*mass */
+		double va_e =0.5*Math.sqrt(8*Constants.K*T_surf/(Constants.PI*source_mat.mass));
+		double Ndot = num_den * boundary.area() * va_e;
+		return Ndot * source_mat.mass;	 
     }
 	
     double num_den;

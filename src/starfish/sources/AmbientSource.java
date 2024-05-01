@@ -53,6 +53,7 @@ public class AmbientSource extends Source
 	double def[] = new double[3];
 	def[0]=def[1]=def[2]=0;
 	v_drift = InputParser.getDoubleList("drift_velocity", element,def);
+	
 	if (v_drift.length!=3)
 	    Log.error("Ambient Source Syntax: <drift_velocity>vx,vy,vz</drift_velocity>");
 	    
