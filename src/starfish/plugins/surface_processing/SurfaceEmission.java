@@ -22,7 +22,7 @@ public class SurfaceEmission extends SurfaceInteraction
     }
    
     /**Parses surface emission element*/
-    public static InteractionFactory SurfaceEmissionFactory = new InteractionFactory()
+    public static InteractionFactory surfaceEmissionFactory = new InteractionFactory()
     {
 		@Override
 		public void getInteraction(Element element)

@@ -19,8 +19,6 @@ public class SurfaceProcessingPlugin implements Plugin
     @Override
     public void register()
     {
-	InteractionsModule.registerInteraction("SPUTTERING",Sputtering.SputteringFactory);
-	InteractionsModule.registerInteraction("SURFACE_EMISSION",SurfaceEmission.SurfaceEmissionFactory);
 	MaterialsModule.registerMaterialType("GRAIN",GrainMaterial.GrainMaterialParser);	
 	SourceModule.registerSurfaceSource("DROPLET",DropletSource.dropletSourceFactory);
 	

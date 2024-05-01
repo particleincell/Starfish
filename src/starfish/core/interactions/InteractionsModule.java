@@ -14,6 +14,8 @@ import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
+import starfish.plugins.surface_processing.Sputtering;
+import starfish.plugins.surface_processing.SurfaceEmission;
 
 /** base for material interactions handling*/
 public class InteractionsModule extends CommandModule
@@ -33,6 +35,11 @@ public class InteractionsModule extends CommandModule
 	registerInteraction("SURFACE_IMPACT",SurfaceInteraction.surfaceHitFactory);	
 	registerInteraction("CHEMISTRY",ChemicalReaction.chemicalReactionFactory);
 	registerInteraction("ENERGY_TRANSFER",EnergyTransfer.energyTransferFactory);
+	
+	// sputtering and secondary electron emission
+	registerInteraction("SPUTTERING",Sputtering.sputteringFactory);
+	registerInteraction("SURFACE_EMISSION",SurfaceEmission.surfaceEmissionFactory);
+	
 
 	/*register surface impact models*/
 	SurfaceInteraction.registerModels();

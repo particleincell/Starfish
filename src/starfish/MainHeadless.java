@@ -107,7 +107,7 @@ public class MainHeadless {
         } else if (input == 's') {
             sim.setStatus(SimStatus.STOP);
         }
-        System.err.println("est" + input);
+        //System.err.println("est" + input);
     }
 
 }
