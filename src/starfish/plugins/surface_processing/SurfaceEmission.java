@@ -20,7 +20,6 @@ public class SurfaceEmission extends SurfaceInteraction
 	this.target = Starfish.getMaterial(target);
 	this.source = Starfish.getMaterial(source);
     }
-
    
     /**Parses surface emission element*/
     public static InteractionFactory SurfaceEmissionFactory = new InteractionFactory()
@@ -38,5 +37,4 @@ public class SurfaceEmission extends SurfaceInteraction
 	    Starfish.interactions_module.addInteraction(new Sputtering(pair[0],pair[1]));
 	}
     };
-
 }
