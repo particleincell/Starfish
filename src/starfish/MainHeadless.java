@@ -68,16 +68,15 @@ public class MainHeadless {
                 terminalControlsWithConsole(sim);
             }
         });
-        terminalControlThread.start();
+        //terminalControlThread.start();
         sim.start(options, plugins, null);
-        terminalControlThread.interrupt();
+        //terminalControlThread.interrupt();
     }
     private static void terminalControlsNoConsole(Starfish sim) {
         try {
             while (sim.getStatus() != SimStatus.STOP) {
                 int input = System.in.read();
                 onInput(sim, input);
-                System.out.println("Sim " + sim.getStatus());
             }
         } catch (IOException e) {
 
@@ -96,7 +95,7 @@ public class MainHeadless {
             // rawInput includes \n char at end, so non-empty input has 2 or more chars
             char input = rawInput.length > 1 ? Character.toLowerCase(rawInput[0]) : '-';
             onInput(sim, input);
-            System.out.println("Sim " + sim.getStatus());
+            //System.out.println("Sim " + sim.getStatus());
         }
     }
     private static void onInput(Starfish sim, int input) {
