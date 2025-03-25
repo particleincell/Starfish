@@ -315,12 +315,19 @@ public class KineticMaterial extends Material {
 			
 			int p=0;
 			while (iterator.hasNext()) {
-			
-				//periodically yield to prevent lock up
-				if (++p%500==0) Thread.yield();
-				
+
 				Particle part = iterator.next();
 
+				// first check for zero weight particles from merge or chemistry ops
+				if (part.mpw<=0) {
+					iterator.remove();
+					continue;
+				}
+					
+				//periodically yield to prevent lock up
+				if (++p%10000==0) Thread.yield();
+				
+				
 				/* increment particle time and velocity */
 				if (!particle_transfer) {
 					part.dt += dt; 
@@ -387,7 +394,7 @@ public class KineticMaterial extends Material {
 						iterator.remove();
 						break;
 					}
-
+					
 				} /* dt */
 
 				/*
