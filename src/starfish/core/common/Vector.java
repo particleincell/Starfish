@@ -174,7 +174,7 @@ public class Vector
 	for (int j = 0; j < nj; j++)
 	    for (int i = 0; i < ni; i++)
 	    {
-		data1D[u++] = data2D[i][j];
+	    	data1D[u++] = data2D[i][j];
 	    }
 
 	return data1D;		
@@ -194,7 +194,7 @@ public class Vector
 	for (int j = 0; j < nj; j++)
 	    for (int i = 0; i < ni; i++)
 	    {
-		data1D[u++] = data2D[i][j];
+	    	data1D[u++] = data2D[i][j];
 	    }
     }
     /** copies 1D data to 2D
@@ -249,17 +249,17 @@ public class Vector
      */
     public static double[] mergeBC(boolean[] fixed_node, Mesh mesh, double second[])
     {
-	assert(second.length==mesh.n_nodes);
+		assert(second.length==mesh.n_nodes);
+			
+		double r[] = new double[second.length];
+		for (int i=0;i<mesh.ni;i++)
+		    for (int j=0;j<mesh.nj;j++)
+		    {
+				int n = mesh.IJtoN(i, j);
+				r[n] = fixed_node[n]?mesh.getNode(i,j).bc_value:second[n];		
+		    }
 		
-	double r[] = new double[second.length];
-	for (int i=0;i<mesh.ni;i++)
-	    for (int j=0;j<mesh.nj;j++)
-	    {
-		int n = mesh.IJtoN(i, j);
-		r[n] = fixed_node[n]?mesh.getNode(i,j).bc_value:second[n];		
-	    }
-	
-	return r;
+		return r;
     }
 
     /**

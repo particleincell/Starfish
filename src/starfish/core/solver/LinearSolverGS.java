@@ -49,15 +49,20 @@ public class LinearSolverGS implements LinearSolver
 	{
 	    for (int u=i_min;u<i_max;u++)
 	    {		
-		/* tau = [A-D]x */
-		double tau = A.multRowNonDiag(x, u);
-		double g = (b[u] - Ax_neigh[u] - tau) / A.get(u,u);
-
-		 x[u] = x[u] + 1.4*(g-x[u]); /*SOR*/
+			/* tau = [A-D]x */
+			double tau = A.multRowNonDiag(x, u);
+			if (Math.abs(A.get(u, u))<1e-8) 
+			{
+				continue;
+			}
+				
+			double g = (b[u] - Ax_neigh[u] - tau) / A.get(u,u);
+	
+			 x[u] = x[u] + 1.4*(g-x[u]); /*SOR*/
+			}
+		    
+		    return "OK";
 		}
-	    
-	    return "OK";
-	}
 	
     }
 
@@ -68,82 +73,83 @@ public class LinearSolverGS implements LinearSolver
      */
     public int solve(MeshData mesh_data[], FieldCollection2D fc, int max_it, double tolerance)
     {
-	/*create threads*/
-	int np = Starfish.getNumProcessors();
+		/*create threads*/
+		int np = Starfish.getNumProcessors();
+		
+		/*total number of unknowns*/
+		int nu_total = 0;
+		for (MeshData md:mesh_data)
+		    nu_total+=md.x.length;
 	
-	/*total number of unknowns*/
-	int nu_total = 0;
-	for (MeshData md:mesh_data)
-	    nu_total+=md.x.length;
-
-	Collection<Callable<String>> workers = new ArrayList<Callable<String>>();
-	ExecutorService executor = Executors.newFixedThreadPool(np);
-	
-	for (MeshData md:mesh_data)
-	{
-	    int nu = md.x.length;
-	    
-	    /*number of nodes in each chunk*/
-	    int chunk_size = (int)((double)nu_total/np)+1;
-	    
-	    for (int i1=0, id=0;i1<nu;i1+=chunk_size)
-	    {
-		/*avoid creating new threads for pieces with less than 100 unknowns*/
-		if ((nu-(i1+chunk_size))<100) chunk_size = nu-i1;		
-	    	workers.add(new ParLinearGS(id,i1,i1+chunk_size,md));
-	    }
-	}
-	
-	/* SOLVER */
-	int it = 1;			/*start with one so we don't compute residue on first run*/
-	double norm=1e66;
-	while (it <= max_it)
-	{
-	    /*** update boundaries**/	    
-	    Solver.updateGhostVector(mesh_data, fc);
-	    
-	    /* check convergence */
-	    if (it % 25 == 0)
-	    {
-		norm=0;
-		int nn=0;
+		Collection<Callable<String>> workers = new ArrayList<Callable<String>>();
+		ExecutorService executor = Executors.newFixedThreadPool(np);
 		
 		for (MeshData md:mesh_data)
 		{
-		    norm += Solver.calculateResidue(md.A, md.Ax_neigh, md.x, md.b);
-		    nn += md.x.length;
-		}
-		
-		norm/=nn;
-		
-		//System.out.println(norm);
-		if (norm < tolerance)
-		{
-		    Log.debug(String.format("GS converged in %d iterations with norm=%g",it,norm));
-		    break;
-		}
-	    }
+		    int nu = md.x.length;
 		    
-	    try
-	    {
-		executor.invokeAll(workers);
-	    } catch (InterruptedException ex)
-	    {
-		Logger.getLogger(Solver.class.getName()).log(Level.SEVERE, null, ex);
-	    }
-	    it++;
-	}
- 	it--;
-	if (it >= max_it)
-	{
-	    Starfish.Log.warning(" !! GS failed to converge in " + it + " iteration, norm = " + norm);
-	}
-
-	executor.shutdown();
+		    /*number of nodes in each chunk*/
+		    int chunk_size = (int)((double)nu_total/np)+1;
+		    
+		    for (int i1=0, id=0;i1<nu;i1+=chunk_size)
+		    {
+			/*avoid creating new threads for pieces with less than 100 unknowns*/
+			if ((nu-(i1+chunk_size))<100) chunk_size = nu-i1;		
+		    	workers.add(new ParLinearGS(id,i1,i1+chunk_size,md));
+		    }
+		}
 	
-	/*hack for testing*/
+		/* SOLVER */
+		int it = 1;			/*start with one so we don't compute residue on first run*/
+		double norm=1e66;
+		while (it <= max_it)
+		{
+		    /*** update boundaries**/	    
+		    Solver.updateGhostVector(mesh_data, fc);
+		    
+		    /* check convergence */
+		    if (it % 25 == 0)
+		    {
+				norm=0;
+				int nn=0;
+				
+				for (MeshData md:mesh_data)
+				{
+				    norm += Solver.calculateResidue(md.A, md.Ax_neigh, md.x, md.b);
+				    nn += md.x.length;
+				}
+				
+				norm/=nn;
+				System.out.println(norm);
+				
+				//System.out.println(norm);
+				if (norm < tolerance)
+				{
+				    Log.debug(String.format("GS converged in %d iterations with norm=%g",it,norm));
+				    break;
+				}
+		    }
+			    
+		    try
+		    {
+		    	executor.invokeAll(workers);
+		    } catch (InterruptedException ex)
+		    {
+		    	Logger.getLogger(Solver.class.getName()).log(Level.SEVERE, null, ex);
+		    }
+		    it++;
+		}
+	 	it--;
+		if (it >= max_it)
+		{
+		    Starfish.Log.warning(" !! GS failed to converge in " + it + " iteration, norm = " + norm);
+		}
 	
-	return it;
+		executor.shutdown();
+		
+		/*hack for testing*/
+		
+		return it;
     }
 
     

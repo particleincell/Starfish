@@ -18,13 +18,13 @@ import starfish.core.common.Vector;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
-import starfish.core.interactions.InteractionsModule;
-import starfish.core.interactions.InteractionsModule.InteractionFactory;
-import starfish.core.interactions.Sigma;
-import starfish.core.interactions.VolumeInteraction;
 import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
+import starfish.interactions.InteractionsModule;
+import starfish.interactions.Sigma;
+import starfish.interactions.VolumeInteraction;
+import starfish.interactions.InteractionsModule.InteractionFactory;
 import starfish.core.materials.Material;
 
 /**

@@ -24,10 +24,10 @@ import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.FieldManager2D;
 import starfish.core.domain.Mesh;
-import starfish.core.interactions.MaterialInteraction;
 import starfish.core.common.Vector;
 import starfish.core.io.InputParser;
 import starfish.core.source.ParticleListSource;
+import starfish.interactions.MaterialInteraction;
 
 /**
  * Basic definition of a material

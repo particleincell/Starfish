@@ -53,11 +53,11 @@ public class Matrix
      * @return  */
     public static Matrix copy(Matrix A)
     {
-	Matrix C = new Matrix(A.nr);
-	
-	for (int i=0;i<A.nr;i++)
-	    C.data.set(i, (HashMap<Integer,Double>)A.data.get(i).clone());	    
-	return C;
+		Matrix C = new Matrix(A.nr);
+		
+		for (int i=0;i<A.nr;i++)
+		    C.data.set(i, (HashMap<Integer,Double>)A.data.get(i).clone());	    
+		return C;
     }
 
     
@@ -65,7 +65,7 @@ public class Matrix
      * @param i*/
     public void clearRow(int i)
     {
-	data.set(i, new HashMap<Integer,Double>());
+    	data.set(i, new HashMap<Integer,Double>());
     }
 
     /**returns the value held by full matrix at row i and column j
@@ -74,8 +74,8 @@ public class Matrix
      * @return */
     public double get(int i, int j)
     {
-	Double val = data.get(i).get(j);	//returns null if not found, so need object
-	if (val==null) return 0; else return val;
+		Double val = data.get(i).get(j);	//returns null if not found, so need object
+		if (val==null) return 0; else return val;
     }
 
     /**sets value at row i, column j in full matrix
@@ -101,9 +101,26 @@ public class Matrix
      * @param i*/
     public void copyRow(Matrix A, int i)
     {
-	assert(nr==A.nr);	
-	data.set(i, (HashMap<Integer,Double>)A.data.get(i).clone());	
+		assert(nr==A.nr);	
+		data.set(i, (HashMap<Integer,Double>)A.data.get(i));	 // this had .clone before but it shouldn't be needed
     }
+    
+    /** adds row r from A scaled by scale to our row r
+     * @param A
+     * @param i*/
+    public void addRow(Matrix A, double scale, int r)
+    {
+		assert(nr==A.nr);	
+		HashMap<Integer,Double> map = A.data.get(r);
+		HashMap<Integer,Double> my_data = data.get(r);
+		for (Map.Entry<Integer,Double> ent : map.entrySet()) {
+			int c = ent.getKey();
+			double A_val = scale*ent.getValue();	
+			double my_val = 0;
+			if (my_data.containsKey(c)) my_val = my_data.get(c);
+			my_data.put(c, my_val + A_val);			
+		}		
+	}
     
     /**add value to row r, column c in full matrix
      * @param i
@@ -111,7 +128,7 @@ public class Matrix
      * @param val*/
     public void subtract(int i, int j,  double val)
     {
-	add(i,j,-val);
+    	add(i,j,-val);
     }
     
     /**returns A-B

@@ -61,16 +61,16 @@ public class MainHeadless {
 
     public static void run(Options options, ArrayList<Plugin> plugins) {
         Starfish sim = new Starfish();
-        Thread terminalControlThread = new Thread(() -> {
+    /*    Thread terminalControlThread = new Thread(() -> {
             if (System.console() == null) {
                 terminalControlsNoConsole(sim);
             } else {
                 terminalControlsWithConsole(sim);
             }
         });
-        terminalControlThread.start();
+        terminalControlThread.start();*/
         sim.start(options, plugins, null);
-        terminalControlThread.interrupt();
+       //terminalControlThread.interrupt();
     }
     private static void terminalControlsNoConsole(Starfish sim) {
         try {

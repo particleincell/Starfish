@@ -1,7 +1,7 @@
 package starfish.collisions;
 
 import starfish.core.common.Plugin;
-import starfish.core.interactions.InteractionsModule;
+import starfish.interactions.InteractionsModule;
 
 /** Registers MCC and DSMC collision handlers. Also acts as a demo for writing plugins.
  *

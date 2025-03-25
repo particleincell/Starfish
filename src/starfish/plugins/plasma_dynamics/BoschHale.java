@@ -5,7 +5,7 @@
 package starfish.plugins.plasma_dynamics;
 
 import starfish.core.common.Constants;
-import starfish.core.interactions.RateParser;
+import starfish.interactions.RateParser;
 
 /**
  *

@@ -46,8 +46,6 @@ import starfish.core.domain.DomainModule;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
-import starfish.core.interactions.InteractionsModule;
-import starfish.core.interactions.VolumeInteraction;
 import starfish.core.io.InputParser;
 import starfish.core.io.LoadFieldModule;
 import starfish.core.io.LoggerModule;
@@ -60,6 +58,8 @@ import starfish.core.materials.Material;
 import starfish.core.materials.MaterialsModule;
 import starfish.core.solver.SolverModule;
 import starfish.core.source.SourceModule;
+import starfish.interactions.InteractionsModule;
+import starfish.interactions.VolumeInteraction;
 import starfish.ui.SimulationRunner;
 
 public final class Starfish extends CommandModule implements UncaughtExceptionHandler {

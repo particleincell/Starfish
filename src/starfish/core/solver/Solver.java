@@ -470,6 +470,13 @@ public abstract class Solver {
 		// check for insulator, these are treated as Neumann zero nodes
 		if (mesh.nodeType(i, j)==NodeType.INSULATOR) {
 			double normal[] = mesh.getNode(i, j).surf_normal;
+			
+			// linear combination of gradients for slanted walls, not clear if this works.
+			md.A.clearRow(ni);
+			md.A.addRow(md.Gi,Math.abs(normal[0]),u);
+			md.A.addRow(md.Gj,Math.abs(normal[1]),u);
+			return;
+			/*
 			if (Math.abs(normal[0])>Math.abs(normal[1])) {
 				md.A.copyRow(md.Gi, u);
 				return;
@@ -477,7 +484,7 @@ public abstract class Solver {
 			else {
 				md.A.copyRow(md.Gj, u);
 				return;
-			}
+			}*/
 		}
 		
 		/* check for external Neumann boundary */
@@ -504,8 +511,7 @@ public abstract class Solver {
 			R = G.R;
 
 			/*
-			 * contribution along each face is grad(phi)* ndA, normal vector given by <dj,
-			 * -di>
+			 * contribution along each face is grad(phi)* ndA, normal vector given by <dj, -di>
 			 */
 			MultiplyCoeffs(G.Gi, e[f].ndl_i * R);
 			MultiplyCoeffs(G.Gj, e[f].ndl_j * R);

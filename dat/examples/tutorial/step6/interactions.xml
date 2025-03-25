@@ -11,7 +11,11 @@
 </surface_hit>
 
 <sputtering>
-
+<source>O+</source>
+<target>SS</target>
+<model>const</model>
+<yield>0.1</yield>
+<energy>1</energy> 
 </sputtering>
 
 <!-- chemical reaction -->

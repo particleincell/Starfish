@@ -5,9 +5,9 @@
 package starfish.plugins.surface_processing;
 
 import starfish.core.common.Plugin;
-import starfish.core.interactions.InteractionsModule;
 import starfish.core.materials.MaterialsModule;
 import starfish.core.source.SourceModule;
+import starfish.interactions.InteractionsModule;
 
 /**
  *

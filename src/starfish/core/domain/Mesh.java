@@ -106,7 +106,7 @@ public abstract class Mesh {
 	public static class Node {
 		public NodeType type;
 
-		public double bc_value;
+		public double bc_value;		// value applied on boundary nodes
 		public double[] mag_M;		// magnetization data
 
 		/** list of splines in this control volume */
@@ -151,9 +151,10 @@ public abstract class Mesh {
 	MeshBoundaryData boundary_data[][] = new MeshBoundaryData[4][]; /* [face][node_index] */
 
 	/**
+	 * Nodes are set as internal if they are inside of some solid object (i.e. not open or boundaries)
 	 */
 	static public enum NodeType {
-		BAD(-99), UNKNOWN(-2), OPEN(-1), DIRICHLET(0), INSULATOR(1);
+		BAD(-99), UNKNOWN(-2), OPEN(-1), DIRICHLET(0), INSULATOR(1), INTERNAL(2);
 
 		protected int val;
 
@@ -302,12 +303,12 @@ public abstract class Mesh {
 	}
 
 	/**
-	 * @return true if node i,j is a Dirichlet node
+	 * @return true if node i,j is a fixed node
 	 * @param i
 	 * @param j
 	 */
 	public boolean isDirichletNode(int i, int j) {
-		return nodeType(i, j) == NodeType.DIRICHLET;
+		return (nodeType(i, j) == NodeType.DIRICHLET) || (nodeType(i,j) == NodeType.INTERNAL);
 	}
 
 	/**
@@ -1213,13 +1214,13 @@ public abstract class Mesh {
 				if (lcm[1] < 0)
 					lcm[1] = 0;
 
-				if (lcp[0] >= ni - 1)
+				if (lcp[0] > ni - 1)
 					lcp[0] = ni - 1;
-				if (lcp[1] >= nj - 1)
+				if (lcp[1] > nj - 1)
 					lcp[1] = nj - 1;
 
 				/*
-				 * TODO: this algorithm will not detect a boudaries in neighbor meshes, need
+				 * TODO: this algorithm will not detect a boundaries in neighbor meshes, need
 				 * some post set "all reduce" operation or some way to grow the mesh into the
 				 * neighbor one
 				 */
@@ -1260,7 +1261,7 @@ public abstract class Mesh {
 						if (!found) {
 							if (node[i][j].segments == null)
 								node[i][j].segments = new ArrayList<>();
-							node[i][j].segments.add(segment);
+								node[i][j].segments.add(segment);
 						}
 
 					} /* node loop */
@@ -1333,15 +1334,19 @@ public abstract class Mesh {
 					BoundaryType bnd_type = seg.boundary.getType();
 					if (bnd_type==BoundaryType.INSULATOR) {
 						node[i][j].type = NodeType.INSULATOR;
+						node[i][j].bc_value = seg.boundary.getValue();
+						node[i][j].mag_M = new double[3];
+						
 						double t=0.5; // doesn't matter for linear segments
 						if (seg.isSmooth()) t = seg.nearestPosition(pos(i,j),5);
 						node[i][j].surf_normal = seg.normal(t);
 					}
-					else {
+					else if (bnd_type==BoundaryType.DIRICHLET){
 						node[i][j].type = NodeType.DIRICHLET;
 						node[i][j].bc_value = seg.boundary.getValue();
 						node[i][j].mag_M = seg.boundary.getMagM();
 					}
+					else Log.error("Unkown internal boundary type "+bnd_type);
 				} else if (node[i][j].type == NodeType.UNKNOWN) // do not overwrite MESH nodes
 				{
 					node[i][j].type = NodeType.OPEN;
@@ -1355,8 +1360,7 @@ public abstract class Mesh {
 	 *
 	 */
 	protected void performFloodFill() {
-		int i, j;
-
+		
 		/*
 		 * perform flood fill, set some maximum number of passes to avoid infinite loops
 		 */
@@ -1364,32 +1368,41 @@ public abstract class Mesh {
 		for (int pass = 0; pass < 20 * ni * nj; pass++) {
 			count = 0;
 
-			for (i = 0; i < ni; i++)
-				for (j = 0; j < nj; j++) {
+			for (int i = 0; i < ni; i++)
+				for (int j = 0; j < nj; j++) {
 					if (node[i][j].type != NodeType.UNKNOWN)
 						continue;
 
+					boolean copied = false;
+					
 					if (i > 0 && okToCopy(i - 1, j)) {
 						node[i][j].type = node[i - 1][j].type;
 						node[i][j].bc_value = node[i - 1][j].bc_value;
-						node[i][j].mag_M = Vector.copy(node[i - 1][j].mag_M);												
-						count++;
+						node[i][j].mag_M = Vector.copy(node[i - 1][j].mag_M);
+						copied = true;
 					} else if (i < ni - 1 && okToCopy(i + 1, j)) {
 						node[i][j].type = node[i + 1][j].type;
 						node[i][j].bc_value = node[i + 1][j].bc_value;
 						node[i][j].mag_M = Vector.copy(node[i + 1][j].mag_M);						
-						count++;
+						copied = true;
 					} else if (j > 0 && okToCopy(i, j - 1)) {
 						node[i][j].type = node[i][j - 1].type;
 						node[i][j].bc_value = node[i][j - 1].bc_value;
 						node[i][j].mag_M = Vector.copy(node[i][j - 1].mag_M);
-						count++;
+						copied = true;
 					} else if (j < nj - 1 && okToCopy(i, j + 1)) {
 						node[i][j].type = node[i][j + 1].type;
 						node[i][j].bc_value = node[i][j + 1].bc_value;
 						node[i][j].mag_M = Vector.copy(node[i][j + 1].mag_M);						
-						count++;
+						copied = true;
 					}
+					
+					if (copied) {
+						count++;
+						if (node[i][j].type == NodeType.DIRICHLET) 
+							node[i][j].type = NodeType.INTERNAL;
+					}
+					
 				} /* j */
 
 			/* this indicates that we did not set any more nodes */
@@ -1397,8 +1410,16 @@ public abstract class Mesh {
 				break;
 		} /* pass */
 
+		// look for unknown nodes 
+		count  = 0;
+		for (int i=0;i<ni;i++) 
+			for (int j=0;j<nj;j++) {
+				if (node[i][j].type==NodeType.UNKNOWN) {
+					count++;
+				}
+			}
 		if (count > 0)
-			throw (new RuntimeException("Failed to set all nodes"));
+			Log.warning("Failed to set "+count+" nodes");
 	}
 
 	/**
@@ -1423,7 +1444,7 @@ public abstract class Mesh {
 	 * @return
 	 */
 	protected boolean okToCopy(int i, int j) {
-		if (node[i][j].type == NodeType.OPEN || node[i][j].type == NodeType.DIRICHLET)
+		if (node[i][j].type == NodeType.OPEN || node[i][j].type == NodeType.DIRICHLET || node[i][j].type==NodeType.INTERNAL)
 			return true;
 
 		return false;

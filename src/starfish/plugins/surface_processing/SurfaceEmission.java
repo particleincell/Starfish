@@ -3,12 +3,12 @@ package starfish.plugins.surface_processing;
 import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.interactions.InteractionsModule;
-import starfish.core.interactions.InteractionsModule.InteractionFactory;
-import starfish.core.interactions.Sigma;
-import starfish.core.interactions.SurfaceInteraction;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
+import starfish.interactions.InteractionsModule;
+import starfish.interactions.Sigma;
+import starfish.interactions.SurfaceInteraction;
+import starfish.interactions.InteractionsModule.InteractionFactory;
 
 public class SurfaceEmission extends SurfaceInteraction
 {

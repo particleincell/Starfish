@@ -10,8 +10,8 @@ import org.w3c.dom.Element;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Utils;
-import starfish.core.interactions.Sigma;
 import starfish.core.materials.Material;
+import starfish.interactions.Sigma;
 
 /**
  *

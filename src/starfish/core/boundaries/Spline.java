@@ -805,28 +805,28 @@ public class Spline
 
     static public boolean isInternal(double xp[], Segment segment)
     {
-	/*internal if we are on a line*/
-	if (Spline.isOnLine(xp,segment))
-	    return true;		
-
-	double t = segment.closestPos(xp);
+		/*internal if we are on a line*/
+		if (Spline.isOnLine(xp,segment))
+		    return true;		
 	
-	/*segment normal vector*/
-	double n[] = segment.normal(t);
+		double t = segment.closestPos(xp);
+		
+		/*segment normal vector*/
+		double n[] = segment.normal(t);
+		
+		/*ray to midpoint*/
+		double m[] = segment.pos(t);
+		
+		double r[] = new double[2];
+		r[0] = xp[0]-m[0];
+		r[1] = xp[1]-m[1];
+		double r_mag=Math.sqrt(r[0]*r[0]+r[1]*r[1]);
+		
+		double cos_theta;
+		cos_theta = (r[0]*n[0]+r[1]*n[1])/r_mag;
+		if (cos_theta<=0) return true;
 	
-	/*ray to midpoint*/
-	double m[] = segment.pos(t);
-	
-	double r[] = new double[2];
-	r[0] = xp[0]-m[0];
-	r[1] = xp[1]-m[1];
-	double r_mag=Math.sqrt(r[0]*r[0]+r[1]*r[1]);
-	
-	double cos_theta;
-	cos_theta = (r[0]*n[0]+r[1]*n[1])/r_mag;
-	if (cos_theta<=0) return true;
-
-	return false;
+		return false;
     }
 
     //@return true if point xp lies on the segment*/
@@ -884,8 +884,8 @@ public class Spline
 	{
 	    for (Segment segment:segments)
 	    {
-		if (segment.boundary.type!=BoundaryType.DIRICHLET /*&&
-			segment.boundary.type!=BoundaryType.VIRTUAL*/)
+		if (segment.boundary.type==BoundaryType.VIRTUAL ||
+			segment.boundary.type==BoundaryType.OPEN)
 		    continue;
 
 		/*during first pass we look only for linear segments*/
@@ -908,8 +908,9 @@ public class Spline
 		for (Segment segment2:segments)
 		{
 		    if (segment2==segment) continue;	/*skip self*/
-		    if (segment2.boundary.type!=BoundaryType.DIRICHLET)
-			continue;
+		    if (segment2.boundary.type==BoundaryType.VIRTUAL ||
+		    	segment2.boundary.type==BoundaryType.OPEN)
+		    	continue;
 
 		    /*TODO: this algorithm does not work properly, it is tripped by
 		     * lines in series, while it should only handle lines sitting on top of each other*/

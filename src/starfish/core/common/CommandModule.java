@@ -25,13 +25,13 @@ public abstract class CommandModule
     /**Constructor for level 1 module*/
     public CommandModule()
     {
-	/*to nothing*/
+    	/*to nothing*/
     }
 	
     /** function called prior to start of processing input file*/
     public void init()
     {
-	/*do nothing*/
+    	/*do nothing*/
     }
 
     /** reads element data and performs appropriate action
@@ -41,19 +41,19 @@ public abstract class CommandModule
     /** function called prior to main loop*/
     public void start()
     {
-	/*do nothing*/
+    	/*do nothing*/
     }
 
 
     /** function called after end of main loop*/
     public void finish() 
     {
-	/*do nothing*/
+    	/*do nothing*/
     }
 	
     /** function called prior to program exit*/
     public void exit()
     {
-	/*do nothing*/
+    	/*do nothing*/
     }
 }

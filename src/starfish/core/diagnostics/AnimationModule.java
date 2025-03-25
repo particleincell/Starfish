@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
-import starfish.core.interactions.VolumeInteraction;
 import starfish.core.io.InputParser;
 import starfish.core.io.OutputModule;
 import starfish.core.io.Writer;
 import starfish.core.materials.Material;
+import starfish.interactions.VolumeInteraction;
 
 /** animation support */
 public class AnimationModule extends CommandModule 
