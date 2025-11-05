@@ -120,7 +120,6 @@ public class LinearSolverGS implements LinearSolver
 				}
 				
 				norm/=nn;
-				System.out.println(norm);
 				
 				//System.out.println(norm);
 				if (norm < tolerance)

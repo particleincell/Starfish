@@ -644,24 +644,34 @@ public abstract class Mesh {
 		for (int k = 0; k < 4; k++) {
 			// setting the starting node on each face
 			switch (k) {
-			case 0:
-				i = i0 - delta;
-				j = j0 - delta;
-				break; // bottom left
-			case 1:
-				i = i0 + delta;
-				j = j0 - delta;
-				break; // bottom right
-			case 2:
-				i = i0 + delta;
-				j = j0 + delta;
-				break; // top right
-			case 3:
-				i = i0 - delta;
-				j = j0 + delta;
-				break; // top left
+				case 0:
+					i = i0 - delta;
+					j = j0 - delta;
+					break; // bottom left
+				case 1:
+					i = i0 + delta;
+					j = j0 - delta;
+					break; // bottom right
+				case 2:
+					i = i0 + delta;
+					j = j0 + delta;
+					break; // top right
+				case 3:
+					i = i0 - delta;
+					j = j0 + delta;
+					break; // top left
 			}
-
+			
+			int ii = (int)i0;
+			int jj = (int)j0;
+			
+			if (k>1 && jj>1 && (node[ii][jj].type==NodeType.INSULATOR && node[ii][jj-1].type==NodeType.OPEN)) 
+				j = j0;
+			else if ((k==0 || k==3) && ii>1 &&  (node[ii][jj].type==NodeType.INSULATOR && node[ii+1][jj].type==NodeType.OPEN))
+				i = i0;
+			else if ((k==1 || k==2) && ii<ni-1 && (node[ii][jj].type==NodeType.INSULATOR && node[ii-1][jj].type==NodeType.OPEN))
+				i = i0;
+			
 			// first check for mesh boundaries
 			if (i < 0 && boundaryType(Face.LEFT, Utils.minmax((int) (j0 + 0.5), 0, nj - 1)) != DomainBoundaryType.MESH)
 				i = 0;

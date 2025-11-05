@@ -213,7 +213,7 @@ public abstract class Solver {
 
 		for (j = 0; j < nj; j++)
 			for (i = 0; i < ni; i++) {
-				Gradient G = getNodeGradient(md, i, j);
+				Gradient G = getNodeGradient(md, i, j);	
 
 				/* assemble non-zero values into gradient matrix */
 				int u = md.mesh.IJtoN(i, j);
@@ -472,19 +472,17 @@ public abstract class Solver {
 			double normal[] = mesh.getNode(i, j).surf_normal;
 			
 			// linear combination of gradients for slanted walls, not clear if this works.
-			md.A.clearRow(ni);
+		/*	md.A.clearRow(ni);
 			md.A.addRow(md.Gi,Math.abs(normal[0]),u);
-			md.A.addRow(md.Gj,Math.abs(normal[1]),u);
-			return;
-			/*
+			md.A.addRow(md.Gj,Math.abs(normal[1]),u);*/
+			
 			if (Math.abs(normal[0])>Math.abs(normal[1])) {
 				md.A.copyRow(md.Gi, u);
-				return;
 			}
 			else {
 				md.A.copyRow(md.Gj, u);
-				return;
-			}*/
+			}
+			return;
 		}
 		
 		/* check for external Neumann boundary */
