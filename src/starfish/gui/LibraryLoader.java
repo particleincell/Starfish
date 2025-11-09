@@ -38,8 +38,9 @@ public class LibraryLoader {
      * @return true if libraries successfully loaded, false if not loaded
      */
     public static boolean tryLoad() {
+    	return true;
         //System.setProperty("vtk.lib.dir", new File("bin").getAbsolutePath());
-        return vtkNativeLibrary.LoadAllNativeLibraries();
+    //    return vtkNativeLibrary.LoadAllNativeLibraries();
         /*if (!binPath.exists()) {
             if (confirmWithUser()) {
                 loadEnvIntoWD();

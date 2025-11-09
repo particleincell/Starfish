@@ -22,71 +22,73 @@ public class AnimationModule extends CommandModule
 {
     public class Animation implements DiagnosticsModule.Diagnostic
     {
-	int start_it=0;
-	int frequency=0;
-	boolean clear_samples;
-	ArrayList<Writer> writer_list = new ArrayList<>();
-	Element output_list[];
-	boolean first_time = true;
-	
-	public Animation(Element element)
-	{
-	    start_it = InputParser.getInt("start_it", element);
-	    frequency = InputParser.getInt("frequency", element);		
-	    output_list = InputParser.getChildren("output", element);   
-	    clear_samples = InputParser.getBoolean("clear_samples",element,true);   /*resets collected data post write*/
-	}
-	
-	/*writes out new animation file*/
-	@Override
-	public void sample(boolean force) 
-	{
-	    int it = Starfish.getIt();
-
-	    if (force || (it>= start_it && (it-start_it)%frequency==0))
-	    {
-		if (first_time)
-		{
-		    for (Element output:output_list)
-		    	writer_list.add(OutputModule.createWriter(output));
-		    first_time=false;
-		}
+		int start_it=0;
+		int frequency=0;
+		boolean clear_samples;
+		boolean save_frames;
+		ArrayList<Writer> writer_list = new ArrayList<>();
+		Element output_list[];
+		boolean first_time = true;
 		
-		for (Writer writer:writer_list)
+		public Animation(Element element)
 		{
-		    writer.write(true);						    
+		    start_it = InputParser.getInt("start_it", element);
+		    frequency = InputParser.getInt("frequency", element);		
+		    output_list = InputParser.getChildren("output", element);   
+		    clear_samples = InputParser.getBoolean("clear_samples",element,true);   /*resets collected data post write*/
+		    save_frames = InputParser.getBoolean("save_frames", element, true); // if false, will overwrite files
 		}
-		
-		/*stop clearing samples after steady state is reached*/
-		if (clear_samples && !Starfish.time_module.steady_state)
+	
+		/*writes out new animation file*/
+		@Override
+		public void sample(boolean force) 
 		{
-		    /*reset collected velocity moments*/
-		    for (Material mat:Starfish.getMaterialsList())
-			mat.clearSamples();
-		    
-		    for (VolumeInteraction vi:Starfish.getInteractionsList())
-			vi.clearSamples();
-		}
-		    
-	    }
-	}	
+		    int it = Starfish.getIt();
+	
+		    if (force || (it>= start_it && (it-start_it)%frequency==0))
+		    {
+		    	if (first_time)
+		    	{
+		    		for (Element output:output_list)
+		    			writer_list.add(OutputModule.createWriter(output));
+		    		first_time=false;
+		    	}
+			
+		    	for (Writer writer:writer_list)
+		    	{
+		    		writer.write(save_frames);						    
+		    	}
+			
+				/*stop clearing samples after steady state is reached*/
+				if (clear_samples && !Starfish.time_module.steady_state)
+				{
+				    /*reset collected velocity moments*/
+				    for (Material mat:Starfish.getMaterialsList())
+					mat.clearSamples();
+				    
+				    for (VolumeInteraction vi:Starfish.getInteractionsList())
+					vi.clearSamples();
+				}
+			    
+		    }
+		}	
 
-	/*closes files*/
-	@Override
-	public void exit()
-	{
-	    for (Writer writer:writer_list)
-		writer.close();
-	}
+		/*closes files*/
+		@Override
+		public void exit()
+		{
+		    for (Writer writer:writer_list)
+			writer.close();
+		}
     };	//animation
 
     	
     @Override
     public void process(Element element) 
     {
-	/*create new animation*/
-	Animation anim = new Animation(element);
-	Starfish.diagnostics_module.addDiagnostic(anim);
+    	/*create new animation*/
+    	Animation anim = new Animation(element);
+    	Starfish.diagnostics_module.addDiagnostic(anim);
     }
 	
 }

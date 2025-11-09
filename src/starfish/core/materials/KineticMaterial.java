@@ -1021,7 +1021,8 @@ public class KineticMaterial extends Material {
 	}
 
 	/**
-	 * performs the actual merge in a single physical cell
+	 * performs the actual merge in a single physical cell, 
+	 * based on Eq 2.80 in Justin M. Fox PhD dissertation
 	 * 
 	 * @param md mesh to apply the merge to
 	 * @param i  cell i-index

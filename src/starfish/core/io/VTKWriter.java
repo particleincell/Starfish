@@ -92,6 +92,7 @@ public class VTKWriter extends Writer {
 			name += substr[1];
 
 			// add to collection but remove path since relative to pvd file
+			if (!animation) collection.clear();
 			substr = splitFileName(name);
 			// collection.add(new CollectionData(time_step,part,substr[3]+substr[1]));
 			collection.add(new CollectionData(Starfish.getIt(), part, substr[3] + substr[1]));
@@ -281,6 +282,7 @@ public class VTKWriter extends Writer {
 			}
 
 			// add to collection but remove path since relative to pvd file
+			if (!animation) collection.clear();			
 			substr = splitFileName(name);
 			// collection.add(new CollectionData(time_step,part,substr[3]+substr[1]));
 			collection.add(new CollectionData(Starfish.getIt(), part, substr[3] + substr[1]));
@@ -354,6 +356,10 @@ public class VTKWriter extends Writer {
 			pw.println("</Coordinates>");
 		}
 
+		pw.println("<FieldData>");
+		
+		pw.println("</FieldData>");
+		
 		/*
 		 * hard coded for now until I get some more robust way to output cell and vector
 		 * data

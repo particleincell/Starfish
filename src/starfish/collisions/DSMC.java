@@ -66,6 +66,9 @@ public class DSMC extends VolumeInteraction
     		!(Starfish.getMaterial(pair[1]) instanceof KineticMaterial))
     		Log.error("DSMC materials must be kinetic");
 
+		mat1 = (KineticMaterial) Starfish.getMaterial(pair[0]);
+		mat2 = (KineticMaterial) Starfish.getMaterial(pair[1]);
+
     	/*figure out how many other interaction pairs are defined to get our default tag id*/
     	int id = Starfish.interactions_module.getInteractionsList().size();
 		
@@ -74,15 +77,14 @@ public class DSMC extends VolumeInteraction
     	if (id>1) tag=Integer.toString(id);
 		tag = InputParser.getValue("name",element,tag);
 
-		mat1 = (KineticMaterial) Starfish.getMaterial(pair[0]);
-		mat2 = (KineticMaterial) Starfish.getMaterial(pair[1]);
-	
 		//this.product = (KineticMaterial)Starfish.getMaterial(product);
 		this.vss_inv=0.5*(1.0/this.mat1.vss_alpha+1.0/this.mat2.vss_alpha);
 	
 		//initialize sigma parameters as needed
 		sigma.init(this.mat1, this.mat2);
 	
+		Log.message("Added DSMC pair '"+tag+"' for "+mat1.name+" : "+mat2.name+", vss_alpha = "+String.format("%.3f",1/vss_inv));
+		
 		/*add fields*/
 		fc_real_sum = Starfish.domain_module.getFieldManager().add("col-real-sum-"+tag, "#",null);
 		fc_count_sum = Starfish.domain_module.getFieldManager().add("col-count-sum-"+tag, "#",null);
@@ -117,9 +119,9 @@ public class DSMC extends VolumeInteraction
 
     @Override
     public void clearSamples() {
-	fc_count_sum.clear();
-	fc_real_sum.clear();
-	num_samples = 0;
+		fc_count_sum.clear();
+		fc_real_sum.clear();
+		num_samples = 0;
     }
     
     class CellInfo
@@ -139,14 +141,14 @@ public class DSMC extends VolumeInteraction
     
     class MeshData
     {
-	CellInfo cell_info[][];
-	MeshData(Mesh mesh,double sig_cr)
-	{
-	    cell_info = new CellInfo[mesh.ni-1][mesh.nj-1];
-	    for (int i=0;i<mesh.ni-1;i++)
-		for (int j=0;j<mesh.nj-1;j++)
-		    cell_info[i][j] = new CellInfo(sig_cr, mesh.cellVol(i, j));
-	}
+		CellInfo cell_info[][];
+		MeshData(Mesh mesh,double sig_cr)
+		{
+		    cell_info = new CellInfo[mesh.ni-1][mesh.nj-1];
+		    for (int i=0;i<mesh.ni-1;i++)
+			for (int j=0;j<mesh.nj-1;j++)
+			    cell_info[i][j] = new CellInfo(sig_cr, mesh.cellVol(i, j));
+		}
     }
     
     HashMap<Mesh,MeshData> mesh_data = new HashMap<Mesh,MeshData>();
@@ -244,12 +246,10 @@ public class DSMC extends VolumeInteraction
     			double cell_cols[] = collideCell(cell_info[i][j]);	
 		
     			/*start counting only at ss since dividing by time since ss*/
-    			if (Starfish.steady_state())
-    			{
-    				count_sum.add(i,j,cell_cols[0]);	    //cell data
-    				real_sum.add(i,j,cell_cols[1]);
-    			}
-    			nc_tot+=cell_cols[0];
+				count_sum.add(i,j,cell_cols[0]);	    //cell data
+				real_sum.add(i,j,cell_cols[1]);
+    	
+				nc_tot+=cell_cols[0];
     			if (cell_info[i][j].sig_cr_max>sigma_cr_max) sigma_cr_max=cell_info[i][j].sig_cr_max;
     		}
 

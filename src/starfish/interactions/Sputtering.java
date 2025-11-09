@@ -5,6 +5,7 @@ import java.util.NoSuchElementException;
 
 import org.w3c.dom.Element;
 
+import starfish.collisions.DSMC;
 import starfish.core.boundaries.Segment;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
@@ -65,21 +66,7 @@ public class Sputtering extends MaterialInteraction
 		public void getInteraction(Element element)
 		{
 		  
-		    Sputtering sputtering = new Sputtering(element);
-		    material_interaction.setTargetMatIndex(target.getIndex());
-		    material_interaction.setSourceMatIndex(source.getIndex());
-		    material_interaction.setProductMatIndex(product.getIndex());
-		    material_interaction.setAccomodationCoefficient(c_accom);
-		    material_interaction.setProbability(prob);
-		    material_interaction.setRestitutionCoefficient(c_rest);
-		    material_interaction.setSurfaceImpactHandler(surface_impact_handler);
-		    target.source_interactions.addInteraction(material_interaction);
-
-		    /*log*/
-		    Log.log("Added SURFACE_IMPACT "+source_name+" + " +target_name + " -> "+product_name);
-		    Log.log("> probability   = "+prob);
-		    Log.log("> restitution  = "+c_rest);
-		    Log.log("> thermal accomodation = "+c_accom);		
+    		new Sputtering(element);
 		}
     };
 

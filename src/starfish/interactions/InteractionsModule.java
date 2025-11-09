@@ -22,27 +22,27 @@ public class InteractionsModule extends CommandModule
     @Override
     public void init()
     {
-	/*register sigmas*/
-	registerSigma("CONST", Sigma.sigmaConstFactory);
-	registerSigma("POLY", Sigma.sigmaPolyFactory);
-	registerSigma("INV", Sigma.sigmaInvFactory);
-	registerSigma("LN", Sigma.sigmaLnFactory);
-	registerSigma("TABLE", Sigma.sigmaTableFactory);
-	
-	/*register interactions*/
-	registerInteraction("SURFACE_HIT",SurfaceInteraction.surfaceHitFactory);
-	registerInteraction("SURFACE_IMPACT",SurfaceInteraction.surfaceHitFactory);	
-	registerInteraction("CHEMISTRY",ChemicalReaction.chemicalReactionFactory);
-	registerInteraction("ENERGY_TRANSFER",EnergyTransfer.energyTransferFactory);
-	
-	// sputtering and secondary electron emission
-	registerInteraction("SPUTTERING",Sputtering.sputteringFactory);
-	registerInteraction("SURFACE_EMISSION",SurfaceEmission.surfaceEmissionFactory);
-	
-	/*register surface impact models*/
-	SurfaceInteraction.registerModels();
-	Sputtering.registerModels();
-	
+		/*register sigmas*/
+		registerSigma("CONST", Sigma.sigmaConstFactory);
+		registerSigma("POLY", Sigma.sigmaPolyFactory);
+		registerSigma("INV", Sigma.sigmaInvFactory);
+		registerSigma("LN", Sigma.sigmaLnFactory);
+		registerSigma("TABLE", Sigma.sigmaTableFactory);
+		
+		/*register interactions*/
+		registerInteraction("SURFACE_HIT",SurfaceInteraction.surfaceHitFactory);
+		registerInteraction("SURFACE_IMPACT",SurfaceInteraction.surfaceHitFactory);	
+		registerInteraction("CHEMISTRY",ChemicalReaction.chemicalReactionFactory);
+		registerInteraction("ENERGY_TRANSFER",EnergyTransfer.energyTransferFactory);
+		
+		// sputtering and secondary electron emission
+		registerInteraction("SPUTTERING",Sputtering.sputteringFactory);
+		registerInteraction("SURFACE_EMISSION",SurfaceEmission.surfaceEmissionFactory);
+		
+		/*register surface impact models*/
+		SurfaceInteraction.registerModels();
+		Sputtering.registerModels();
+
     }
 	
     /**
@@ -52,8 +52,8 @@ public class InteractionsModule extends CommandModule
      */
     static public void registerInteraction(String type, InteractionFactory fac)
     {
-	interactions_types.put(type.toUpperCase(), fac);
-	Log.log("Added interaction "+type.toUpperCase());
+		interactions_types.put(type.toUpperCase(), fac);
+		Log.log("Added interaction "+type.toUpperCase());
     }
     
     /**
@@ -61,12 +61,11 @@ public class InteractionsModule extends CommandModule
      */
     public interface InteractionFactory
     {
-
-	/**
-	 *
-	 * @param element
-	 */
-	public void  getInteraction(Element element);
+		/**
+		 *
+		 * @param element
+		 */
+		public void  getInteraction(Element element);
     }
     
     static HashMap<String,InteractionFactory> interactions_types = new HashMap<String, InteractionFactory>();
@@ -74,17 +73,17 @@ public class InteractionsModule extends CommandModule
     @Override
     public void process(Element element) 
     {
-	Iterator<Element> iterator = InputParser.iterator(element);
-		
-	while(iterator.hasNext())
-	{
-	    Element el = iterator.next();
-	    InteractionFactory fac = interactions_types.get(el.getNodeName().toUpperCase());
-	    if (fac!=null)
-		fac.getInteraction(el);
-	    else			
-		Log.warning("Unknown interactions element "+el.getNodeName().toUpperCase());
-	}
+		Iterator<Element> iterator = InputParser.iterator(element);
+			
+		while(iterator.hasNext())
+		{
+		    Element el = iterator.next();
+		    InteractionFactory fac = interactions_types.get(el.getNodeName().toUpperCase());
+		    if (fac!=null)
+			fac.getInteraction(el);
+		    else			
+			Log.warning("Unknown interactions element "+el.getNodeName().toUpperCase());
+		}
     }
 	
     
@@ -116,8 +115,8 @@ public class InteractionsModule extends CommandModule
 
     public void performInteractions()
     {
-	for (VolumeInteraction vint:interactions_list)
-		vint.perform();
+		for (VolumeInteraction vint:interactions_list)
+			vint.perform();
     }
 
     @Override
@@ -126,8 +125,8 @@ public class InteractionsModule extends CommandModule
     @Override
     public void start() 
     {
-	for (VolumeInteraction vint:interactions_list)
-		vint.init();
+		for (VolumeInteraction vint:interactions_list)
+			vint.init();
     }
 
     
@@ -136,11 +135,11 @@ public class InteractionsModule extends CommandModule
      * @return s*/
     static public Sigma     parseSigma(Element element)
     {
-	String sigma_name = InputParser.getValue("sigma", element);
-	double coeffs[] = InputParser.getDoubleList("sigma_coeffs", element, new double[0]);
-
-	/*make the cross-section*/
-	return getSigma(sigma_name,coeffs,element);
+		String sigma_name = InputParser.getValue("sigma", element);
+		double coeffs[] = InputParser.getDoubleList("sigma_coeffs", element, new double[0]);
+	
+		/*make the cross-section*/
+		return getSigma(sigma_name,coeffs,element);
     }
     
     static HashMap<String,Sigma.SigmaFactory> sigma_list = new HashMap<String,Sigma.SigmaFactory>();
@@ -152,8 +151,8 @@ public class InteractionsModule extends CommandModule
      */
     public static void registerSigma(String name, Sigma.SigmaFactory fac)
     {
-	sigma_list.put(name.toUpperCase(),fac);
-	Log.log("Added sigma "+name.toUpperCase());
+		sigma_list.put(name.toUpperCase(),fac);
+		Log.log("Added sigma "+name.toUpperCase());
     }
 
     /**
