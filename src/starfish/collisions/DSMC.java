@@ -72,9 +72,8 @@ public class DSMC extends VolumeInteraction
     	/*figure out how many other interaction pairs are defined to get our default tag id*/
     	int id = Starfish.interactions_module.getInteractionsList().size();
 		
-    	/*for backward compatibility, there is no "-1" only "-2"*/
-    	String tag = "";
-    	if (id>1) tag=Integer.toString(id);
+    	//default to materials, can be overwritten using name
+    	String tag = mat1.name.toLowerCase()+"_"+mat2.name.toLowerCase();
 		tag = InputParser.getValue("name",element,tag);
 
 		//this.product = (KineticMaterial)Starfish.getMaterial(product);

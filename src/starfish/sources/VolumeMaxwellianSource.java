@@ -29,6 +29,7 @@ public class VolumeMaxwellianSource extends VolumeSource {
 	protected int start_it;
 	protected int end_it;
 	protected int mp_count = 0;
+	protected double density; 
 	
 	// shape information
 	enum Shape {
@@ -56,8 +57,10 @@ public class VolumeMaxwellianSource extends VolumeSource {
 		mdot0 = InputParser.getDouble("mdot", element, 0);
 		double current = InputParser.getDouble("current", element, 0);
 		mp_count = InputParser.getInt("mp_count", element,0);
-		if (mdot0 != 0.0 && current != 0.0 && mp_count != 0.0)
-			Log.error("only one of <mdot>, <current>, and <mp_count> can be specified");
+		density = InputParser.getDouble("density", element, 0); // mdot is computed in update since dt() may not be set correctly yet
+		
+		if (mdot0 != 0.0 && current != 0.0 && mp_count != 0.0 && density!=0)
+			Log.error("only one of <mdot>, <current>, <mp_count>, and <density> can be specified");
 		if (current != 0.0) {
 			if (source_mat.charge == 0.0)
 				Log.error("Cannot use <current> with neutral materials");
@@ -101,6 +104,7 @@ public class VolumeMaxwellianSource extends VolumeSource {
 			Log.error("Unrecognized shape " + shape_name);
 
 		volume = getVolume();
+				
 		/* log */
 		Starfish.Log.log("Added MAXWELLIAN_VOLUME source '" + name + "'");
 	}
@@ -196,6 +200,16 @@ public class VolumeMaxwellianSource extends VolumeSource {
 	}
 
 	@Override
+	public void update() {
+		// update mdot if specifying density
+		if (density>0 && mdot0==0) {
+			if (end_it<0 || (end_it-start_it)<=0) Log.error("density can be specified only for a non-zero start_it:end_it interval");
+			double mass_gen = density*volume*source_mat.mass;   // total mass to generate
+			mdot0 = mass_gen/(Starfish.getDt()*(end_it-start_it));
+			Log.log("Assigning mdot = "+String.format("%.3g", mdot0)+" (kg/s)");
+		}
+	}
+	@Override
 	public void regenerate() {
 		/* check for injection interval */
 		if (Starfish.getIt() < start_it || (end_it > 0 && Starfish.getIt() > end_it)) {
@@ -216,6 +230,7 @@ public class VolumeMaxwellianSource extends VolumeSource {
 			num_mp = 0; /* for now? */
 			mp_rem = 0;
 		}
+		//Log.message("Generating "+num_mp+" particles");
 	}
 
 	@Override
