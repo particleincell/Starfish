@@ -72,7 +72,7 @@ public class SimulationResultViewer extends JPanel {
             structuredGrid.GetPointData().SetActiveScalars(selectedVar);
 
             vtkDataSetMapper mapper = new vtkDataSetMapper();
-            mapper.SetInputData(structuredGrid);
+            mapper.SetInput(structuredGrid);
             mapper.SetScalarVisibility(1);
             mapper.SetScalarModeToUsePointData();
             mapper.SetColorModeToMapScalars();

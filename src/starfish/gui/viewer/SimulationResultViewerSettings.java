@@ -163,7 +163,7 @@ class SimulationResultViewerSettings extends JPanel {
         ColorConfig config = configs.getOrDefault(var, new ColorConfig.Builder().build());
 
         if (data != null) {
-            double[] range = data.GetFiniteRange();
+            double[] range = data.GetRange();
             config.setMin(range[0]);
             config.setMax(range[1]);
         }
