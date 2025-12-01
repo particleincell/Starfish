@@ -10,7 +10,7 @@ package starfish.plugins.plasma_dynamics;
 import org.w3c.dom.Element;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.UniformMesh;
@@ -83,8 +83,8 @@ public class BoydSolver extends PotentialSolver
 		    Mesh mesh = md.mesh;
 	
 		    /*flatten data*/
-		    md.x = Vector.deflate(psi.getField(mesh).getData());
-		    md.b = Vector.zeros(md.x.length); 	    
+		    md.x = Vec.deflate(psi.getField(mesh).getData());
+		    md.b = Vec.zeros(md.x.length); 	    
 		    
 		    /*update boundaries */
 		    for (int j=0;j<5;j++) 
@@ -118,7 +118,7 @@ public class BoydSolver extends PotentialSolver
 		
 		/*inflate and update electric field*/
 		for (Solver.MeshData md:mesh_data)
-		    Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, psi.getField(md.mesh).getData());
+		    Vec.inflate(md.x, md.mesh.ni, md.mesh.nj, psi.getField(md.mesh).getData());
 		
 		
 	    }
@@ -369,7 +369,7 @@ public class BoydSolver extends PotentialSolver
 		    Mesh mesh = md.mesh;
 	
 		    /*flatten data*/
-		    md.x = Vector.deflate(Starfish.domain_module.getPhi(mesh).getData());
+		    md.x = Vec.deflate(Starfish.domain_module.getPhi(mesh).getData());
 		}
 		
 		return it;

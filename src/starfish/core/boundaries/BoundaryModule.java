@@ -98,6 +98,9 @@ public class BoundaryModule extends CommandModule {
 		return null; // this won't actually happen
 	}
 
+	/**
+	 * Updates boundary values and also calls domain module if any boundary values have changed
+	 */
 	public void updateBoundaries() {
 		boolean changed = false;
 		for (Boundary boundary : boundary_list)

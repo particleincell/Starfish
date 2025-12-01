@@ -8,7 +8,7 @@ package starfish.core.solver;
 
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.UniformMesh;
@@ -108,7 +108,7 @@ public class LinearSolverGSsimple implements LinearSolver
 	}
 	
 	/*the calling function assumes the solution is in md.x so pack it*/
-	md.x = Vector.deflate(phi);
+	md.x = Vec.deflate(phi);
 
 	return converged?solver_it:-1;
     }

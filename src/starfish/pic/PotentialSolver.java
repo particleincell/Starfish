@@ -7,7 +7,7 @@ package starfish.pic;
 import java.util.ArrayList;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.solver.Solver;
 
@@ -60,12 +60,12 @@ abstract public class PotentialSolver extends Solver
 		{
 		    double efi[] = new double[md.mesh.n_nodes];
 		    double efj[] = new double[md.mesh.n_nodes];
-		    double phi1[] = Vector.deflate(Starfish.domain_module.getPhi(md.mesh).getData());
+		    double phi1[] = Vec.deflate(Starfish.domain_module.getPhi(md.mesh).getData());
 		    
 		    evaluateGradient(phi1, efi, efj,md, -1, Starfish.domain_module.getPhi());
 		    
-		    Vector.inflate(efi, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getEfi(md.mesh).getData());
-		    Vector.inflate(efj, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getEfj(md.mesh).getData());
+		    Vec.inflate(efi, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getEfi(md.mesh).getData());
+		    Vec.inflate(efj, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getEfj(md.mesh).getData());
 		}
     }   
 }

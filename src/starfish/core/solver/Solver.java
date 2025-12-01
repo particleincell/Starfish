@@ -6,7 +6,7 @@
  * *****************************************************/
 package starfish.core.solver;
 
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import java.util.ArrayList;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
@@ -317,7 +317,7 @@ public abstract class Solver {
 				double b_x[] = nl_eval.eval_bx(mesh_data[k].x, mesh_data[k].fixed_node);
 
 				/* rhs: b=b0+b_x */
-				double b[] = Vector.add(mesh_data[k].b, b_x);
+				double b[] = Vec.add(mesh_data[k].b, b_x);
 
 				/* calculate P(x) = db/dx */
 				double P[] = nl_eval.eval_bx_prime(mesh_data[k].x, mesh_data[k].fixed_node);
@@ -343,8 +343,8 @@ public abstract class Solver {
 
 				/* calculate F(x)=Ax + (Ax)_neigh - b */
 				double lhs[] = mesh_data[k].A.mult(mesh_data[k].x);
-				lhs = Vector.add(lhs, mesh_data[k].Ax_neigh);
-				double F[] = Vector.subtract(lhs, b);
+				lhs = Vec.add(lhs, mesh_data[k].Ax_neigh);
+				double F[] = Vec.subtract(lhs, b);
 
 				/* calculate J(x) = d/dx(Ax-b) = A-diag(P) */
 				/*
@@ -364,13 +364,13 @@ public abstract class Solver {
 
 			/* md_nl.x is the "y", update solution from x=x-y */
 			for (int k = 0; k < mesh_data.length; k++) {
-				Vector.subtractInclusive(mesh_data[k].x, md_nl[k].x);
+				Vec.subtractInclusive(mesh_data[k].x, md_nl[k].x);
 			}
 
 			/* check norm(y) for convergence */
 			norm = 0;
 			for (MeshData md : md_nl)
-				norm += Vector.norm(md.x);
+				norm += Vec.norm(md.x);
 
 			// System.out.println(b0[mesh.IJtoN(5,10)]+" "+ lin_it+" "+norm);
 
@@ -398,7 +398,7 @@ public abstract class Solver {
 
 		/* inflate data since using field collection gather to interpolate */
 		for (MeshData md : mesh_data)
-			Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, fc.getField(md.mesh).getData());
+			Vec.inflate(md.x, md.mesh.ni, md.mesh.nj, fc.getField(md.mesh).getData());
 
 		/* get ghost node values */
 		for (MeshData md : mesh_data) {
@@ -432,8 +432,8 @@ public abstract class Solver {
 		/* this is ||Ax-b|| */
 		double lhs[] = A.mult(x);
 		if (Ax_neigh != null)
-			lhs = Vector.add(lhs, Ax_neigh);
-		double norm = Vector.norm(Vector.subtract(lhs, b));
+			lhs = Vec.add(lhs, Ax_neigh);
+		double norm = Vec.norm(Vec.subtract(lhs, b));
 		if (Double.isInfinite(norm) || Double.isNaN(norm)) {
 			Log.error("Solver diverged, aborting");
 		}
@@ -808,8 +808,8 @@ public abstract class Solver {
 
 		if (scale != 1.0) /* scale data */
 		{
-			Vector.mult(gi, scale, gi);
-			Vector.mult(gj, scale, gj);
+			Vec.mult(gi, scale, gi);
+			Vec.mult(gj, scale, gj);
 		}
 	}
 

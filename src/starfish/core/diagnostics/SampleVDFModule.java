@@ -15,7 +15,7 @@ import org.w3c.dom.Element;
 import starfish.core.common.CommandModule;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.diagnostics.DiagnosticsModule.Diagnostic;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
@@ -153,7 +153,7 @@ public class SampleVDFModule extends CommandModule
 					
 					for (Particle part:particles)
 				    {
-						double speed = Math.sqrt(Vector.mag3(part.vel));
+						double speed = Math.sqrt(Vec.mag3(part.vel));
 						if (speed<speed_range[0]) speed_range[0] = speed;
 						if (speed>speed_range[1]) speed_range[1] = speed;
 				    }
@@ -182,7 +182,7 @@ public class SampleVDFModule extends CommandModule
 					hist_vel[d][vbin] += part.mpw;
 			    }
 		
-			    double speed = Vector.mag3(part.vel);
+			    double speed = Vec.mag3(part.vel);
 			    int sbin = (int)((speed-speed_range[0])/ds);
 			    if (sbin<0) sbin=0;
 			    if (sbin>=speed_bins) sbin = speed_bins-1;

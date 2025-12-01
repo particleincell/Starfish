@@ -12,7 +12,7 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.DomainBoundaryType;
 import starfish.core.domain.Mesh.Face;
@@ -120,9 +120,9 @@ public class PoissonSolver extends PotentialSolver
 		    Mesh mesh = md.mesh;
 	
 		    /*flatten data*/
-		    md.x = Vector.deflate(Starfish.domain_module.getPhi(mesh).getData());
-		    md.b = Vector.deflate(Starfish.domain_module.getRho(mesh).getData());	    
-		    md.b = Vector.mult(md.b, -1/eps);
+		    md.x = Vec.deflate(Starfish.domain_module.getPhi(mesh).getData());
+		    md.b = Vec.deflate(Starfish.domain_module.getRho(mesh).getData());	    
+		    md.b = Vec.mult(md.b, -1/eps);
 		   
 		    /*update boundaries, looping over all nodes to avoid code reuse */
 		    for (int i=0;i<mesh.ni;i++) 
@@ -209,7 +209,7 @@ public class PoissonSolver extends PotentialSolver
 		    
 		/*inflate and update electric field*/
 		for (MeshData md:mesh_data)
-		    Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
+		    Vec.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
 	
     }
         
@@ -260,11 +260,11 @@ public class PoissonSolver extends PotentialSolver
 	Mesh mesh = md.mesh;
 	
 	
-	md.x = Vector.deflate(Starfish.domain_module.getPhi(mesh).getData());
-	md.b = Vector.deflate(Starfish.domain_module.getRho(mesh).getData());	    
-	md.b = Vector.mult(md.b, -1/eps);
+	md.x = Vec.deflate(Starfish.domain_module.getPhi(mesh).getData());
+	md.b = Vec.deflate(Starfish.domain_module.getRho(mesh).getData());	    
+	md.b = Vec.mult(md.b, -1/eps);
 	lin_solver.solve(mesh_data, Starfish.domain_module.getPhi(), lin_max_it, lin_tol);
-	Vector.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
+	Vec.inflate(md.x, md.mesh.ni, md.mesh.nj, Starfish.domain_module.getPhi(md.mesh).getData());
     }
     
     

@@ -24,7 +24,7 @@ import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.FieldManager2D;
 import starfish.core.domain.Mesh;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.io.InputParser;
 import starfish.core.source.ParticleListSource;
 import starfish.interactions.MaterialInteraction;
@@ -777,7 +777,7 @@ public abstract class Material
 
 	/*normal vector*/
 		double n[] = boundary.normal(spline_t);
-		double dot = Vector.dot(n, vel)/Vector.mag3(vel);	
+		double dot = Vec.dot(n, vel)/Vec.mag3(vel);	
 		flux_normal_collection.getField(boundary).scatter(spline_t, dot * spwt);
 	    }
 	

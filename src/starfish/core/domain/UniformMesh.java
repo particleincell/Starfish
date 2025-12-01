@@ -7,10 +7,16 @@
 
 package starfish.core.domain;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+
 import org.w3c.dom.Element;
 import starfish.core.common.Starfish;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.io.InputParser;
+import starfish.core.io.VTKWriter;
+import starfish.core.io.VTKWriter.VTK_Type;
+import starfish.core.io.Writer;
 
 /**
  *
@@ -178,5 +184,82 @@ public class UniformMesh extends Mesh
 	    default: throw new UnsupportedOperationException("Bad Face in a call to faceNormal");
 	}
 	return n;
+    }
+    
+    @Override
+    public String getVTKExtension() {return ".vti";}
+    /**
+     * Starts VTK output for this mesh
+     */
+    @Override
+    public void startVTKFile(PrintWriter pw, String endianess, VTKWriter writer) {
+
+    		pw.println("<?xml version=\"1.0\"?>");
+
+    		pw.println("<VTKFile type=\"ImageData\"" + endianess + ">");
+			pw.printf("<ImageData Origin=\"%g %g 0\" ",x0[0], x0[1]);
+			pw.printf("Spacing=\"%g %g 0\" ",dh[0], dh[1]);
+			pw.printf("WholeExtent=\"0 %d 0 %d 0 0\">\n", ni - 1, nj - 1);
+			
+			VTKWriter.writeFieldData(pw);
+
+			pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n", ni - 1, nj - 1);
+			
+    	/*	if (vtk_type == VTK_Type.STRUCT) {
+    			pw.println("<VTKFile type=\"StructuredGrid\"" + endianess + ">");
+    			pw.printf("<StructuredGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
+    			pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
+    			close_tag = "</StructuredGrid>";
+    		} else if (vtk_type == VTK_Type.RECT) {
+    			pw.println("<VTKFile type=\"RectilinearGrid\"" + endianess + ">");
+    			pw.printf("<RectilinearGrid WholeExtent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
+    			pw.printf("<Piece Extent=\"0 %d 0 %d 0 0\">\n", mesh.ni - 1, mesh.nj - 1);
+    			close_tag = "</RectilinearGrid>";
+    		}*/
+
+/*
+    		int a = 0;
+    		if (vtk_type == VTK_Type.STRUCT) {
+    			pw.println("<Points>");
+
+    			double pos[] = new double[mesh.ni * mesh.nj * 3];
+    			a = 0;
+    			for (int j = 0; j < mesh.nj; j++) {
+    				for (int i = 0; i < mesh.ni; i++) {
+    					double x[] = mesh.pos(i, j);
+    					pos[a++] = x[0];
+    					pos[a++] = x[1];
+    					pos[a++] = 0;
+    				}
+    			}
+    			outputDataArrayVec(pw, "pos", pos);
+    			pw.println("</Points>");
+    		} else if (vtk_type == VTK_Type.RECT) {
+    			pw.println("<Coordinates>");
+    			double pos_x[] = new double[mesh.ni];
+    			double pos_y[] = new double[mesh.nj];
+    			double pos_z[] = new double[1];
+    			for (int i = 0; i < mesh.ni; i++) {
+    				pos_x[i] = mesh.pos1(i, 0);
+    			}
+    			for (int j = 0; j < mesh.nj; j++) {
+    				pos_y[j] = mesh.pos1(j, 0);
+    			}
+    			pos_z[0] = 0;
+    			outputDataArrayScalar(pw, "x", pos_x);
+    			outputDataArrayScalar(pw, "y", pos_y);
+    			outputDataArrayScalar(pw, "z", pos_z);
+    			pw.println("</Coordinates>");
+    		}
+    		*/
+
+    		
+    }
+    
+    @Override
+    public void endVTKFile(PrintWriter pw) {
+
+		pw.println("</Piece>");
+		pw.println("</ImageData>");
     }
 }

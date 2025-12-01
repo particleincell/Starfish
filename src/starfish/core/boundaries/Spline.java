@@ -16,7 +16,7 @@ import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.solver.Matrix;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 
 /** Defines a spline, collection of line segments
  * Segments can be linear or smooth cubic Bezier curves
@@ -323,8 +323,8 @@ public class Spline
     protected void addCubicSegment(double x1[], double p1[], double p2[], double x2[],boolean reverse)
     {
 	/*don't add degenerate cubics, these get exported by Gimp*/
-	double mag1 = Vector.dist2(x1,p1);
-	double mag2 = Vector.dist2(x2,p2);
+	double mag1 = Vec.dist2(x1,p1);
+	double mag2 = Vec.dist2(x2,p2);
 	
 	if (mag1==0 && mag2==0)
 	{
@@ -555,7 +555,7 @@ public class Spline
     {
 	double pos1[] = pos(t1);
 	double pos2[] = pos(t2);
-	double l = Vector.dist2(pos1, pos2);	/*arc length*/
+	double l = Vec.dist2(pos1, pos2);	/*arc length*/
 	if (Starfish.domain_module.getDomainType()==DomainType.XY) return l;
 	
 	/*in axisymmetric case, the strip area is the difference between two cones
@@ -583,7 +583,7 @@ public class Spline
     {
 		/*sample uniformly from total spline area*/
 		double A1 = Starfish.rnd()*spline_area;
-		int i = Vector.binarySearch(cum_area, A1); //map distance to segment
+		int i = Vec.binarySearch(cum_area, A1); //map distance to segment
 		
 		/*compute parametric position along this segment*/
 		double seg_area = segments.get(i).area;

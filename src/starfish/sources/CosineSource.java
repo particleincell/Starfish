@@ -10,7 +10,7 @@ package starfish.sources;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
 import starfish.core.common.Starfish;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
@@ -65,7 +65,7 @@ public class CosineSource extends Source
 	part.pos[2] = 0;
 	
 	/*velocity*/
-	part.vel = Vector.lambertianVector(boundary.normal(t), boundary.tangent(t));
+	part.vel = Vec.lambertianVector(boundary.normal(t), boundary.tangent(t));
 	
 	/*set velocity and scale by drift*/
 	for (int i=0;i<3;i++)

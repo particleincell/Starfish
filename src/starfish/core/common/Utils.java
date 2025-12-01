@@ -33,6 +33,8 @@ public class Utils
 		
 	double fm = (sum - 0.5*M)*Math.sqrt(12.0/M);	/*M/12 = 1, so not included*/	
 	return Math.sqrt(0.5)*v_th*fm;
+	//return v_th*fm;
+	
     }
 
     /*samples 3 1d maxwellians
@@ -47,9 +49,10 @@ public class Utils
     public static double[] SampleMaxw3D(double v_th) 
     {
 	double vel[] = new double[3];
-	vel[0] = SampleMaxw1D(v_th);
-	vel[1] = SampleMaxw1D(v_th);
-	vel[2] = SampleMaxw1D(v_th);
+	vel[0] = (v_th*1.2)*SampleMaxw1D(1);
+	vel[1] = (v_th*1.2)*SampleMaxw1D(1);
+	vel[2] = (v_th*1.2)*SampleMaxw1D(1);
+	
 	return vel;	
     }
     

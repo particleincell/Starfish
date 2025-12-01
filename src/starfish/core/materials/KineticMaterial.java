@@ -29,7 +29,7 @@ import starfish.core.domain.Mesh.Node;
 import starfish.core.domain.UniformMesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.MaterialsModule.MaterialParser;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.Mesh.DomainBoundaryType;
 
 /** definition of particle-based material */
@@ -246,7 +246,7 @@ public class KineticMaterial extends Material {
 		/* add up totals */
 		if (!particle_transfer) {
 			mass_sum = 0;
-			Vector.set(momentum_sum, 0);
+			Vec.set(momentum_sum, 0);
 			energy_sum = 0;
 
 			for (ParticleMover mover : movers) {
@@ -291,7 +291,7 @@ public class KineticMaterial extends Material {
 			this.particle_transfer = particle_transfer;
 			this.km = km;
 			N_sum = 0; // clear sums
-			Vector.set(P_sum, 0);
+			Vec.set(P_sum, 0);
 			E_sum = 0;
 		}
 
@@ -409,7 +409,7 @@ public class KineticMaterial extends Material {
 					P_sum[0] += part.mpw * part.vel[0];
 					P_sum[1] += part.mpw * part.vel[1];
 					P_sum[2] += part.mpw * part.vel[2];
-					E_sum += part.mpw * Vector.mag3(part.vel);
+					E_sum += part.mpw * Vec.mag3(part.vel);
 				}
 
 				//add the particle to the main population if it is in the particle_transfer list
@@ -538,7 +538,7 @@ public class KineticMaterial extends Material {
 				 * skip over particles that collide with surface at the beginning of their time
 				 * step, as long as they are moving away from the surface
 				 */
-				double acos = Vector.dot2(seg.normal(t[0]), part.vel) / Vector.mag2(part.vel);
+				double acos = Vec.dot2(seg.normal(t[0]), part.vel) / Vec.mag2(part.vel);
 				if (t_part < Constants.FLT_EPS && // ignore direction for virtual walls since particles can pass through
 						(acos > 0 || seg.getBoundaryType() == BoundaryType.VIRTUAL))
 					continue;
@@ -692,7 +692,7 @@ public class KineticMaterial extends Material {
 			case SYMMETRY:
 				/* grab normal vector */
 				double n[] = mesh.faceNormal(exit_face, part.pos);
-				part.vel = Vector.mirror(part.vel, n);
+				part.vel = Vec.mirror(part.vel, n);
 				return true;
 			case PERIODIC: /* TODO: implemented only for single mesh */
 				UniformMesh um = (UniformMesh) mesh;
@@ -727,7 +727,7 @@ public class KineticMaterial extends Material {
 				double T = 1 * Constants.EVtoK;
 				double vth = Math.sqrt(2 * Constants.K * T / mass);
 				double phi_b = Starfish.domain_module.getPhi(mesh).gather(part.lc);
-				double v = Vector.mag3(part.vel);
+				double v = Vec.mag3(part.vel);
 				double KE = 0.5 * mass * v * v;
 				double PE = Constants.QE * (phi_b - 0);
 				// if (Vector.mag3(part.vel)<=vth)
@@ -737,7 +737,7 @@ public class KineticMaterial extends Material {
 					Starfish.source_module.boundary_charge += part.mpw * charge;
 					return false;
 				} else {
-					part.vel = Vector.mult(part.vel, -1); // flip
+					part.vel = Vec.mult(part.vel, -1); // flip
 					return true;
 				}
 
@@ -874,13 +874,13 @@ public class KineticMaterial extends Material {
 		}
 
 		/* v prime */
-		double v_minus_cross_t[] = Vector.CrossProduct3(v_minus, t);
+		double v_minus_cross_t[] = Vec.CrossProduct3(v_minus, t);
 		for (dim = 0; dim < 3; dim++) {
 			v_prime[dim] = v_minus[dim] + v_minus_cross_t[dim];
 		}
 
 		/* v plus */
-		double v_prime_cross_s[] = Vector.CrossProduct3(v_prime, s);
+		double v_prime_cross_s[] = Vec.CrossProduct3(v_prime, s);
 		for (dim = 0; dim < 3; dim++) {
 			v_plus[dim] = v_minus[dim] + v_prime_cross_s[dim];
 		}
@@ -1354,7 +1354,7 @@ public class KineticMaterial extends Material {
 		 * @param part
 		 */
 		public void addParticle(Particle part) {
-			if (!Vector.isFinite(part.vel)) {
+			if (!Vec.isFinite(part.vel)) {
 				/* not sure why this can happen sometimes... */
 				Log.warning("Infinite vel");
 				return;

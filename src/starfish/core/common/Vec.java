@@ -12,7 +12,7 @@ import java.util.Arrays;
 import starfish.core.domain.Mesh;
 
 /**classes for performing vector math*/
-public class Vector 
+public class Vec 
 {
     /** computes v1 = v1-v
      * @param v1
@@ -407,14 +407,14 @@ public class Vector
     {
 	/*compute tangential component*/
 	double t_mag = dot(vec,r);
-	double t[] = Vector.mult(r, t_mag);
+	double t[] = Vec.mult(r, t_mag);
 	
 	/*normal component*/
-	double n[] = Vector.subtract(vec, t);
+	double n[] = Vec.subtract(vec, t);
 	
 	/*reflect tangential component and reassemble*/
-	t = Vector.mult(t, -1);
-	return Vector.add(t, n);
+	t = Vec.mult(t, -1);
+	return Vec.add(t, n);
     }
 
     /*rotates vector by the given angle about the third axis

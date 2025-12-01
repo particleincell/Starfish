@@ -25,7 +25,7 @@ import starfish.interactions.InteractionsModule;
 import starfish.interactions.Sigma;
 import starfish.interactions.VolumeInteraction;
 import starfish.interactions.InteractionsModule.InteractionFactory;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 
 /**
  * Simple implementation of Bird's NTC scheme. Currently uses the same mesh as the rest of the simulation.
@@ -385,7 +385,7 @@ public class DSMC extends VolumeInteraction
 	    for (int i=0;i<3;i++)
 	    	g[i] = part1.vel[i]-part2.vel[i];
 	    
-	    double g_mag=Vector.mag3(g);
+	    double g_mag=Vec.mag3(g);
 	
 	    /*velocity of the center of mass*/
 	    for (int i=0;i<3;i++)

@@ -7,8 +7,7 @@
 
 package starfish.core.domain;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import starfish.core.boundaries.Boundary;
 import starfish.core.boundaries.Boundary.BoundaryType;
@@ -18,8 +17,9 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.DomainModule.DomainType;
+import starfish.core.io.VTKWriter;
 
 /** abstract implementation of a mesh with a structured topology */
 public abstract class Mesh {
@@ -74,6 +74,22 @@ public abstract class Mesh {
 			setMeshNeighbors();
 	}
 
+	public void update() { /* do nothing */ }
+	
+
+	/** returns extension with the leading dot for this mesh type*/
+	public abstract String getVTKExtension();
+	
+	/** writes opening tags specifying mesh topology
+	 * 
+	 * @param file_name output file name without the extension
+	 * @return the associated print writer and the full file name (with the extension)
+	 */
+	public abstract void startVTKFile(PrintWriter pw, String endianess, VTKWriter writer);
+	
+	/** writes closing tags but does not close the file to allow writing out appended data */
+	public abstract void endVTKFile(PrintWriter pw);
+	
 	/*
 	 * mesh index corresponds to the DomainModule list, meshes not in the main
 	 * mesh_list will have duplicate index
@@ -1388,22 +1404,22 @@ public abstract class Mesh {
 					if (i > 0 && okToCopy(i - 1, j)) {
 						node[i][j].type = node[i - 1][j].type;
 						node[i][j].bc_value = node[i - 1][j].bc_value;
-						node[i][j].mag_M = Vector.copy(node[i - 1][j].mag_M);
+						node[i][j].mag_M = Vec.copy(node[i - 1][j].mag_M);
 						copied = true;
 					} else if (i < ni - 1 && okToCopy(i + 1, j)) {
 						node[i][j].type = node[i + 1][j].type;
 						node[i][j].bc_value = node[i + 1][j].bc_value;
-						node[i][j].mag_M = Vector.copy(node[i + 1][j].mag_M);						
+						node[i][j].mag_M = Vec.copy(node[i + 1][j].mag_M);						
 						copied = true;
 					} else if (j > 0 && okToCopy(i, j - 1)) {
 						node[i][j].type = node[i][j - 1].type;
 						node[i][j].bc_value = node[i][j - 1].bc_value;
-						node[i][j].mag_M = Vector.copy(node[i][j - 1].mag_M);
+						node[i][j].mag_M = Vec.copy(node[i][j - 1].mag_M);
 						copied = true;
 					} else if (j < nj - 1 && okToCopy(i, j + 1)) {
 						node[i][j].type = node[i][j + 1].type;
 						node[i][j].bc_value = node[i][j + 1].bc_value;
-						node[i][j].mag_M = Vector.copy(node[i][j + 1].mag_M);						
+						node[i][j].mag_M = Vec.copy(node[i][j + 1].mag_M);						
 						copied = true;
 					}
 					

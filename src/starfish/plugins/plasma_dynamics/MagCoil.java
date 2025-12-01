@@ -5,7 +5,7 @@
  */
 package starfish.plugins.plasma_dynamics;
 
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 
 public class MagCoil {
 
@@ -61,8 +61,8 @@ public class MagCoil {
 	            double dipole_moment = j*(h*h*h*h)*coil_centers[n][0]*coil_centers[n][0]*Math.PI;
 	            double mag_moment[] = {0,dipole_moment,0};
 	            double dist[] = {Math.abs(Nr-coil_centers[n][0])*h,Math.abs(coil_centers[n][1]-z)*h,0};
-	            double dist_mag = Vector.norm(dist);
-	            A[Nr-1][z-1] = Vector.norm(Vector.mult(mu/(4*Math.PI*dist_mag*dist_mag*dist_mag),Vector.cross(mag_moment,dist))) + A[Nr-1][z-1];
+	            double dist_mag = Vec.norm(dist);
+	            A[Nr-1][z-1] = Vec.norm(Vec.mult(mu/(4*Math.PI*dist_mag*dist_mag*dist_mag),Vec.cross(mag_moment,dist))) + A[Nr-1][z-1];
 	        }
 
 	    // Boundry conditions parallel to r
@@ -71,11 +71,11 @@ public class MagCoil {
 	            double dipole_moment = j*(h*h*h*h)*(coil_centers[n][0]*coil_centers[n][0])*Math.PI;
 	            double mag_moment[] = {0,dipole_moment,0};
 	            double dist[] = {Math.abs((r+1)-coil_centers[n][0])*h,Math.abs(coil_centers[n][1]-1)*h,0};
-	            double dist_mag = Vector.norm(dist);
-	            A[r][0] = Vector.norm(Vector.mult(mu/(4*Math.PI*dist_mag*dist_mag*dist_mag),Vector.cross(mag_moment,dist))) + A[r][0];
+	            double dist_mag = Vec.norm(dist);
+	            A[r][0] = Vec.norm(Vec.mult(mu/(4*Math.PI*dist_mag*dist_mag*dist_mag),Vec.cross(mag_moment,dist))) + A[r][0];
 	            double dist2[] = {dist[0],Math.abs(Nz-coil_centers[n][1])*h,0};
-	            double dist_mag_b = Vector.norm(dist);
-	            A[r][Nz-1] = Vector.norm(Vector.mult(mu/(4*Math.PI*dist_mag_b*dist_mag_b*dist_mag_b),Vector.CrossProduct3(mag_moment,dist2))) + A[r][Nz-1];
+	            double dist_mag_b = Vec.norm(dist);
+	            A[r][Nz-1] = Vec.norm(Vec.mult(mu/(4*Math.PI*dist_mag_b*dist_mag_b*dist_mag_b),Vec.CrossProduct3(mag_moment,dist2))) + A[r][Nz-1];
 	        }
 	    }
 	    

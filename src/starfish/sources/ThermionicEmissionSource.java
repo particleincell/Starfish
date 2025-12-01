@@ -14,7 +14,7 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.Mesh;
 import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
@@ -98,7 +98,7 @@ public class ThermionicEmissionSource extends Source
 	{    
 	    part.vel = Utils.diffuseReflVel(v_mag, normal,tang);
 
-	} while (Vector.dot2(normal, part.vel) <= 0);
+	} while (Vec.dot2(normal, part.vel) <= 0);
 	
 	part.dt=Starfish.rnd()*Starfish.getDt();
 	num_mp--;
@@ -136,7 +136,7 @@ public class ThermionicEmissionSource extends Source
     	
 	    /*magnitude of normal electric field at the surface*/
 	    double qe = source_mat.charge/Constants.QE;	//this is the charge in terms of electron units
-	    double E_mag = qe*Vector.dot(normal_x0, ef);	
+	    double E_mag = qe*Vec.dot(normal_x0, ef);	
 	    
 	    DW = Math.sqrt(Constants.QE*Constants.QE*Constants.QE*Math.abs(E_mag)/(4*Constants.PI*Constants.EPS0));
 	    if (E_mag<0) DW = 0;	//if retarding potential forms

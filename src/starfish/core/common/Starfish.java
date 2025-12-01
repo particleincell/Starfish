@@ -92,6 +92,9 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 			/* update boundary spline temperatures and values */
 			boundary_module.updateBoundaries();
 
+			// update domains, this is at the moment just a hook to run AMR
+			domain_module.updateDomains();
+			
 			/* add new particles */
 			source_module.sampleSources();
 
@@ -191,73 +194,19 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 
 
 	public static Options options;
-	
-	/**
-	 *
-	 */
-
 	public static NoteModule note;
-
-	/**
-	 *
-	 */
 	public static DomainModule domain_module;
-
-	/**
-	 *
-	 */
 	public static BoundaryModule boundary_module;
-
-	/**
-	 *
-	 */
 	public static SourceModule source_module;
-
-	/**
-	 *
-	 */
 	public static SolverModule solver_module;
-
-	/**
-	 *
-	 */
 	public static OutputModule output_module;
-
-	/**
-	 *
-	 */
 	public static TimeModule time_module;
-
-	/**
-	 *
-	 */
 	public static MaterialsModule materials_module;
-
-	/**
-	 *
-	 */
 	public static InteractionsModule interactions_module;
-
-	/**
-	 *
-	 */
 	public static RestartModule restart_module;
-
-	/**
-	 *
-	 */
 	public static LoggerModule logger_module;
-
-	/**
-	 *
-	 */
 	public static ParticleTraceModule particle_trace_module;
-
-	/**
-	 *
-	 */
 	public static StatsModule stats_module;
-
 	public static DiagnosticsModule diagnostics_module;
 
 	public static SimulationRunner parent_simulation_runner;
@@ -304,8 +253,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	static public double rndInc() {
 		double val = 1.0000001*random.nextDouble();
 		if (val>1.0) val=1.0;
-		return val;
-		
+		return val;		
 	} // [0,1)
 
 	
@@ -347,7 +295,7 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	}
 
 	/* code version */
-	public static String VERSION = "v0.25";
+	public static String VERSION = "v0.26";
 
 	/**
 	 *
@@ -361,7 +309,6 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	 * @param name
 	 * @return
 	 */
-
 	public static FieldCollection2D getFieldCollection(String name) {
 		return domain_module.getFieldCollection(name);
 	}
@@ -443,34 +390,18 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 			return null;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	public static ArrayList<Material> getMaterialsList() {
 		return materials_module.getMaterialsList();
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	public static ArrayList<VolumeInteraction> getInteractionsList() {
 		return interactions_module.getInteractionsList();
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	public static double getDt() {
 		return time_module.getDt();
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	public static int getIt() {
 		return time_module.getIt();
 	}

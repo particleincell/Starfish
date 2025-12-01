@@ -188,7 +188,7 @@ public abstract class Sigma
 	    
 	    /*convert to eV as needed*/
 	    if (dep_var_energy)
-		x=0.5*mass*g*g/Constants.QE;
+	    	x=0.5*mass*g*g/Constants.QE;
 		
 	    return table.eval(x);
 	}

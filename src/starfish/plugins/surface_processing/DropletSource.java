@@ -17,7 +17,7 @@ import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
 import starfish.core.materials.Material;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.common.Starfish.Log;
 import starfish.core.source.Source;
 import starfish.core.source.SourceModule;
@@ -100,7 +100,7 @@ public class DropletSource extends Source
 		    part.vel[2] = v_max[2];
 		    
 		    part.dt=Starfish.rnd()*Starfish.getDt();
-		} while (Vector.dot2(n, part.vel) <= 0);
+		} while (Vec.dot2(n, part.vel) <= 0);
 	
 		//pick random size
 		part.radius = 0.5*(diam_range[0]+Starfish.rnd()*(diam_range[1]-diam_range[0]));

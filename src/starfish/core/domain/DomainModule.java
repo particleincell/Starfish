@@ -21,31 +21,16 @@ import starfish.core.materials.Material;
 /** Module for generating 2D field meshes */
 public class DomainModule extends CommandModule {
 
-	/**
-	 *
-	 * @return
-	 */
 	public DomainType getDomainType() {
 		return domain_type;
 	}
 
-	/**
-	 *
-	 */
-	static public enum DomainType {
-		XY, RZ, ZR
-	};
+	static public enum DomainType {XY, RZ, ZR};
 
 	DomainType domain_type;
 
-	/**
-	 *
-	 */
 	protected ArrayList<Mesh> mesh_list = new ArrayList<Mesh>();
 
-	/**
-	 *
-	 */
 	protected FieldManager2D field_manager;
 
 	/**
@@ -66,10 +51,6 @@ public class DomainModule extends CommandModule {
 		return field_manager;
 	}
 
-	/*
-	 * TODO: clean up this mess, maybe a separate field manager module to check
-	 * across materials
-	 */
 	/**
 	 * returns appropriate field, smart check for species and average value
 	 * 
@@ -134,12 +115,20 @@ public class DomainModule extends CommandModule {
 
 		return null;
 	}
-
+	
 	/**
-	 * returns the first mesh with the given nam
+	 * hook to update domain definition, mostly used by AMR
+	 */
+	public void updateDomains() {
+		for (Mesh mesh:mesh_list)
+			mesh.update();
+		
+	}
+	/**
+	 * returns the first mesh with the given name
 	 * 
 	 * @param name
-	 * @return e
+	 * @return mesh
 	 */
 	public Mesh getMesh(String name) {
 		for (Mesh mesh : mesh_list)
@@ -215,7 +204,12 @@ public class DomainModule extends CommandModule {
 			/* create new uniform mesh */
 			mesh = new EllipticMesh(nn, element, name, domain_type);
 			addMesh(mesh);
-		} else
+		} else if (type.equalsIgnoreCase("AMR")) {
+			// creates a new AMR mesh
+			mesh = new AMRMesh(nn, element, name, domain_type);
+			addMesh(mesh);
+		}
+		else
 			Log.error("Unrecognized mesh type " + type);
 
 		/* check for mesh boundary conditions and set if given */

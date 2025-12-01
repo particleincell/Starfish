@@ -8,7 +8,7 @@
 package starfish.core.boundaries;
 
 import starfish.core.common.Starfish;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.DomainModule.DomainType;
 
 /**Cubic segment given by the cubic Bezier spline*/
@@ -158,7 +158,7 @@ class CubicSegment extends Segment
 	
 	for (double t=0;t<=1.0;t+=0.1)
 	{
-	    double dist = Vector.dist2(xp, pos(t));
+	    double dist = Vec.dist2(xp, pos(t));
 	    if (dist<min) {min=dist;s=t;}  
 	}
 	
@@ -204,7 +204,7 @@ class CubicSegment extends Segment
 	 * have another line */
 	if (s<1e-4) s=1e-4;
 	if (s>0.9999) s=0.9999;
-	dist = Vector.dist2(xp, pos(s));
+	dist = Vec.dist2(xp, pos(s));
 	it++;
 	} while (Math.abs(dprime/ddprime)>1e-3 && it<10);
 	

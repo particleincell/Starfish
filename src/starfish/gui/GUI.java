@@ -187,7 +187,7 @@ public class GUI extends JFrame {
         ImageIcon icon = new ImageIcon(GUI.class.getResource("/gui/starfish-100.png"));
         JOptionPane.showMessageDialog(gui,
                 "Starfish Plasma / Rarefied Gas Simulation Code " + Starfish.VERSION + "\n" +
-                        "(c) 2012-2019, Particle In Cell Consulting LLC\n" +
+                        "(c) 2012-2025, Particle In Cell Consulting LLC\n" +
                         "info@particleincell.com, www.particleincell.com", "About",
                 JOptionPane.INFORMATION_MESSAGE, icon);
     }

@@ -12,7 +12,7 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
@@ -70,7 +70,7 @@ public class VaporizationSource extends Source
 	    part.vel = Utils.diffuseReflVel(v_mag, normal,tang);
 
 	    part.dt=Starfish.rnd()*Starfish.getDt();
-	} while (Vector.dot2(normal, part.vel) <= 0);
+	} while (Vec.dot2(normal, part.vel) <= 0);
 
 	num_mp--;
 	

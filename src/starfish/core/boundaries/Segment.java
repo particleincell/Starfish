@@ -9,7 +9,7 @@ package starfish.core.boundaries;
 
 import starfish.core.boundaries.Boundary.BoundaryType;
 import starfish.core.domain.Mesh;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import static starfish.core.domain.Mesh.Face.RIGHT;
 import static starfish.core.domain.Mesh.Face.TOP;
 import static starfish.core.domain.Mesh.Face.LEFT;
@@ -229,7 +229,7 @@ public abstract class Segment {
 		r1[0] = x2[0] - x1[0];
 		r1[1] = x2[1] - x1[1];
 
-		double acos = Vector.dot2(r1, r2) / (Vector.mag2(r1) * Vector.mag2(r2));
+		double acos = Vec.dot2(r1, r2) / (Vec.mag2(r1) * Vec.mag2(r2));
 		if (acos < 0)
 			acos = -acos;
 
@@ -320,8 +320,8 @@ public abstract class Segment {
 		
 		for (int i=0;i<num_steps;i++) {	
 			double b = 0.5*(c+a);
-			double dist_left = Vector.dist2(x, pos(0.5*(a+b)));
-			double dist_right = Vector.dist2(x, pos(0.5*(b+c)));
+			double dist_left = Vec.dist2(x, pos(0.5*(a+b)));
+			double dist_right = Vec.dist2(x, pos(0.5*(b+c)));
 			if (dist_left<dist_right) {t=0.5*(a+b);c=a;}
 			else {t=0.5*(b+c);a=b;	}
 		}

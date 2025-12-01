@@ -74,15 +74,16 @@ public abstract class Writer {
 	protected PrintWriter open(String file_name) {
 		return openAbsolutePath(Starfish.options.wd + file_name);
 	}
-	protected PrintWriter openAbsolutePath(String path) {
+	public PrintWriter openAbsolutePath(String path) {
 		PrintWriter pw = null;
+
 		try {
 			output_stream = new FileOutputStream(path);
 			pw = new PrintWriter(output_stream);
 		} catch (IOException ex) {
 			// see if the problem is a missing directory
 			try {
-				String pieces[] = this.splitFileName(path);
+				String pieces[] = splitFileName(path);
 				Files.createDirectories(Paths.get(pieces[2]));
 				output_stream = new FileOutputStream(path);
 				pw = new PrintWriter(output_stream);
@@ -418,7 +419,7 @@ public abstract class Writer {
 	 *         instance "results/field.vts" returns
 	 *         [results/field,.vts,results,field]
 	 */
-	protected String[] splitFileName(String name) {
+	protected static String[] splitFileName(String name) {
 		int p1, p2;
 
 		/* find the last back or forward slash */

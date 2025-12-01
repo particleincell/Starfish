@@ -9,7 +9,7 @@ package starfish.core.source;
 import java.util.ArrayList;
 import starfish.core.boundaries.Segment;
 import starfish.core.common.Starfish;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.KineticMaterial.Particle;
 import starfish.core.materials.Material;

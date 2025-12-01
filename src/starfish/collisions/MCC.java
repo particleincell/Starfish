@@ -14,7 +14,7 @@ import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.Field2D;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.Mesh;
@@ -186,7 +186,7 @@ public class MCC extends VolumeInteraction
 	
 		    double g_vec[] = new double[3];
 		    for (int i=0;i<3;i++) g_vec[i] = target_vel[i] - part.vel[i];				
-		    double g = Vector.mag3(g_vec);
+		    double g = Vec.mag3(g_vec);
 	
 		    /*collision probability*/
 		    /*TODO: implement multiple interactions*/
@@ -202,12 +202,12 @@ public class MCC extends VolumeInteraction
 		    virt_part.mass = target.mass;
 	
 		    /*save pre-collision energy*/
-		    double E1 = 0.5*source.mass*Vector.mag3(part.vel);
+		    double E1 = 0.5*source.mass*Vec.mag3(part.vel);
 		    /*otherwise, perform collision*/
 		    model.perform(part,virt_part, this, mesh);
 		    
 		    /*update target material energy term*/
-		    double E2 = 0.5*source.mass*Vector.mag3(part.vel);
+		    double E2 = 0.5*source.mass*Vec.mag3(part.vel);
 		    double vol = mesh.nodeVol(part.lc[0], part.lc[1]);
 		    /*compute power density rate J/m^3/s*/
 		    double dS = part.mpw*(E1-E2)/(dt*vol);	// J/s/m^3
@@ -257,7 +257,7 @@ public class MCC extends VolumeInteraction
 	    double g[] = new double[3];
 	    for (int i=0;i<3;i++)
 		g[i] = source.vel[i]-target.vel[i];
-	    double g_mag=Vector.mag3(g);
+	    double g_mag=Vec.mag3(g);
 	
 	    /*velocity of the center of mass*/
 	    for (int i=0;i<3;i++)
@@ -307,7 +307,7 @@ public class MCC extends VolumeInteraction
 		public void perform(Particle source, Particle target, MCC mcc, Mesh mesh) 
 		{
 		    /*reduce initial energy*/
-		    double e1 = 0.5*source.mass*Vector.dot3(source.vel,source.vel)/Constants.QE;
+		    double e1 = 0.5*source.mass*Vec.dot3(source.vel,source.vel)/Constants.QE;
 		    double e2 = e1 - mcc.target.ionization_energy;
 		    if (e2<0) return;	//sanity check, should not happen
 		    

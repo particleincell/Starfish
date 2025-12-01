@@ -18,7 +18,7 @@ import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
 import starfish.core.io.InputParser;
 import starfish.core.materials.Material;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.source.ParticleListSource;
 import starfish.interactions.MaterialInteraction.SurfaceImpactHandler;
@@ -71,14 +71,13 @@ public class SurfaceInteraction
      */
     public static SurfaceImpactHandler getSurfaceImpactModel(String handler_name)
     {
-	try {
-	    SurfaceImpactHandler handler = surface_model_factories.get(handler_name.toUpperCase());
-	    return handler;
-	}
-	catch (Exception e)
-	{
+/*		for (HashMap.Entry<String,SurfaceImpactHandler> e:surface_model_factories.entrySet()) {
+			System.out.println(e.getKey()  +" :: "+e.getValue());
+		}*/
+    	SurfaceImpactHandler handler = surface_model_factories.get(handler_name.toUpperCase());
+	    if (handler!=null) return handler;
+
 	    throw new NoSuchElementException("Unknown surface handler name "+handler_name);
-	}
     }
 	
     /** doesn't do anything - particles will pass*/
@@ -111,7 +110,7 @@ public class SurfaceInteraction
 			
 	    /*from geometry, v2/|v2| = n*sqrt(2) + v1/|v1|
 	    * since elastic, |v2|=|v1], and v2 = n*sqrt(2)*|v1| + v1;*/
-	    double mag = Vector.mag2(vel)*Constants.SQRT2;
+	    double mag = Vec.mag2(vel)*Constants.SQRT2;
 			
 	    vel[0] += n[0]*mag;
 	    vel[1] += n[1]*mag;
@@ -159,7 +158,7 @@ public class SurfaceInteraction
 	    Boundary boundary = segment.getBoundary();
 	
 	    /*magnitude of post-impact velocity due to coefficient of restitution*/
-	    double v_refl = Vector.mag3(vel)*mat_int.c_rest;
+	    double v_refl = Vec.mag3(vel)*mat_int.c_rest;
 	    
 	    /*magnitude due to thermal accomodation*/
 	    double v_diff = Utils.SampleMaxwSpeed(boundary.getVth(mat_int.product_mat));
@@ -189,10 +188,10 @@ public class SurfaceInteraction
 		for (int i = 0; i < count; i++)
 		{
 		    /*cosine emission*/		
-		    double dir_diff[] = Vector.lambertianVector(normal, tang);
+		    double dir_diff[] = Vec.lambertianVector(normal, tang);
 		    v_diff = Utils.SampleMaxwSpeed(boundary.getVth(mat_int.product_mat));
 		    v_mag = v_refl + mat_int.c_accom*(v_diff-v_refl);
-		    vel = Vector.mult(dir_diff,v_mag);
+		    vel = Vec.mult(dir_diff,v_mag);
 		    part_source.addParticle(new KineticMaterial.Particle(pos, vel, spwt_prod, mat_int.product_km_mat));
 		}		
 		return false;
@@ -203,7 +202,7 @@ public class SurfaceInteraction
 		//Utils.diffuseReflVel(vmp, segment.normal(t_int),segment.tangent(t_int));
 		
 		/*cosine emission*/		
-		double dir_diff[] = Vector.lambertianVector(segment.normal(t_int),segment.tangent(t_int));
+		double dir_diff[] = Vec.lambertianVector(segment.normal(t_int),segment.tangent(t_int));
 	 
 		for (int i=0;i<3;i++)
 		    vel[i]=v_mag*dir_diff[i];

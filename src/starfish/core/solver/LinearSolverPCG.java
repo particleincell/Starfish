@@ -8,7 +8,7 @@ package starfish.core.solver;
 
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.domain.DomainModule.DomainType;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.solver.Solver.LinearSolver;
@@ -38,7 +38,7 @@ public class LinearSolverPCG implements LinearSolver
 	    /*pcg needs a non-zero initial guess (otherwise diverges), 
 	      setting to b seems to do the trick   */
 	    if (first_time) 
-	    	md[m].x = Vector.copy(md[m].b);
+	    	md[m].x = Vec.copy(md[m].b);
 	    
 	    b[m]= md[m].b;
 	    x[m]= md[m].x;
@@ -49,9 +49,9 @@ public class LinearSolverPCG implements LinearSolver
 	    Mi[m] = M.inverse();	    //this is only defined for diagonal matrix
 	    
 	    /*initialize*/
-	    r[m] = Vector.subtract(b[m], A[m].mult(x[m]));  //r=b-Ax
+	    r[m] = Vec.subtract(b[m], A[m].mult(x[m]));  //r=b-Ax
 	    z[m] = Mi[m].mult(r[m]);	    // z = Mi*r
-	    p[m] = Vector.copy(z[m]);
+	    p[m] = Vec.copy(z[m]);
 	}
 	
 	first_time = false;
@@ -71,31 +71,31 @@ public class LinearSolverPCG implements LinearSolver
 	    {
 		
 		//compute the maximum norm accross the domains
-		double  norm_m = Vector.norm(r[m]);
+		double  norm_m = Vec.norm(r[m]);
 		if (norm_m>norm) norm = norm_m;
 		if (norm<tolerance) break;
 		
 		//alpha = dot(r,z) / dot(p,A*p)
-		double alpha = Vector.dot(r[m], z[m]) / 
-			       Vector.dot(p[m], A[m].mult(p[m]));
+		double alpha = Vec.dot(r[m], z[m]) / 
+			       Vec.dot(p[m], A[m].mult(p[m]));
 		
 		//x = x + alpha*p
-		Vector.addInclusive(x[m],Vector.mult(p[m], alpha));
+		Vec.addInclusive(x[m],Vec.mult(p[m], alpha));
 
 		//save dot(z,r) for later use
-		double zr_dot = Vector.dot(z[m],r[m]);
+		double zr_dot = Vec.dot(z[m],r[m]);
         
 		//r = r - alpha*(A*p)
-		Vector.subtractInclusive(r[m], Vector.mult(A[m].mult(p[m]),alpha));
+		Vec.subtractInclusive(r[m], Vec.mult(A[m].mult(p[m]),alpha));
 
 		//z = Mi*r
 		z[m] = Mi[m].mult(r[m]);
         
 		// beta = dot(z,r)/ dot(z[k-1],r[k-1]))
-		double beta = Vector.dot(z[m],r[m])/zr_dot;
+		double beta = Vec.dot(z[m],r[m])/zr_dot;
 		
 		// p = z + beta*p
-		p[m] = Vector.add(z[m], Vector.mult(p[m], beta));
+		p[m] = Vec.add(z[m], Vec.mult(p[m], beta));
 		
 	    }
 	    

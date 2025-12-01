@@ -9,7 +9,7 @@ import starfish.collisions.DSMC;
 import starfish.core.boundaries.Segment;
 import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
-import starfish.core.common.Vector;
+import starfish.core.common.Vec;
 import starfish.core.common.Starfish.Log;
 import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
@@ -108,7 +108,7 @@ public class Sputtering extends MaterialInteraction
 				
 		    /*from geometry, v2/|v2| = n*sqrt(2) + v1/|v1|
 		    * since elastic, |v2|=|v1], and v2 = n*sqrt(2)*|v1| + v1;*/
-		    double mag = Vector.mag2(vel)*Constants.SQRT2;
+		    double mag = Vec.mag2(vel)*Constants.SQRT2;
 				
 		    vel[0] += n[0]*mag;
 		    vel[1] += n[1]*mag;
