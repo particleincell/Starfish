@@ -56,7 +56,7 @@ public class AMRMesh extends Mesh
      */
     public AMRMesh (int nn[], Element element, String name, DomainType domain_type)
     {
-    	super(nn, name,domain_type);
+    	super(new int[]{nn[0]*nn[1],1}, name,domain_type);
 
 		String origin[] = InputParser.getList("origin", element);
 		String spacing[] = InputParser.getList("spacing", element);
@@ -111,7 +111,7 @@ public class AMRMesh extends Mesh
    }
    
    /** Creates the initial cartesian mesh*/
-   protected void constructMesh() {
+   protected void constructMesh(int ni0, int nj0) {
 	   nodes.ensureCapacity(ni*nj);
 	   for (int j=0;j<nj;j++)
 		   for (int i=0;i<ni;i++) {
@@ -125,7 +125,7 @@ public class AMRMesh extends Mesh
 			   
 			   cells.add(new AMRCell(n0, n0+1, n0+ni+1,n0+ni));
 		   }
-	   
+	   n_cells = cells.size();
 	   
    }
     

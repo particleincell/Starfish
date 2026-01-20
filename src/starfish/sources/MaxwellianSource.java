@@ -8,6 +8,7 @@ package starfish.sources;
 
 import org.w3c.dom.Element;
 import starfish.core.boundaries.Boundary;
+import starfish.core.common.Constants;
 import starfish.core.common.Starfish;
 import starfish.core.common.Utils;
 import starfish.core.domain.Mesh;
@@ -64,12 +65,14 @@ public class MaxwellianSource extends Source {
 		circuit_model = InputParser.getBoolean("circuit_model", element, false);
 
 		/* calculate density */
+		double v_mean = Math.sqrt(8*Constants.K*temp/(Constants.PI*source_mat.mass));
+		
 		double A = boundary.area();
 		if (den>0) {	// compute mdot if density specified
-			mdot0 = den*(A*v_drift*source_mat.getMass());
+			mdot0 = den*A*(v_drift+v_mean/4)*source_mat.getMass();
 		}
 		
-		den0 = mdot0 / (A * v_drift * source_mat.getMass());
+		den0 = mdot0 / (A * (v_drift+v_mean/4) * source_mat.getMass());
 		v_th = Utils.computeVth(temp, source_mat.getMass());
 		
 		Starfish.Log.log("Added MAXWELLIAN source '" + name + "'");

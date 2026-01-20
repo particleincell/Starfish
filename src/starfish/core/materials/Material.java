@@ -777,7 +777,7 @@ public abstract class Material
 
 	/*normal vector*/
 		double n[] = boundary.normal(spline_t);
-		double dot = Vec.dot(n, vel)/Vec.mag3(vel);	
+		double dot = -Vec.dot(n, vel)/Vec.mag3(vel);	 //positive for going in
 		flux_normal_collection.getField(boundary).scatter(spline_t, dot * spwt);
 	    }
 	

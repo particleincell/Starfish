@@ -1387,6 +1387,25 @@ public abstract class Mesh {
 	 */
 	protected void performFloodFill() {
 		
+		// first make sure we have some set nodes
+		boolean has_assigned=false;
+		out:
+		for (int i=0;i<ni;i++)
+			for (int j=0;j<nj;j++) {
+				if (node[i][j].type != NodeType.UNKNOWN) {
+					has_assigned =true;
+					break out;
+				}
+			}
+		
+		if (!has_assigned) {
+			Log.warning("No boundary-assigned nodes found, setting the entire mesh to OPEN");
+			for (int i=0;i<ni;i++)
+				for (int j=0;j<nj;j++) {
+					node[i][j].type = NodeType.OPEN;
+				}
+			return;
+		}
 		/*
 		 * perform flood fill, set some maximum number of passes to avoid infinite loops
 		 */
@@ -1445,7 +1464,7 @@ public abstract class Mesh {
 				}
 			}
 		if (count > 0)
-			Log.warning("Failed to set "+count+" nodes");
+			Log.warning("Failed to set "+count+" of "+(ni*nj)+" nodes");
 	}
 
 	/**
