@@ -94,7 +94,7 @@ public class AMRMesh extends Mesh
 		xd[0] = x0[0]+dh0[0]*(nn[0]-1);
 		xd[1] = x0[1]+dh0[1]*(nn[1]-1);
 		
-		constructMesh();
+		//constructMesh();
 				
 		/*log*/
 		Starfish.Log.log("Added AMR Mesh");

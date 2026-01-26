@@ -173,6 +173,7 @@ public class DomainModule extends CommandModule {
 		field_manager.add("efj", "V/m", null);
 		field_manager.add("bfi", "T", null);
 		field_manager.add("bfj", "T", null);
+		field_manager.add("t", "K", EvalTemp);
 		field_manager.add("p", "Pa", EvalPressure); // pressure
 	}
 
@@ -399,6 +400,10 @@ public class DomainModule extends CommandModule {
 		return field_manager.getFieldCollection("p");
 	}
 
+	public FieldCollection2D getTemperature() {
+		return field_manager.getFieldCollection("t");
+	}
+	
 	/* evaluates pressure */
 	MeshEvalFun EvalPressure = new MeshEvalFun() {
 		@Override
@@ -415,6 +420,32 @@ public class DomainModule extends CommandModule {
 							data[i][j] += pp[i][j];
 						}
 				}
+			}
+		}
+	};
+	
+	/* evaluates pressure */
+	MeshEvalFun EvalTemp = new MeshEvalFun() {
+		@Override
+		public void eval(FieldCollection2D fc) {
+			for (Mesh mesh : Starfish.getMeshList()) {
+				Field2D f = fc.getField(mesh);
+				f.clear();
+				double data[][] = f.getData();
+				double den_sum[][] = new double[mesh.ni][mesh.nj];
+
+				for (Material mat : Starfish.getMaterialsList()) {
+					double temp[][] = mat.getT(mesh).getData();
+					double den[][] = mat.getDen(mesh).getData();
+					for (int i = 0; i < mesh.ni; i++)
+						for (int j = 0; j < mesh.nj; j++) {
+							data[i][j] += temp[i][j]*den[i][j];
+							den_sum[i][j] += den[i][j];
+						}
+				}
+				for (int i=0;i<mesh.ni;i++)
+					for (int j=0;j<mesh.nj;j++) 
+						if (den_sum[i][j]>0) data[i][j]/=den_sum[i][j]; else data[i][j]=0;
 			}
 		}
 	};
