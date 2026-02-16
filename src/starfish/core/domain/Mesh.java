@@ -1263,11 +1263,15 @@ public abstract class Mesh {
 						/* node to bottom left */
 						double i2 = i - bsize;
 						double j2 = j - bsize;
+						
+						if (i2<0) i2=0;
+						if (j2<0) j2= 0;
 
 						double ncv_m[] = pos(i2, j2);
 
 						i2 = i + bsize;
 						j2 = j + bsize;
+						
 						double ncv_p[] = pos(i2, j2);
 
 						if (!segment.segmentInBox(ncv_m, ncv_p))

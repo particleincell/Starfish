@@ -193,6 +193,7 @@ public class AmbientSource extends Source
 		double TV_sum = 0;
 		double pV_total_sum = 0;
 		double pV_partial_sum = 0;
+		double V_total_sum = 0;
 		double V_sum = 0;
 		
 		for (int c=0;c<cells.size();c++)
@@ -208,18 +209,20 @@ public class AmbientSource extends Source
 		    /*compute partial pressure, total pressure, and average temperature*/	    	
 		    for (Material mat:Starfish.getMaterialsList())
 		    {
-		    	double den_cell = mat.getDenAve(cell.mesh).gather(lc);
+		    	double den_cell = mat.getDen(cell.mesh).gather(lc);
 				double T_cell = mat.getT(cell.mesh).gather(lc);
 				double p_cell = den_cell*Constants.K*T_cell;
 				
-				denV_sum += den_cell*cell.volume;
-				TV_sum += T_cell*cell.volume;
 				pV_total_sum += p_cell*cell.volume;
-				V_sum += cell.volume;
+				V_total_sum += cell.volume;
 				
 				if (mat==source_mat)
 				{
-				    pV_partial_sum += p_cell*cell.volume;		    
+				    pV_partial_sum += p_cell*cell.volume;	
+				    denV_sum += den_cell*cell.volume;
+					TV_sum += T_cell*cell.volume;
+					V_sum += cell.volume;
+					
 				}		
 		    }
 		}
@@ -227,7 +230,7 @@ public class AmbientSource extends Source
 		// compute average
 		double den_ave = denV_sum/V_sum;
 		double T_ave = TV_sum/V_sum;
-		double pressure_total_ave = pV_total_sum/V_sum;
+		double pressure_total_ave = pV_total_sum/V_total_sum;
 		double pressure_partial_ave = pV_partial_sum/V_sum;
 
 		double dn = 0;

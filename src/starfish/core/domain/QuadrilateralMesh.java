@@ -20,7 +20,7 @@ import starfish.core.io.VTKWriter;
  *
  * @author Lubos Brieda
  */
-public class QuadrilateralMesh extends Mesh
+public class QuadrilateralMesh extends StructuredMesh
 {
     /*variables*/
 

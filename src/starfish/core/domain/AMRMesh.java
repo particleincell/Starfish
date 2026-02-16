@@ -8,9 +8,15 @@
 package starfish.core.domain;
 
 import java.io.PrintWriter;
-import java.util.Vector;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.ArrayList;
+
 
 import org.w3c.dom.Element;
+
+import starfish.core.boundaries.Boundary;
+import starfish.core.boundaries.Segment;
 import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.DomainModule.DomainType;
@@ -22,10 +28,17 @@ class AMRNode {
 	public AMRNode(double x, double y) {pos = new double[]{x,y};}
 	
 }
-class AMRCell {
+
+// nodes are ordered counterclockwise n0->n1->n2->n3
+class AMRCell  {
 	int nodes[];
-	public AMRCell(int n0,int n1, int n2, int n3) {nodes = new int[] {n0,n1,n2,n3};}
+	public AMRCell(int n0,int n1, int n2, int n3, long z) {nodes = new int[] {n0,n1,n2,n3}; this.z=z;}
+	public AMRCell(long z) {this.z = z;}  // for comparison
+	
+	public long getZ() {return z;}
+	protected long z = 0;
 }
+
 
 /**
  *
@@ -34,12 +47,12 @@ class AMRCell {
 public class AMRMesh extends Mesh
 {
     /*variables*/
-    protected int max_refinement = 2;  // maximum number of refinement levels
+    protected short max_refinement = 2;  // maximum number of refinement levels
     protected int skip = 10;          // number of time steps between updates
     protected int max_it = -1;         // maximum time step at which to run refinement
 	
-    protected Vector<AMRNode> nodes = new Vector<AMRNode>();
-    protected Vector<AMRCell> cells = new Vector<AMRCell>();
+    protected ArrayList<AMRNode> nodes = new ArrayList<AMRNode>();
+    protected ArrayList<AMRCell> cells = new ArrayList<AMRCell>();
     
     protected double x0[] = new double[2];
     protected double xd[] = new double[2];
@@ -60,7 +73,7 @@ public class AMRMesh extends Mesh
 
 		String origin[] = InputParser.getList("origin", element);
 		String spacing[] = InputParser.getList("spacing", element);
-		max_refinement = InputParser.getInt("max_refinement", element, max_refinement);
+		max_refinement = (short)InputParser.getInt("max_refinement", element, max_refinement);
 		skip = InputParser.getInt("skip", element,skip);
 		max_it = InputParser.getInt("max_it", element, max_it);
 		
@@ -73,7 +86,7 @@ public class AMRMesh extends Mesh
 		xd[0] = x0[0]+dh0[0]*(nn[0]-1);
 		xd[1] = x0[1]+dh0[1]*(nn[1]-1);
 		
-		constructMesh();
+		constructMesh(nn[0], nn[1]);
 		
 		/*log*/
 		Starfish.Log.log("Added AMR Mesh");
@@ -94,7 +107,7 @@ public class AMRMesh extends Mesh
 		xd[0] = x0[0]+dh0[0]*(nn[0]-1);
 		xd[1] = x0[1]+dh0[1]*(nn[1]-1);
 		
-		//constructMesh();
+		constructMesh(nn[0], nn[1]);
 				
 		/*log*/
 		Starfish.Log.log("Added AMR Mesh");
@@ -112,33 +125,79 @@ public class AMRMesh extends Mesh
    
    /** Creates the initial cartesian mesh*/
    protected void constructMesh(int ni0, int nj0) {
-	   nodes.ensureCapacity(ni*nj);
-	   for (int j=0;j<nj;j++)
-		   for (int i=0;i<ni;i++) {
+	   nodes.ensureCapacity(ni0*nj0);
+	   for (int j=0;j<ni0;j++)
+		   for (int i=0;i<nj0;i++) {
 			   nodes.add(new AMRNode(x0[0]+i*dh0[0], x0[1]+j*dh0[1]));
 		   }
 	   
-	   cells.ensureCapacity((ni-1)*(nj-1));
-	   for (int j=0;j<nj-1;j++)
-		   for (int i=0;i<ni-1;i++) {
-			   int n0 = j*ni + i;
+	   cells.ensureCapacity((ni0-1)*(nj0-1));
+	   int mult = (1<<max_refinement);
+	   
+	   for (int j=0;j<nj0-1;j++)
+		   for (int i=0;i<ni0-1;i++) {
+			   int n0 = j*ni0 + i;
 			   
-			   cells.add(new AMRCell(n0, n0+1, n0+ni+1,n0+ni));
+			   int i_fine = (i*mult);
+			   int j_fine = (j*mult);
+			   long z = getZ(i_fine,j_fine);
+					   
+			   cells.add(new AMRCell(n0, n0+1, n0+ni0+1,n0+ni0, z));
 		   }
+	   
+	   Collections.sort(cells,Comparator.comparingLong(AMRCell::getZ));
+		
 	   n_cells = cells.size();
 	   
+	   /*long z_last = -1;
+	   for (int c=0;c<n_cells;c++) {
+		   long z = cells.get(c).getZ();
+		   if (z<=z_last) {
+			   System.err.printf("Z mismatch, z:%d, z_last:%d\n",z,z_last);
+		   }
+		   z_last = z;
+	   }
+	   
+	   System.out.println("done");
+	   */
    }
     
     @Override
     /*returns position*/
-    public double[] pos(double i, double j)
+    public double[] pos(double fi, double fj)
     {
-    //	if (j!=0) Log.error("Call to AMRMesh pos with nonzero j");
-    	return new double[] {0,0};	
-    	//TODO: implmeent
-    }
+    	if (fj<-1.1 || fj>1.1)  // the calling function uses 1.01 for limits
+    		Log.error("Call to AMRMesh pos with nonzero j");
+    	int ii = (int)fi;
+    	int jj = (int)fj;
+    	
+    	double di = fi - ii;
+    	double dj = fj - jj;
+    	
+    	int c = getCell(ii,jj);
+    	if (c<0 || c>= cells.size()) {
+        	c = getCell(ii,jj);
+    		Log.error("out of bounds");
+    	}
+    	
+    	AMRCell cell = cells.get(c);
+    	
+    	int n0 = cell.nodes[0];
+    	int n2 = cell.nodes[2];
+    	double x0[] = nodes.get(n0).pos;
+    	double xm[] = nodes.get(n2).pos;
+    	
+    	double dx = xm[0]-x0[0];
+    	double dy = xm[1]-x0[1];
+    	
+    	double pos[] = new double[2];
+    	pos[0] = x0[0] + di*dx;
+    	pos[1] = x0[1] + dj*dy;
+    	
+    	return pos;
+	}
 
-    /**
+    /** This function locates the cell index for a point contain d1 and d2
      *
      * @param d1
      * @param d2
@@ -147,12 +206,29 @@ public class AMRMesh extends Mesh
     @Override
     public double[] XtoL(double d1, double d2)
     {
-		double lc[] = new double[2];
+    	if (d1<x0[0] || d2<x0[1] || d1>=xd[0] || d2>=xd[1]) {
+    		return new double[] {-1.,-1.};
+    	}
+    	
+		int i = (int)((d1-x0[0])/dh0[0]);
+		int j = (int)((d2-x0[1])/dh0[1]);
 		
-		return lc;
-		//throw new UnsupportedOperationException("Not yet defined");
+		int index = getCell(i,j);
+		return new double[] {index,0};
     }
 
+    /** Returns cell containing the (i,j) coordinate on the finesh mesh
+     * 
+     * @return cell index
+     */
+    protected int getCell(int fine_i, int fine_j) {
+    	long z = getZ(fine_i,fine_j);
+		AMRCell cell_z=new AMRCell(z);
+		int index = Collections.binarySearch(cells,cell_z,Comparator.comparingLong(AMRCell::getZ));
+		return index;
+    }
+    
+    
     @Override
     public boolean containsPosStrict(double x[]) 
     {
@@ -240,5 +316,96 @@ public class AMRMesh extends Mesh
 		pw.println("</Piece>");
 		pw.println("</UnstructuredGrid>");
     }
+    
+    protected long getZ(int i, int j) {
+        long z = 0;
+        
+        int max_b = 15;
+        for (int b=0;b<max_b;b++) {
+        	int mask = 1<<b;
+        	z+=((i&mask)>0?1:0)<<(2*b);
+          	z+=((j&mask)>0?1:0)<<(2*b+1);
+        }
+    
+        /*
+         * testing
+         */
+        /*System.out.printf("i: ");
+        for (short b=(short)(max_b-1);b>=0;b--) {
+        	short mask = (short)(1<<b);
+        	int val = ((i&mask)>0)?1:0;
+        	System.out.printf("%d",val);  	
+        }
+        System.out.println();
+        System.out.printf("j: ");
+        for (short b=(short)(max_b-1);b>=0;b--) {
+        	short mask = (short)(1<<b);
+        	int val = ((j&mask)>0)?1:0;
+        	System.out.printf("%d",val); 	
+        }
+        System.out.println();
+        System.out.printf("z: ");
+        for (short b=(short)(2*max_b-1);b>=0;b--) {
+        	short mask = (short)(1<<b);
+        	int val = ((z&mask)>0)?1:0;
+        	System.out.printf("%d",val);        	
+        }
+        System.out.println();
+         */
+        
+        return z;
+    }
+    
+	/**
+	 * marks boundaries located in a volume centered about each node, implementation for AMR mesh
+	 * 
+	 * @param boundary_list
+	 */
+    @Override
+	protected void setNodeControlVolumes(ArrayList<Boundary> boundary_list) {
+		int i, j;
+
+		/* set node control volumes */
+		for (Boundary boundary : boundary_list) {
+			for (Segment segment : boundary.getSegments()) {
+				/* get spline range */
+				double box[][] = segment.getBox();
+
+				/* convert to logical coordinates */
+				double lc1[] = XtoL(box[0]);
+				double lc2[] = XtoL(box[1]);
+
+				int cell1 = (int)lc1[0];
+				int cell2 = (int)lc2[0];
+				
+				/* loop through all cells*/
+				for (int c=cell1;c<=cell2;c++)  {
+				
+					double cell_box[][] = getCellBox(c);
+					
+					if (!segment.segmentInBox(cell_box[0], cell_box[1]))
+						continue;
+
+						boolean found = false;
+
+						/* see if we already have this boundary */
+						for (Segment seg : node[i][j].segments) {
+							if (seg.getBoundary() == boundary && seg.id() == segment.id()) {
+								found = true;
+								break;
+							}
+						}
+
+						/* not found, add */
+						if (!found) {
+							if (node[i][j].segments == null)
+								node[i][j].segments = new ArrayList<>();
+							node[i][j].segments.add(segment);
+						}
+
+					} /* node loop */
+			} /* segment */
+		} /* boundary */
+	}
     
 }
