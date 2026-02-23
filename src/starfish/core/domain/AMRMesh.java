@@ -385,10 +385,10 @@ public class AMRMesh extends Mesh
 					
 					if (!segment.segmentInBox(cell_box[0], cell_box[1]))
 						continue;
-
+/*
 						boolean found = false;
 
-						/* see if we already have this boundary */
+						// see if we already have this boundary 
 						for (Segment seg : node[i][j].segments) {
 							if (seg.getBoundary() == boundary && seg.id() == segment.id()) {
 								found = true;
@@ -396,16 +396,22 @@ public class AMRMesh extends Mesh
 							}
 						}
 
-						/* not found, add */
+						// not found, add 
 						if (!found) {
 							if (node[i][j].segments == null)
 								node[i][j].segments = new ArrayList<>();
 							node[i][j].segments.add(segment);
 						}
-
+*/
 					} /* node loop */
 			} /* segment */
 		} /* boundary */
 	}
+    
+    /*TODO: implement*/
+    protected double[][] getCellBox(int c) {
+    	double box[][] = new double[2][];
+    	return box;
+    }
     
 }

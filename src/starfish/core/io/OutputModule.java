@@ -73,11 +73,11 @@ public class OutputModule extends CommandModule {
 
 		/* grab variables */
 		String variables[] = InputParser.getList("variables", element);
-		allVariables.addAll(List.of(variables));
+		allVariables.addAll(Arrays.asList(variables));
 		String scalars[] = InputParser.getList("scalars", element); // alternate name of variables
-		allScalars.addAll(List.of(scalars));
+		allScalars.addAll(Arrays.asList(scalars));
 		String cell_data[] = InputParser.getList("cell_data", element);
-		allCellData.addAll(List.of(cell_data));
+		allCellData.addAll(Arrays.asList(cell_data));
 		ArrayList<String[]> vectors = InputParser.getListOfPairs("vectors", element);
 		allVectors.addAll(vectors);
 
