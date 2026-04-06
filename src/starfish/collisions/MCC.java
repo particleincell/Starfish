@@ -93,6 +93,9 @@ public class MCC extends VolumeInteraction
 		fc_count_sum = Starfish.domain_module.getFieldManager().add("col-count-sum-"+tag, "#",null);
 		fc_count = Starfish.domain_module.getFieldManager().add("col-count-"+tag, "#",null);
 		fc_nu = Starfish.domain_module.getFieldManager().add("nu-"+tag, "#/s",null);
+		
+		Log.message("Added MCC interaction '"+tag+"' for "+source.name+" colliding against "+target.name);
+
     }
 		
     FieldCollection2D fc_count;	    	//number of collisions 

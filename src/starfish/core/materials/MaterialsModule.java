@@ -247,10 +247,11 @@ public class MaterialsModule extends CommandModule
     /**updates densities of all flying materials*/
     public void updateMaterials() 
     {
-	for (Material mat:materials_list)
-	    if (!mat.frozen) mat.update();	
+    	for (Material mat:materials_list)
+    		if (!mat.frozen) mat.update();	
 	
-	Starfish.domain_module.getPressure().eval();
+    	Starfish.domain_module.getPressure().eval();
+    	Starfish.domain_module.getTemperature().eval();
     }
 
     /**@return number of materials*/
