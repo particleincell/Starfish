@@ -47,6 +47,8 @@ public class Boundary extends Spline {
 	/** Dirichlet value associated with this boundary */
 	protected LinearList value_list;
 	protected double value;
+	protected double frequency = 0;
+	protected double phase = 0;
 
 	/** Magnetization data*/
 	protected double[] mag_M;
@@ -72,6 +74,10 @@ public class Boundary extends Spline {
 
 		/* b.c. */
 		value_list = InputParser.getLinearList("value", "time", element, 0);
+		
+		// sinusoidal variation, val = val*cos(2*pi*freq+phase)
+		frequency = InputParser.getDouble("frequency", element, 0.0);
+		phase = InputParser.getDouble("phase", element, 0.0);
 		
 		/*magnetization*/
 		mag_M = InputParser.getDoubleList("mag_M",element,new double[3]);
@@ -162,10 +168,18 @@ public class Boundary extends Spline {
 	 */
 	@Override
 	final boolean update() {
-		temp = temp_list.eval(Starfish.getTime());
+		double temp_old = temp;
 		double value_old = value;
-		value = value_list.eval(Starfish.getTime());
-		return !(value == value_old);
+		
+		double time = Starfish.getTime();
+		temp = temp_list.eval(time);
+		value = value_list.eval(time);
+		
+		if (frequency>0) {
+			value *= Math.cos(2*Math.PI*frequency*time+ phase);
+		}
+		
+		return !(value == value_old && temp == temp_old);
 	}
 
 	/** @return boundary temperature at current simulation time */
