@@ -165,6 +165,9 @@ public class MCC extends VolumeInteraction
 		
 		if (dn_target != null) 
 			target.deleteMass();
+		
+    	Log.log(String.format("MCC %s-%s collision count: %d",source.getName(),target.getName(),col_count));
+
     }
 
     /*performs collisions on a single mesh*/

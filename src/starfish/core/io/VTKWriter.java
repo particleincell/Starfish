@@ -813,9 +813,17 @@ public class VTKWriter extends Writer {
 		}
 		
 		DomainType dt = Starfish.getDomainType();
+		
+		String substr[] = splitFileName(fileName);  // split out the extension
+		// split out extension from the file name
+		String name = substr[0];
+		if (animation)
+			name += String.format("_%06d", Starfish.getIt());
 
-		PrintWriter pw = open(fileName);
-	    appendedData = new ByteArrayOutputStream();
+		String file_name = Starfish.options.wd + name + ".vtp";
+		PrintWriter pw = openAbsolutePath(file_name);
+
+		appendedData = new ByteArrayOutputStream();
 
 		pw.println("<?xml version=\"1.0\"?>");
 		pw.println("<VTKFile type=\"PolyData\"" + endianess + ">");
