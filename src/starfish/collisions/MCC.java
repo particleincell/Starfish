@@ -142,9 +142,10 @@ public class MCC extends VolumeInteraction
 		num_samples++;
 		
 		Log.debug("performing MCC");
+		int col_count = 0;
 		for (Mesh mesh:Starfish.getMeshList())
 		{
-		    perform(mesh);
+		    col_count += perform(mesh);
 		}
 		
 		/*update collision count - number of collisions per cell per call to perform*/
@@ -164,10 +165,13 @@ public class MCC extends VolumeInteraction
 		
 		if (dn_target != null) 
 			target.deleteMass();
+		
+    	Log.log(String.format("MCC %s-%s collision count: %d",source.getName(),target.getName(),col_count));
+
     }
 
     /*performs collisions on a single mesh*/
-    void perform(Mesh mesh)
+    int perform(Mesh mesh)
     {
     	Iterator<Particle> iterator = source.getIterator(mesh);
     	Field2D target_den = target.getDen(mesh);
@@ -176,6 +180,8 @@ public class MCC extends VolumeInteraction
     	Field2D count_sum = fc_count_sum.getField(mesh);
     	double dt = frequency*Starfish.getDt();
 	
+    	int col_count = 0;
+    	
 		//loop over particles
 		while (iterator.hasNext())
 		{
@@ -220,7 +226,9 @@ public class MCC extends VolumeInteraction
 		    int j = (int) part.lc[1];
 		    count_sum.add(i,j,1);	    //cell data
 		    real_sum.add(i,j,part.mpw);
-		}	
+		    col_count++;
+		}
+		return col_count;
     }
     
     /**
