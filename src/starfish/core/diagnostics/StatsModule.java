@@ -61,14 +61,14 @@ public class StatsModule extends CommandModule {
 		// write out sources
 		for (Boundary boundary : Starfish.getBoundaryList()) {
 			for (Source source : boundary.getSourceList()) {
-				pw.printf(",source.%s (kg/s)", source.getName());
-				pw.printf(",source.%s (A/m^2/s)", source.getName());
+				pw.printf(",\"source.%s (kg/s)\"", source.getName());
+				pw.printf(",\"source.%s (A/m^2/s)\"", source.getName());
 			}
 		}
 
 		for (Boundary boundary : Starfish.getBoundaryList()) {
 			for (Material mat : Starfish.getMaterialsList()) {
-				pw.printf(",flux.%s.%s (#/m^2/s)", boundary.getName(), mat.name);
+				pw.printf(",\"flux.%s.%s(#/m^2/s)\"", boundary.getName(), mat.name);
 			}
 		}
 

@@ -509,12 +509,12 @@ public class KineticMaterial extends Material {
 			for (int j = j_min; j <= j_max; j++) {
 				Node node = mesh.getNode(i, j);
 
-				for (Segment seg : node.segments)
+				for (Segment seg : node.segments) {
 					if (seg.getBoundaryType() == BoundaryType.DIRICHLET ||
-					// seg.getBoundaryType() == BoundaryType.VIRTUAL || /*9/2019 disabled virtual
-					// here, not sure why being added, causes particle leaks
-							seg.getBoundaryType() == BoundaryType.SINK)
+					    seg.getBoundaryType() == BoundaryType.VIRTUAL ||	
+					    seg.getBoundaryType() == BoundaryType.SINK)
 						segments.add(seg);
+				}
 			}
 
 		/* iterate over the segments and find the first one to be hit */
@@ -551,15 +551,17 @@ public class KineticMaterial extends Material {
 				}
 			}
 		}
-
-		/* TODO: 11/2018: why is virtual being added in the first place? */
-		if (seg_min != null && seg_min.getBoundaryType() == BoundaryType.VIRTUAL)
-			seg_min = null;
-
+	
 		/* perform intersection */
 		if (seg_min != null) {
+			
+			boolean is_virtual = seg_min.getBoundaryType()==BoundaryType.VIRTUAL;
+					
 			/* don't go all the way to the surface to avoid numerical errors */
-			tp_min *= 0.9999;
+			if (!is_virtual)
+				tp_min *= 0.9999;
+			else
+				tp_min *= 1.0001;  // to pass the boundary;
 
 			/* move to surface (almost) */
 			part.pos[0] = old[0] + tp_min * (part.pos[0] - old[0]);
@@ -581,10 +583,16 @@ public class KineticMaterial extends Material {
 			Material target_mat = boundary_hit.getMaterial(tsurf_min);
 			double boundary_t = seg_min.id() + tsurf_min;
 
-			/* perform surface interaction */
-			if (target_mat != null)
-				alive = target_mat.performSurfaceInteraction(part.vel, part.mpw, mat_index, seg_min, tsurf_min);
-
+			if (seg_min.getBoundaryType()==BoundaryType.VIRTUAL) {
+			  boundary_t = 1*boundary_t;
+			}
+			
+			if (seg_min.getBoundaryType()!=BoundaryType.VIRTUAL) {
+				/* perform surface interaction */
+				if (target_mat != null)
+					alive = target_mat.performSurfaceInteraction(part.vel, part.mpw, mat_index, seg_min, tsurf_min);
+			}
+			
 			// track boundary charge for use with the circuit model
 			if (!alive)
 				Starfish.source_module.boundary_charge += part.mpw * charge;

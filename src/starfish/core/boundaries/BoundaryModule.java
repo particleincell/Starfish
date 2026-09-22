@@ -112,6 +112,10 @@ public class BoundaryModule extends CommandModule {
 	@Override
 	public void process(Element element) {
 
+		// make sure that domain has been initialized first
+		if (Starfish.getDomainType()==null) 
+			Log.error("<domain> needs to be initialized before loading boundaries");
+		
 		// check for units
 		double def_scale = 1;
 		String units_name = InputParser.getValue("units", element, "m").toUpperCase();

@@ -97,6 +97,7 @@ public class BoltzmannElectronsMaterial extends Material
      * @param model
      */
     public void setElectronModel (ElectronModel model) {this.model=model;}
+    public void setElectronModelNone () {this.model=electronModelNone;}
     
     @Override
     public void updateFields() 

@@ -27,8 +27,8 @@ public class DomainModule extends CommandModule {
 
 	static public enum DomainType {XY, RZ, ZR};
 
-	DomainType domain_type;
-
+	DomainType domain_type = null;   // initialized to null to force loading domain before boundaries
+	
 	protected ArrayList<Mesh> mesh_list = new ArrayList<Mesh>();
 
 	protected FieldManager2D field_manager;

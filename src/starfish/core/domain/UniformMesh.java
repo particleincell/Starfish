@@ -22,7 +22,7 @@ import starfish.core.io.Writer;
  *
  * @author Lubos Brieda
  */
-public class UniformMesh extends StructuredMesh
+public class UniformMesh extends Mesh
 {
     /*variables*/
 

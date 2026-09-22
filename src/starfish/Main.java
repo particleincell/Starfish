@@ -30,12 +30,16 @@ package starfish;
 import starfish.collisions.CollisionsPlugin;
 import starfish.core.common.Options;
 import starfish.core.common.Plugin;
+import starfish.core.io.LoadFieldModule;
+import starfish.core.solver.SolverModule;
 import starfish.gui.GUI;
 import starfish.plugins.plasma_dynamics.PlasmaDynamicsPlugin;
 import starfish.plugins.surface_processing.SurfaceProcessingPlugin;
+import starfish.plugins.het.HETPlugin;
 
 import java.util.ArrayList;
 import java.util.Locale;
+
 
 /** Program start that allows the user to use a GUI */
 public class Main {
@@ -54,7 +58,8 @@ public class Main {
 		plugins.add(new CollisionsPlugin());
         plugins.add(new PlasmaDynamicsPlugin());
         plugins.add(new SurfaceProcessingPlugin());
-
+    	plugins.add(new HETPlugin());
+    	
 		/* command line settings */
 		Options options = new Options(args);
 

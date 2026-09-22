@@ -849,8 +849,8 @@ public class VTKWriter extends Writer {
 					}
 					else if (dt==DomainType.RZ) {
 						vec[a++] = x[0]*Math.cos(theta);
-						vec[a++] = x[0]*Math.sin(theta);
 						vec[a++] = x[1];
+						vec[a++] = x[0]*Math.sin(theta);
 					}
 					else if (dt==DomainType.ZR) {
 						vec[a++] = x[0];
@@ -936,8 +936,8 @@ public class VTKWriter extends Writer {
 					}
 					else if (dt==DomainType.RZ) {
 						vec_c[a++] = norm[0]*Math.cos(theta);
-						vec_c[a++] = norm[0]*Math.sin(theta);
 						vec_c[a++] = norm[1];
+						vec_c[a++] = norm[0]*Math.sin(theta);
 					}
 					else if (dt==DomainType.ZR) {
 						vec_c[a++] = norm[1]*Math.cos(theta);
