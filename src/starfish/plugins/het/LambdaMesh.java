@@ -19,6 +19,7 @@ import starfish.core.domain.FieldCollection2D;
 import starfish.core.domain.FieldManager2D;
 import starfish.core.domain.Mesh;
 import starfish.core.domain.Mesh.NodeType;
+import starfish.core.io.VTKWriter;
 import starfish.core.domain.QuadrilateralMesh;
 import starfish.core.materials.Material;
 
@@ -586,6 +587,10 @@ public class LambdaMesh
 	out2d.put("edge_axial_area",this.edge_axial_area);
 	out2d.put("node_volume",this.node_volume);
 	
-	mesh.save("lambda-mesh.vts",out2d, out1d);	
+	VTKWriter vtk_writer = new VTKWriter("lambda-mesh.vts", VTKWriter.OutputFormat.ASCII);
+	//vtk_writer.init
+	//vtk_writer.write();
+	
+	//mesh.save("lambda-mesh.vts",out2d, out1d);	
     }
 }

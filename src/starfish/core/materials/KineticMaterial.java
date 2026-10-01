@@ -511,6 +511,7 @@ public class KineticMaterial extends Material {
 
 				for (Segment seg : node.segments) {
 					if (seg.getBoundaryType() == BoundaryType.DIRICHLET ||
+						seg.getBoundaryType() == BoundaryType.INSULATOR ||
 					    seg.getBoundaryType() == BoundaryType.VIRTUAL ||	
 					    seg.getBoundaryType() == BoundaryType.SINK)
 						segments.add(seg);

@@ -9,8 +9,6 @@
  */
 package starfish.plugins.het;
 
-import starfish.plugins.het.IonizationFife;
-import starfish.plugins.het.Mobility;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;

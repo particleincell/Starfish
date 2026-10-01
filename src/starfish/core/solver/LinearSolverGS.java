@@ -141,7 +141,7 @@ public class LinearSolverGS implements LinearSolver
 	 	it--;
 		if (it >= max_it)
 		{
-		    Starfish.Log.warning(" !! GS failed to converge in " + it + " iteration, norm = " + norm);
+		    Starfish.Log.warning(" !! GS failed to converge in " + it + " iteration, norm = " + String.format("%.2e", norm));
 		}
 	
 		executor.shutdown();

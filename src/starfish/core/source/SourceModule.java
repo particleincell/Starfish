@@ -85,7 +85,7 @@ public class SourceModule extends CommandModule
 		NewVolumeSource(el);
 	    } else
 	    {
-		Log.warning("Unknown source type " + el.getNodeName());
+		Log.warning("Unknown element type <" + el.getNodeName()+">, expected one of <boundary_source>, <material_source>, or <volume_source>.");
 	    }
 	}
     }
@@ -164,13 +164,14 @@ public class SourceModule extends CommandModule
 
 	/*read material, spline, mdot, must be defined for all*/
 	Material material = null;
-
+	String mat_name = InputParser.getValue("material", element);
+	
 	try
 	{
-	    material = Starfish.getMaterial(InputParser.getValue("material", element));
+	    material = Starfish.getMaterial(mat_name);
 	} catch (NoSuchElementException e)
 	{
-	    Log.error("Unknown flying material for source " + name);
+	    Log.error("Unknown flying material '" + mat_name + "' for source " + name);
 	}
 
 	/*get boundary for boundary source*/
