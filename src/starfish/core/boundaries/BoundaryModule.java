@@ -157,7 +157,7 @@ public class BoundaryModule extends CommandModule {
 	}
 
 	/**
-	 * ads a new boundary
+	 * adds a new boundary
 	 *
 	 * @param element             Parent element for this boundary
 	 * @param G                   global transformation matrix

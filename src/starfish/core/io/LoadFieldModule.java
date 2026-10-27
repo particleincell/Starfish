@@ -23,6 +23,7 @@ public class LoadFieldModule extends CommandModule {
 		/* register readers */
 		registerReader("TECPLOT", TecplotReader.tecplotReaderFactory);
 		registerReader("TABLE", TableReader.tableReaderFactory);
+		registerReader("CSV", CSVReader.csvReaderFactory);		
 	}
 
 	/**

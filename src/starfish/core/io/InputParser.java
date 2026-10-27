@@ -222,13 +222,13 @@ public class InputParser implements Iterable {
 	 * @param element source element
 	 * @return string value of the key if found
 	 */
-	public static String getValue(String key, Element element) {
-		try {
+	public static String getValue(String key, Element element) throws NoSuchElementException {
+		//try {
 			return getValueInternal(key, element);
-		} catch (NoSuchElementException e) {
-			Log.error(e.getMessage());
-		}
-		return null; /* this will never happen */
+		//} catch (NoSuchElementException e) {
+		//	Log.error(e.getMessage());
+		//}
+		//return null; /* this will never happen */
 	}
 
 	/**
@@ -329,8 +329,11 @@ public class InputParser implements Iterable {
 	 */
 	public static int[] getIntList(String key, Element element, int[] default_value) {
 		try {
-			return InputParser.getIntList(key, element);
-		} catch (NoSuchElementException e) {
+			int list[] = getIntList(key, element);
+			if (list.length==0) return default_value;
+			else return list;
+		}
+		catch (NoSuchElementException e) {
 			return default_value;
 		}
 	}
@@ -381,8 +384,8 @@ public class InputParser implements Iterable {
 	 * @param element
 	 * @return
 	 */
-	public static String[] getList(String node_name, Element element) {
-		String text = getValue(node_name, element, "");
+	public static String[] getList(String node_name, Element element) throws NoSuchElementException {
+		String text = getValue(node_name, element,"");      // 10/2026: hack, should be throwing an exception
 		ArrayList<String> list = new ArrayList<String>();
 
 		StringTokenizer st = new StringTokenizer(text, ",");
@@ -453,13 +456,14 @@ public class InputParser implements Iterable {
 	 * @return
 	 */
 	public static double[] getDoubleList(String key, Element element, double[] default_value) {
-
-		double list[] = getDoubleList(key, element);
-
-		if (list.length == 0)
+		try {
+			double list[] = getDoubleList(key, element);
+			if (list.length==0) return default_value;
+			else return list;
+		}
+		catch (NoSuchElementException e) {
 			return default_value;
-
-		return list;
+		}
 	}
 
 	/**

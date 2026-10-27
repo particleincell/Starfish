@@ -47,7 +47,6 @@ public class QuadrilateralMesh extends Mesh
 
     /**
      *
-     * @param ni
      * @param nj
      * @param ipos
      * @param jpos
@@ -296,7 +295,7 @@ public class QuadrilateralMesh extends Mesh
 	
 		    /*this should never happen*/
 		    if (det<0)
-			Log.error("QuadrilateralMesh: Det < TOL, "+det);
+		    	Log.error("QuadrilateralMesh: Det < TOL, "+det);
 	
 		    /*check for linear case*/
 		    if (Math.abs(aa)>1e-12)
