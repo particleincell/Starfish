@@ -12,6 +12,7 @@ import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.common.Utils;
 import starfish.core.domain.DomainModule.DomainType;
+import starfish.core.domain.Shape;
 import starfish.core.io.InputParser;
 import starfish.core.materials.KineticMaterial;
 import starfish.core.materials.Material;
@@ -31,17 +32,7 @@ public class VolumeMaxwellianSource extends VolumeSource {
 	protected int mp_count = 0;
 	protected double density; 
 	
-	// shape information
-	enum Shape {
-		RECT, CIRCLE
-	};
-
 	Shape shape;
-	double x0[], x1[]; // for RECT
-	double radius; // for CIRCLE
-	double xc[]; // shape center, used for volume calculation
-	double volume;
-
 	/* constructor */
 
 	/**
@@ -78,133 +69,20 @@ public class VolumeMaxwellianSource extends VolumeSource {
 
 		v_th = Utils.computeVth(T, source_mat.getMass());
 
-		String shape_name = InputParser.getValue("shape", element);
-
-		xc = new double[2];
-
-		if (shape_name.equalsIgnoreCase("RECTANGLE") || shape_name.equalsIgnoreCase("RECT")) {
-			shape = Shape.RECT;
-			x0 = InputParser.getDoubleList("x0", element);
-			x1 = InputParser.getDoubleList("x1", element);
-			if (x0.length < 2 || x1.length < 2)
-				Log.error("x0/x1 need to specify two values");
-			xc[0] = x0[0] + 0.5 * (x1[0] - x0[0]);
-			xc[1] = x0[1] + 0.5 * (x1[1] - x0[1]);
-
-		} else if (shape_name.equalsIgnoreCase("CIRCLE")) {
-			shape = Shape.CIRCLE;
-			x0 = InputParser.getDoubleList("x0", element);
-			radius = InputParser.getDouble("radius", element);
-			if (x0.length < 2)
-				Log.error("x0 needs to specify two values");
-
-			xc[0] = x0[0];
-			xc[1] = x0[1];
-		} else
-			Log.error("Unrecognized shape " + shape_name);
-
-		volume = getVolume();
-				
+		shape = new Shape(InputParser.getChild("shape",element));
+		
 		/* log */
 		Starfish.Log.log("Added MAXWELLIAN_VOLUME source '" + name + "'");
 	}
 
 	protected boolean first_time = true;
 
-	// checks if the specified point is inside the shape
-	protected boolean inShape(double x[]) {
-		switch (shape) {
-		case RECT:
-			return (x[0] >= x0[0] && x[0] <= x1[0] && x[1] >= x0[1] && x[1] <= x1[1]);
-		case CIRCLE:
-			double dx = x[0] - x0[0];
-			double dy = x[1] - x0[1];
-			return (dx * dx + dy * dy) <= radius * radius;
-		default:
-			return false;
-		}
-	}
-
-	// samples random position in a rectangle
-	protected static double[] samplePosRect(double x1[], double x2[]) {
-		double pos[] = new double[2];
-
-		if (Starfish.getDomainType() == DomainType.XY) {
-			pos[0] = x1[0] + Starfish.rnd() * (x2[0] - x1[0]);
-			pos[1] = x1[1] + Starfish.rnd() * (x2[1] - x1[1]);
-		} else if (Starfish.getDomainType() == DomainType.RZ) {
-			double r1 = x1[0];  if (r1<0) r1=0;
-			double r2 = x2[0];
-			pos[0] = Math.sqrt(Starfish.rnd() * (r2 * r2 - r1 * r1) + r1 * r1);
-			pos[1] = x1[1] + Starfish.rnd() * (x2[1] - x1[1]);
-		} else if (Starfish.getDomainType() == DomainType.ZR) {
-			double r1 = x1[1];  if (r1<0) r1=0;
-			double r2 = x2[1];  
-			pos[0] = x1[0] + Starfish.rnd() * (x2[0] - x1[0]);
-			pos[1] = Math.sqrt(Starfish.rnd() * (r2 * r2 - r1 * r1) + r1 * r1);
-		} else
-			Log.error("Unsupported domain type");
-
-		return pos;
-
-	}
-
-	// samples random position in the shape
-	protected double[] samplePos() {
-		double pos[] = new double[2];
-
-		switch (shape) {
-		case RECT:
-			pos = samplePosRect(x0, x1);
-			break;
-		case CIRCLE:
-			
-			double theta =  Starfish.rnd()*2*Math.PI;
-			double r = Math.sqrt(Starfish.rnd())*radius;
-			pos[0] = x0[0]+Math.cos(theta)*r;
-			pos[1] = x0[1]+Math.sin(theta)*r;
-			break;
-		}
-		return pos;
-	}
-
-	/*
-	 * returns the shape volume TODO: this needs a correction for fluid sampling
-	 * since we end up sampling a sugarcubed region
-	 */
-	protected final double getVolume() {
-		double perim = 1;
-
-		if (Starfish.getDomainType() == DomainType.RZ)
-			perim = 2 * Math.PI * xc[0];
-		else if (Starfish.getDomainType() == DomainType.ZR)
-			perim = 2 * Math.PI * xc[1];
-
-		switch (shape) {
-		case RECT:
-			return (x1[0] - x0[0]) * (x1[1] - x0[1]) * perim;
-		case CIRCLE:
-			return Math.PI * radius * radius * perim;
-		default:
-			return 0;
-		}
-
-		// need something similar to below to compute volume for fluid material sampling
-		/*
-		 * if (first_time) { double vol=0; for (Mesh mesh:Starfish.getMeshList()) {
-		 * dn.getField(mesh).setValue(den0); getTemp(mesh).setValue(temp0);
-		 * 
-		 * for (int i=0;i<mesh.ni-1;i++) for (int j=0;j<mesh.nj-1;j++)
-		 * vol+=mesh.cellVol(i, j); }
-		 */
-	}
-
 	@Override
 	public void update() {
 		// update mdot if specifying density
 		if (density>0 && mdot0==0) {
 			if (end_it<0 || (end_it-start_it)<=0) Log.error("density can be specified only for a non-zero start_it:end_it interval");
-			double mass_gen = density*volume*source_mat.mass;   // total mass to generate
+			double mass_gen = density*shape.getVolume()*source_mat.mass;   // total mass to generate
 			mdot0 = mass_gen/(Starfish.getDt()*(end_it-start_it));
 			Log.log("Assigning mdot = "+String.format("%.3g", mdot0)+" (kg/s)");
 		}
@@ -243,7 +121,7 @@ public class VolumeMaxwellianSource extends VolumeSource {
 		KineticMaterial.Particle part = new KineticMaterial.Particle((KineticMaterial) source_mat);
 
 		/* position */
-		double pos[] = samplePos();
+		double pos[] = shape.samplePos();
 		part.pos[0] = pos[0];
 		part.pos[1] = pos[1];
 		

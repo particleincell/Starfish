@@ -20,29 +20,12 @@ import starfish.core.materials.Material;
 /** creates particles in the simulation volume */
 public class VolumeSource extends Source {
 
-	/**
-	 *
-	 */
 	protected FieldCollection2D dn; /* change in density */
 
-	/**
-	 *
-	 */
-	protected int i_sample,
+	protected int i_sample, j_sample; /* current sampling cell index */
 
-			/**
-			 *
-			 */
-			j_sample; /* current sampling cell index */
-
-	/**
-	 *
-	 */
 	protected Mesh sample_mesh;
 
-	/**
-	 *
-	 */
 	protected double num_rem; /* number of particles to sample in current cell */
 	public double spwt0;
 
