@@ -353,7 +353,11 @@ public final class Starfish extends CommandModule implements UncaughtExceptionHa
 	public static Material getMaterial(String name) {
 		return materials_module.getMaterial(name);
 	}
-
+	
+	public static ArrayList<Material> getMaterials(String name) {
+		return materials_module.getMaterials(name);
+	}
+	
 	/**
 	 * @param name
 	 * @return kinetic material given by the name or null if not found or material

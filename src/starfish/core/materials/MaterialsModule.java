@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.w3c.dom.Element;
 import starfish.core.boundaries.FieldCollection1D;
 import starfish.core.common.CommandModule;
@@ -19,6 +21,7 @@ import starfish.core.common.Starfish;
 import starfish.core.common.Starfish.Log;
 import starfish.core.domain.FieldCollection2D;
 import starfish.core.io.InputParser;
+
 
 /** definition of materials*/
 public class MaterialsModule extends CommandModule
@@ -47,12 +50,38 @@ public class MaterialsModule extends CommandModule
      * @return e*/
     public Material getMaterial(String name) throws NoSuchElementException
     {
-	for (Material mat:materials_list)
-	    if (name.equalsIgnoreCase(mat.name))
-		return mat;
+		for (Material mat:materials_list)
+			if (name.equalsIgnoreCase(mat.name))
+				return mat;
 		
-	throw new NoSuchElementException("could not find material "+name);
+		throw new NoSuchElementException("could not find material "+name);
     }
+    
+    /**
+     * Returns a list of materials that match a given regex string. 
+     * Wildcard * can be used instead of .* to match all.
+     * @param regex_pattern  pattern to match
+     * @return list of matching materials
+     * @throws NoSuchElementException
+     */
+    public ArrayList<Material> getMaterials(String regex_pattern) throws NoSuchElementException
+    {
+    	ArrayList<Material> materials = new ArrayList();
+    	
+	    Pattern pattern = Pattern.compile(regex_pattern, Pattern.CASE_INSENSITIVE);
+    	    	
+    	for (Material mat:materials_list) {
+    		Matcher matcher = pattern.matcher(mat.getName());
+    		if (regex_pattern =="*" || matcher.find())
+    			materials.add(mat);
+    	}
+	    
+    	if (materials.isEmpty())
+    		throw new NoSuchElementException("could not find materials matching "+regex_pattern);
+    	else return materials;
+    }
+    
+    
 	
     /**
      *
