@@ -5,6 +5,8 @@
 package starfish.plugins.het;
 
 import starfish.core.common.Plugin;
+import starfish.core.common.Starfish;
+import starfish.core.diagnostics.AveragingModule;
 import starfish.core.io.LoadFieldModule;
 import starfish.core.solver.SolverModule;
 
@@ -18,9 +20,14 @@ public class HETPlugin implements Plugin
     @Override
     public void register()
     {
-		// add solvers
+		
+    	// register new command
+    	Starfish.register("compute_lambda", new ComputeLambdaModule());
+    	
+    	// add solvers
 		SolverModule.registerSolver("TPM",TPMSolver.TPMSolverFactory);
 		SolverModule.registerSolver("HETFluid",FluidHETSolver.SolverFactory);
+		
 			
 		// add rate parsers
 		//RateParser.registerMathParser("fife",IonizationFife.MathParserFife);

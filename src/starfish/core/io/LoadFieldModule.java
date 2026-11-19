@@ -74,7 +74,7 @@ public class LoadFieldModule extends CommandModule {
 				Log.log("Added " + sim_vars[i]);
 			}
 	}
-
+	
 	@Override
 	public void start() {
 		/* nothing to do */

@@ -78,14 +78,14 @@ public class QNSolver extends PotentialSolver
 	@Override
 	public Solver makeSolver(Element element)
 	{
-	    double n0=InputParser.getDouble("n0", element);
+	    double den0=InputParser.getDouble("den0", element);
 	    double Te0=InputParser.getDouble("Te0", element);
 	    double phi0=InputParser.getDouble("phi0", element);
-	    Solver solver=new QNSolver(n0, phi0, Te0);
+	    Solver solver=new QNSolver(den0, phi0, Te0);
 
 	    /*log*/
 	    Starfish.Log.log("Added BOLTZMANN solver");
-	    Starfish.Log.log("> n0  =" + n0 + " (#/m^3)");
+	    Starfish.Log.log("> den0  =" + den0 + " (#/m^3)");
 	    Starfish.Log.log("> T0 =" + Te0 + " (eV)");
 	    Starfish.Log.log("> phi0 =" + phi0 + " (V)");
 	    

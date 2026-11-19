@@ -150,7 +150,7 @@ public class BoltzmannElectronsMaterial extends Material {
 	public static ElectronModel electronModelNone = new ElectronModel() {
 		@Override
 		public void update(Material material) {
-			/* do nothing */
+			material.getDenCollection().clear();   // needed so that nd_back does not cause density to keep growing
 		}
 	};
 
